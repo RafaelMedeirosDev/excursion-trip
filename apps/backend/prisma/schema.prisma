@@ -7,4 +7,297 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Models a definir junto com o usuario (ver secao 6 do plano de arquitetura).
+// ---------- Enums ----------
+
+enum Role {
+  ADM
+  EMPLOYEE
+}
+
+enum ExcursionStatus {
+  PLANNING
+  OPEN
+  CLOSED
+  DONE
+  CANCELED
+}
+
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  WAITLIST
+  CANCELED
+}
+
+enum PaymentType {
+  PAYMENT
+  REVERSAL
+}
+
+enum PaymentMethod {
+  PIX
+  CASH
+  CARD
+}
+
+enum ExpensesCategory {
+  FUEL
+  TOLL
+  FOOD
+  SUPPLIES
+  OTHER
+}
+
+// ---------- Models ----------
+
+model Organization {
+  id   String  @id @default(uuid())
+  name String
+  cnpj String? @unique
+
+  users     User[]
+  suppliers Supplier[]
+  customers Customer[]
+  events    Event[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+}
+
+model User {
+  id             String @id @default(uuid())
+  organizationId String
+
+  name     String
+  email    String
+  password String
+  phone    String
+  cpf      String
+  role     Role
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  excursions      Excursion[]
+  vehicleBookings VehicleBooking[]
+  reservations    Reservation[]
+  payments        Payment[]
+  expenses        Expense[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@unique([organizationId, email])
+  @@unique([organizationId, cpf])
+  @@index([organizationId])
+}
+
+model Supplier {
+  id             String  @id @default(uuid())
+  organizationId String
+  name           String
+  cnpj           String
+  address        String?
+  phone          String
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  vehicleBookings VehicleBooking[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@unique([organizationId, cnpj])
+  @@index([organizationId])
+}
+
+model Customer {
+  id             String  @id @default(uuid())
+  organizationId String
+  name           String
+  email          String?
+  phone          String
+  cpf            String
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  reservations Reservation[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@unique([organizationId, cpf])
+  @@index([organizationId])
+}
+
+model Event {
+  id             String   @id @default(uuid())
+  organizationId String
+  name           String
+  address        String
+  city           String
+  startDate      DateTime
+  endDate        DateTime
+  startTime      String
+  endTime        String
+
+  organization Organization @relation(fields: [organizationId], references: [id])
+
+  excursions Excursion[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([organizationId])
+}
+
+model Excursion {
+  id      String @id @default(uuid())
+  eventId String
+  userId  String
+
+  name          String
+  departureDate DateTime
+  returnDate    DateTime
+  startTime     String?
+  returnTime    String?
+  price         Decimal         @db.Decimal(10, 2)
+  status        ExcursionStatus @default(PLANNING)
+
+  event Event @relation(fields: [eventId], references: [id])
+  user  User  @relation(fields: [userId], references: [id])
+
+  vehicleBookings VehicleBooking[]
+  reservations    Reservation[]
+  expenses        Expense[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([eventId])
+  @@index([userId])
+}
+
+model VehicleBooking {
+  id          String @id @default(uuid())
+  supplierId  String
+  excursionId String
+  userId      String
+
+  vehicleType String
+  plate       String?
+  capacity    Int
+  value       Decimal @db.Decimal(10, 2)
+
+  supplier  Supplier  @relation(fields: [supplierId], references: [id])
+  excursion Excursion @relation(fields: [excursionId], references: [id])
+  user      User      @relation(fields: [userId], references: [id])
+
+  boardingPoints BoardingPoint[]
+  reservations   Reservation[]
+  expenses       Expense[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([supplierId])
+  @@index([excursionId])
+  @@index([userId])
+}
+
+model BoardingPoint {
+  id               String @id @default(uuid())
+  vehicleBookingId String
+
+  address String
+  time    String?
+  order   Int
+
+  vehicleBooking VehicleBooking @relation(fields: [vehicleBookingId], references: [id])
+
+  reservations Reservation[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([vehicleBookingId])
+}
+
+model Reservation {
+  id               String  @id @default(uuid())
+  excursionId      String
+  userId           String
+  customerId       String
+  vehicleBookingId String?
+  boardingPointId  String?
+
+  status       ReservationStatus @default(PENDING)
+  agreedValue  Decimal           @db.Decimal(10, 2)
+  canceledAt   DateTime?
+  cancelReason String?
+
+  excursion      Excursion       @relation(fields: [excursionId], references: [id])
+  user           User            @relation(fields: [userId], references: [id])
+  customer       Customer        @relation(fields: [customerId], references: [id])
+  vehicleBooking VehicleBooking? @relation(fields: [vehicleBookingId], references: [id])
+  boardingPoint  BoardingPoint?  @relation(fields: [boardingPointId], references: [id])
+
+  payments Payment[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([excursionId])
+  @@index([userId])
+  @@index([customerId])
+  @@index([vehicleBookingId])
+  @@index([boardingPointId])
+}
+
+model Payment {
+  id            String @id @default(uuid())
+  reservationId String
+  userId        String
+
+  type   PaymentType
+  value  Decimal       @db.Decimal(10, 2)
+  method PaymentMethod
+
+  reservation Reservation @relation(fields: [reservationId], references: [id])
+  user        User        @relation(fields: [userId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([reservationId])
+  @@index([userId])
+}
+
+model Expense {
+  id               String  @id @default(uuid())
+  vehicleBookingId String?
+  excursionId      String
+  userId           String
+
+  category    ExpensesCategory
+  value       Decimal          @db.Decimal(10, 2)
+  description String
+
+  vehicleBooking VehicleBooking? @relation(fields: [vehicleBookingId], references: [id])
+  excursion      Excursion       @relation(fields: [excursionId], references: [id])
+  user           User            @relation(fields: [userId], references: [id])
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  @@index([vehicleBookingId])
+  @@index([excursionId])
+  @@index([userId])
+}
