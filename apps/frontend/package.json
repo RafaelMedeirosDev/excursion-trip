@@ -1,0 +1,10 @@
+{
+  "name": "@excursion-trip/frontend",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "build": "echo \"frontend: framework ainda nao escolhido\" && exit 0",
+    "dev": "echo \"frontend: framework ainda nao escolhido\" && exit 0",
+    "lint": "echo \"frontend: framework ainda nao escolhido\" && exit 0"
+  }
+}
