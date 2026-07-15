@@ -5,14 +5,17 @@ import { PassportModule } from '@nestjs/passport';
 import { AuthController } from 'src/controller/AuthController';
 import { CustomerController } from 'src/controller/CustomerController';
 import { EventController } from 'src/controller/EventController';
+import { ExcursionController } from 'src/controller/ExcursionController';
 import { OrganizationController } from 'src/controller/OrganizationController';
 import { UserController } from 'src/controller/UserController';
 import { CustomerRepository } from 'src/domain/CustomerRepository';
 import { EventRepository } from 'src/domain/EventRepository';
+import { ExcursionRepository } from 'src/domain/ExcursionRepository';
 import { OrganizationRepository } from 'src/domain/OrganizationRepository';
 import { UserRepository } from 'src/domain/UserRepository';
 import { PrismaCustomerRepository } from 'src/external/repositories/remote/PrismaCustomerRepository';
 import { PrismaEventRepository } from 'src/external/repositories/remote/PrismaEventRepository';
+import { PrismaExcursionRepository } from 'src/external/repositories/remote/PrismaExcursionRepository';
 import { PrismaOrganizationRepository } from 'src/external/repositories/remote/PrismaOrganizationRepository';
 import { PrismaRemoteRepository } from 'src/external/repositories/remote/PrismaRemoteRepository';
 import { PrismaUserRepository } from 'src/external/repositories/remote/PrismaUserRepository';
@@ -20,6 +23,7 @@ import { JwtAuthGuard } from 'src/guards/JwtAuthGuard';
 import { RolesGuard } from 'src/guards/RolesGuard';
 import { CreateCustomerService } from 'src/service/CreateCustomerService';
 import { CreateEventService } from 'src/service/CreateEventService';
+import { CreateExcursionService } from 'src/service/CreateExcursionService';
 import { CreateOrganizationService } from 'src/service/CreateOrganizationService';
 import { CreateUserService } from 'src/service/CreateUserService';
 import { LoginService } from 'src/service/LoginService';
@@ -43,6 +47,7 @@ import { AppService } from './app.service';
     AuthController,
     CustomerController,
     EventController,
+    ExcursionController,
   ],
   providers: [
     AppService,
@@ -52,6 +57,7 @@ import { AppService } from './app.service';
     LoginService,
     CreateCustomerService,
     CreateEventService,
+    CreateExcursionService,
     JwtStrategy,
     JwtAuthGuard,
     RolesGuard,
@@ -70,6 +76,10 @@ import { AppService } from './app.service';
     {
       provide: EventRepository,
       useClass: PrismaEventRepository,
+    },
+    {
+      provide: ExcursionRepository,
+      useClass: PrismaExcursionRepository,
     },
   ],
 })
