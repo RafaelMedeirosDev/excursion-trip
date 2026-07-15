@@ -29,13 +29,15 @@ export class CreateUserService {
     cpf,
     role,
   }: Request): Promise<User> {
-    const alreadyExists = await this.userRepository.findByEmailOrCpf({
-      organizationId,
+    const emailAlreadyExists = await this.userRepository.findByEmail({
       email,
+    });
+    const cpfAlreadyExists = await this.userRepository.findByCpf({
+      organizationId,
       cpf,
     });
 
-    if (alreadyExists) {
+    if (emailAlreadyExists || cpfAlreadyExists) {
       throw new UserAlreadyExists();
     }
 

@@ -9,7 +9,7 @@ Duas partes: (1) o setup de autenticacao em si — feito **uma unica vez** (logi
 
 ## Pre-requisito
 
-Existe um model `User` no `schema.prisma` com pelo menos `email`, `passwordHash` e um campo de role usando o enum `Role` (`ADMIN`/`ORGANIZER`/`STAFF`), e existe `UserRepository` em `domain` (skill `domain`) com um metodo para buscar por email. Se isso ainda nao existir, sinalize a dependencia em vez de criar um stub.
+Existe um model `User` no `schema.prisma` com `email` (unico globalmente — nao por organizacao, senao o login fica ambiguo), `password` (guarda o hash, feito com `bcrypt`) e `role` usando o enum `Role` (`ADM`/`EMPLOYEE`), e existe `UserRepository` em `domain` (skill `domain`) com `findByEmail({ email })` (busca global, sem `organizationId`). Se isso ainda nao existir, sinalize a dependencia em vez de criar um stub. Isso ja existe no projeto (implementado junto com a feature de login) — nao recriar.
 
 ## Parte 1 — Setup (uma unica vez)
 
@@ -203,7 +203,7 @@ Controller — segue a skill `controller` (fino, so delega):
 
 ```ts
 // src/controller/AuthController.ts
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
 import { LoginService } from 'src/service/LoginService';
 import { LoginDTO } from 'src/shared/dtos/LoginDTO';
 
@@ -212,11 +212,16 @@ export class AuthController {
   constructor(private readonly loginService: LoginService) {}
 
   @Post('login')
-  login(@Body() { email, password }: LoginDTO) {
+  @HttpCode(HttpStatus.OK)
+  login(
+    @Body() { email, password }: LoginDTO,
+  ): Promise<{ accessToken: string }> {
     return this.loginService.execute({ email, password });
   }
 }
 ```
+
+`@HttpCode(HttpStatus.OK)` é necessário porque `@Post()` retorna `201` por padrão no Nest — login não cria um recurso, então o correto é `200`.
 
 ### Registro em `app.module.ts`
 

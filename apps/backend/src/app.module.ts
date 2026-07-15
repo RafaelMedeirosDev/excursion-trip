@@ -1,5 +1,8 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
+import { JwtModule } from '@nestjs/jwt';
+import { PassportModule } from '@nestjs/passport';
+import { AuthController } from 'src/controller/AuthController';
 import { OrganizationController } from 'src/controller/OrganizationController';
 import { UserController } from 'src/controller/UserController';
 import { OrganizationRepository } from 'src/domain/OrganizationRepository';
@@ -7,19 +10,39 @@ import { UserRepository } from 'src/domain/UserRepository';
 import { PrismaOrganizationRepository } from 'src/external/repositories/remote/PrismaOrganizationRepository';
 import { PrismaRemoteRepository } from 'src/external/repositories/remote/PrismaRemoteRepository';
 import { PrismaUserRepository } from 'src/external/repositories/remote/PrismaUserRepository';
+import { JwtAuthGuard } from 'src/guards/JwtAuthGuard';
+import { RolesGuard } from 'src/guards/RolesGuard';
 import { CreateOrganizationService } from 'src/service/CreateOrganizationService';
 import { CreateUserService } from 'src/service/CreateUserService';
+import { LoginService } from 'src/service/LoginService';
+import { JwtStrategy } from 'src/strategies/JwtStrategy';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 
 @Module({
-  imports: [ConfigModule.forRoot({ isGlobal: true })],
-  controllers: [AppController, OrganizationController, UserController],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    PassportModule,
+    JwtModule.register({
+      secret: process.env.JWT_SECRET,
+      signOptions: { expiresIn: process.env.JWT_EXPIRES_IN ?? '1d' },
+    }),
+  ],
+  controllers: [
+    AppController,
+    OrganizationController,
+    UserController,
+    AuthController,
+  ],
   providers: [
     AppService,
     PrismaRemoteRepository,
     CreateOrganizationService,
     CreateUserService,
+    LoginService,
+    JwtStrategy,
+    JwtAuthGuard,
+    RolesGuard,
     {
       provide: OrganizationRepository,
       useClass: PrismaOrganizationRepository,

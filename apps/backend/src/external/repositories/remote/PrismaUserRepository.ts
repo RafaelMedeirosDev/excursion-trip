@@ -2,7 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { User } from '@prisma/client';
 import {
   Create,
-  FindByEmailOrCpf,
+  FindByCpf,
+  FindByEmail,
   UserRepository,
 } from 'src/domain/UserRepository';
 import { PrismaRemoteRepository } from './PrismaRemoteRepository';
@@ -25,16 +26,11 @@ export class PrismaUserRepository implements UserRepository {
     });
   }
 
-  findByEmailOrCpf({
-    organizationId,
-    email,
-    cpf,
-  }: FindByEmailOrCpf): Promise<User | null> {
-    return this.repository.user.findFirst({
-      where: {
-        organizationId,
-        OR: [{ email }, { cpf }],
-      },
-    });
+  findByEmail({ email }: FindByEmail): Promise<User | null> {
+    return this.repository.user.findUnique({ where: { email } });
+  }
+
+  findByCpf({ organizationId, cpf }: FindByCpf): Promise<User | null> {
+    return this.repository.user.findFirst({ where: { organizationId, cpf } });
   }
 }
