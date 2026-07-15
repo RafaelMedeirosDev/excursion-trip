@@ -4,18 +4,22 @@ import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthController } from 'src/controller/AuthController';
 import { CustomerController } from 'src/controller/CustomerController';
+import { EventController } from 'src/controller/EventController';
 import { OrganizationController } from 'src/controller/OrganizationController';
 import { UserController } from 'src/controller/UserController';
 import { CustomerRepository } from 'src/domain/CustomerRepository';
+import { EventRepository } from 'src/domain/EventRepository';
 import { OrganizationRepository } from 'src/domain/OrganizationRepository';
 import { UserRepository } from 'src/domain/UserRepository';
 import { PrismaCustomerRepository } from 'src/external/repositories/remote/PrismaCustomerRepository';
+import { PrismaEventRepository } from 'src/external/repositories/remote/PrismaEventRepository';
 import { PrismaOrganizationRepository } from 'src/external/repositories/remote/PrismaOrganizationRepository';
 import { PrismaRemoteRepository } from 'src/external/repositories/remote/PrismaRemoteRepository';
 import { PrismaUserRepository } from 'src/external/repositories/remote/PrismaUserRepository';
 import { JwtAuthGuard } from 'src/guards/JwtAuthGuard';
 import { RolesGuard } from 'src/guards/RolesGuard';
 import { CreateCustomerService } from 'src/service/CreateCustomerService';
+import { CreateEventService } from 'src/service/CreateEventService';
 import { CreateOrganizationService } from 'src/service/CreateOrganizationService';
 import { CreateUserService } from 'src/service/CreateUserService';
 import { LoginService } from 'src/service/LoginService';
@@ -38,6 +42,7 @@ import { AppService } from './app.service';
     UserController,
     AuthController,
     CustomerController,
+    EventController,
   ],
   providers: [
     AppService,
@@ -46,6 +51,7 @@ import { AppService } from './app.service';
     CreateUserService,
     LoginService,
     CreateCustomerService,
+    CreateEventService,
     JwtStrategy,
     JwtAuthGuard,
     RolesGuard,
@@ -60,6 +66,10 @@ import { AppService } from './app.service';
     {
       provide: CustomerRepository,
       useClass: PrismaCustomerRepository,
+    },
+    {
+      provide: EventRepository,
+      useClass: PrismaEventRepository,
     },
   ],
 })
