@@ -31,7 +31,7 @@ pnpm lint     # turbo run lint
 
 - Scaffold do monorepo pronto (workspaces, tsconfig/eslint compartilhados, NestJS rodando).
 - **`prisma/schema.prisma` completo e migrado** (11 models — ver `apps/backend/CLAUDE.md` para a lista e o estado de cada entidade).
-- **`Organization` (create) implementada** (`POST /organizations`); as demais entidades ainda não — não implemente uma especulativamente, espere pedido explícito.
+- **`Organization` e `User` (create) implementadas** (`POST /organizations`, `POST /users`); as demais entidades ainda não — não implemente uma especulativamente, espere pedido explícito.
 - **Autenticação (JWT) ainda não implementada**, mas a skill `.claude/skills/auth` já existe e o model `User` já existe no schema — pode ser implementada quando pedido.
 
 ## Backend
