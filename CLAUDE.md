@@ -32,7 +32,7 @@ pnpm lint     # turbo run lint
 - Scaffold do monorepo pronto (workspaces, tsconfig/eslint compartilhados, NestJS rodando).
 - **`prisma/schema.prisma` completo e migrado** (11 models — ver `apps/backend/CLAUDE.md` para a lista e o estado de cada entidade).
 - **`Organization` e `User` (create) implementadas** (`POST /organizations`, `POST /users`); as demais entidades ainda não — não implemente uma especulativamente, espere pedido explícito.
-- **Login (JWT) implementado** (`POST /auth/login`) — mas nenhuma rota existente está protegida ainda (`POST /organizations`/`POST /users` continuam abertas). Proteger rotas é um passo futuro.
+- **Login (JWT) implementado e rotas protegidas**: `POST /auth/login` é a única rota pública. `POST /organizations` e `POST /users` exigem token de um `ADM` autenticado (`@UseGuards`/`@Roles`). Não existe signup público — organizações novas são criadas manualmente por um ADM já existente.
 
 ## Backend
 

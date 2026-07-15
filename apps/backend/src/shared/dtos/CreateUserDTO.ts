@@ -4,15 +4,10 @@ import {
   IsEnum,
   IsNotEmpty,
   IsString,
-  IsUUID,
   MinLength,
 } from 'class-validator';
 
 export class CreateUserDTO {
-  @IsNotEmpty()
-  @IsUUID()
-  organizationId!: string;
-
   @IsNotEmpty()
   @IsString()
   name!: string;
