@@ -10,9 +10,12 @@ export interface Create {
   role: Role;
 }
 
-export interface FindByEmailOrCpf {
-  organizationId: string;
+export interface FindByEmail {
   email: string;
+}
+
+export interface FindByCpf {
+  organizationId: string;
   cpf: string;
 }
 
@@ -27,9 +30,7 @@ export abstract class UserRepository {
     role,
   }: Create): Promise<User>;
 
-  abstract findByEmailOrCpf({
-    organizationId,
-    email,
-    cpf,
-  }: FindByEmailOrCpf): Promise<User | null>;
+  abstract findByEmail({ email }: FindByEmail): Promise<User | null>;
+
+  abstract findByCpf({ organizationId, cpf }: FindByCpf): Promise<User | null>;
 }

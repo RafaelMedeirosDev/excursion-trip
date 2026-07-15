@@ -70,7 +70,7 @@ model User {
   organizationId String
 
   name     String
-  email    String
+  email    String @unique
   password String
   phone    String
   cpf      String
@@ -88,7 +88,6 @@ model User {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  @@unique([organizationId, email])
   @@unique([organizationId, cpf])
   @@index([organizationId])
 }
