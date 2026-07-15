@@ -31,8 +31,8 @@ pnpm lint     # turbo run lint
 
 - Scaffold do monorepo pronto (workspaces, tsconfig/eslint compartilhados, NestJS rodando).
 - **`prisma/schema.prisma` completo e migrado** (11 models — ver `apps/backend/CLAUDE.md` para a lista e o estado de cada entidade).
-- **`Organization`, `User`, `Customer`, `Event` e `Excursion` (create) implementadas** (`POST /organizations`, `POST /users`, `POST /customers`, `POST /events`, `POST /excursions`); as demais entidades ainda não — não implemente uma especulativamente, espere pedido explícito.
-- **Login (JWT) implementado e rotas protegidas**: `POST /auth/login` é a única rota pública. `POST /organizations`/`POST /users`/`POST /events`/`POST /excursions` exigem `ADM` autenticado; `POST /customers` aceita qualquer autenticado (`ADM` ou `EMPLOYEE`). Não existe signup público — organizações novas são criadas manualmente por um ADM já existente.
+- **`Organization`, `User`, `Customer`, `Event`, `Excursion` e `Supplier` (create) implementadas** (`POST /organizations`, `POST /users`, `POST /customers`, `POST /events`, `POST /excursions`, `POST /suppliers`); as demais entidades ainda não — não implemente uma especulativamente, espere pedido explícito.
+- **Login (JWT) implementado e rotas protegidas**: `POST /auth/login` é a única rota pública. `POST /organizations`/`POST /users`/`POST /events`/`POST /excursions`/`POST /suppliers` exigem `ADM` autenticado; `POST /customers` aceita qualquer autenticado (`ADM` ou `EMPLOYEE`). Não existe signup público — organizações novas são criadas manualmente por um ADM já existente.
 
 ## Backend
 

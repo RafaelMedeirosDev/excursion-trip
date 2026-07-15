@@ -7,17 +7,20 @@ import { CustomerController } from 'src/controller/CustomerController';
 import { EventController } from 'src/controller/EventController';
 import { ExcursionController } from 'src/controller/ExcursionController';
 import { OrganizationController } from 'src/controller/OrganizationController';
+import { SupplierController } from 'src/controller/SupplierController';
 import { UserController } from 'src/controller/UserController';
 import { CustomerRepository } from 'src/domain/CustomerRepository';
 import { EventRepository } from 'src/domain/EventRepository';
 import { ExcursionRepository } from 'src/domain/ExcursionRepository';
 import { OrganizationRepository } from 'src/domain/OrganizationRepository';
+import { SupplierRepository } from 'src/domain/SupplierRepository';
 import { UserRepository } from 'src/domain/UserRepository';
 import { PrismaCustomerRepository } from 'src/external/repositories/remote/PrismaCustomerRepository';
 import { PrismaEventRepository } from 'src/external/repositories/remote/PrismaEventRepository';
 import { PrismaExcursionRepository } from 'src/external/repositories/remote/PrismaExcursionRepository';
 import { PrismaOrganizationRepository } from 'src/external/repositories/remote/PrismaOrganizationRepository';
 import { PrismaRemoteRepository } from 'src/external/repositories/remote/PrismaRemoteRepository';
+import { PrismaSupplierRepository } from 'src/external/repositories/remote/PrismaSupplierRepository';
 import { PrismaUserRepository } from 'src/external/repositories/remote/PrismaUserRepository';
 import { JwtAuthGuard } from 'src/guards/JwtAuthGuard';
 import { RolesGuard } from 'src/guards/RolesGuard';
@@ -25,6 +28,7 @@ import { CreateCustomerService } from 'src/service/CreateCustomerService';
 import { CreateEventService } from 'src/service/CreateEventService';
 import { CreateExcursionService } from 'src/service/CreateExcursionService';
 import { CreateOrganizationService } from 'src/service/CreateOrganizationService';
+import { CreateSupplierService } from 'src/service/CreateSupplierService';
 import { CreateUserService } from 'src/service/CreateUserService';
 import { LoginService } from 'src/service/LoginService';
 import { JwtStrategy } from 'src/strategies/JwtStrategy';
@@ -48,6 +52,7 @@ import { AppService } from './app.service';
     CustomerController,
     EventController,
     ExcursionController,
+    SupplierController,
   ],
   providers: [
     AppService,
@@ -58,6 +63,7 @@ import { AppService } from './app.service';
     CreateCustomerService,
     CreateEventService,
     CreateExcursionService,
+    CreateSupplierService,
     JwtStrategy,
     JwtAuthGuard,
     RolesGuard,
@@ -80,6 +86,10 @@ import { AppService } from './app.service';
     {
       provide: ExcursionRepository,
       useClass: PrismaExcursionRepository,
+    },
+    {
+      provide: SupplierRepository,
+      useClass: PrismaSupplierRepository,
     },
   ],
 })
