@@ -55,11 +55,12 @@ model Organization {
   name String
   cnpj String? @unique
 
-  users      User[]
-  suppliers  Supplier[]
-  customers  Customer[]
-  events     Event[]
-  excursions Excursion[]
+  users           User[]
+  suppliers       Supplier[]
+  customers       Customer[]
+  events          Event[]
+  excursions      Excursion[]
+  vehicleBookings VehicleBooking[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -183,19 +184,24 @@ model Excursion {
 }
 
 model VehicleBooking {
-  id          String @id @default(uuid())
-  supplierId  String
-  excursionId String
-  userId      String
+  id             String @id @default(uuid())
+  organizationId String
+  supplierId     String
+  excursionId    String
+  userId         String
 
   vehicleType String
   plate       String?
   capacity    Int
   value       Decimal @db.Decimal(10, 2)
+  startTime   String?
+  returnTime  String?
+  price       Decimal @db.Decimal(10, 2)
 
-  supplier  Supplier  @relation(fields: [supplierId], references: [id])
-  excursion Excursion @relation(fields: [excursionId], references: [id])
-  user      User      @relation(fields: [userId], references: [id])
+  organization Organization @relation(fields: [organizationId], references: [id])
+  supplier     Supplier     @relation(fields: [supplierId], references: [id])
+  excursion    Excursion    @relation(fields: [excursionId], references: [id])
+  user         User         @relation(fields: [userId], references: [id])
 
   boardingPoints BoardingPoint[]
   reservations   Reservation[]
@@ -205,6 +211,8 @@ model VehicleBooking {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
+  @@unique([excursionId, plate])
+  @@index([organizationId])
   @@index([supplierId])
   @@index([excursionId])
   @@index([userId])

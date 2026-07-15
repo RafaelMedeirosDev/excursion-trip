@@ -19,6 +19,10 @@ export interface FindByCpf {
   cpf: string;
 }
 
+export interface FindById {
+  id: string;
+}
+
 export abstract class UserRepository {
   abstract create({
     organizationId,
@@ -33,4 +37,6 @@ export abstract class UserRepository {
   abstract findByEmail({ email }: FindByEmail): Promise<User | null>;
 
   abstract findByCpf({ organizationId, cpf }: FindByCpf): Promise<User | null>;
+
+  abstract findById({ id }: FindById): Promise<User | null>;
 }

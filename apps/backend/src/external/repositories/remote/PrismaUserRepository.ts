@@ -4,6 +4,7 @@ import {
   Create,
   FindByCpf,
   FindByEmail,
+  FindById,
   UserRepository,
 } from 'src/domain/UserRepository';
 import { PrismaRemoteRepository } from './PrismaRemoteRepository';
@@ -32,5 +33,9 @@ export class PrismaUserRepository implements UserRepository {
 
   findByCpf({ organizationId, cpf }: FindByCpf): Promise<User | null> {
     return this.repository.user.findFirst({ where: { organizationId, cpf } });
+  }
+
+  findById({ id }: FindById): Promise<User | null> {
+    return this.repository.user.findFirst({ where: { id } });
   }
 }
