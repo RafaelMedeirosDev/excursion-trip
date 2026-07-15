@@ -30,9 +30,9 @@ pnpm lint     # turbo run lint
 ## Estado atual
 
 - Scaffold do monorepo pronto (workspaces, tsconfig/eslint compartilhados, NestJS rodando).
-- **`prisma/schema.prisma` ainda não tem models** — a modelagem de dados está sendo definida com o usuário antes de gerar o schema. Não escreva models nem rode migrations sem confirmação.
-- **Nenhum módulo de domínio (entidade de negócio) foi implementado ainda.** Não implemente Controller/Service/Domain/External de uma entidade especulativamente — espere pedido explícito.
-- **Sem autenticação por enquanto** — não adicione JWT/Guards/Strategies a menos que pedido explicitamente.
+- **`prisma/schema.prisma` completo e migrado** (11 models — ver `apps/backend/CLAUDE.md` para a lista e o estado de cada entidade).
+- **`Organization` (create) implementada** (`POST /organizations`); as demais entidades ainda não — não implemente uma especulativamente, espere pedido explícito.
+- **Autenticação (JWT) ainda não implementada**, mas a skill `.claude/skills/auth` já existe e o model `User` já existe no schema — pode ser implementada quando pedido.
 
 ## Backend
 

@@ -4,9 +4,10 @@ API NestJS + Prisma (PostgreSQL) para o sistema de gestão de excursões. Este a
 
 ## Estado atual
 
-- `prisma/schema.prisma` só tem `generator`/`datasource`, **sem models**. A modelagem de dados ainda está sendo definida com o usuário — não escreva models nem rode `prisma migrate` sem confirmação explícita.
-- Nenhuma entidade de negócio foi implementada ainda (nenhum Controller/Service/Domain/External real além do `app.*` base). Não implemente uma entidade especulativamente.
-- Autenticação (JWT) ainda não foi implementada, mas já existe a skill `.claude/skills/auth` documentando o padrão (setup + como proteger uma rota). Só implemente quando o model `User` existir no schema — não implemente especulativamente.
+- `prisma/schema.prisma` completo e migrado (`Organization`, `User`, `Supplier`, `Customer`, `Event`, `Excursion`, `VehicleBooking`, `BoardingPoint`, `Reservation`, `Payment`, `Expense` — ver `apps/backend/prisma/schema.prisma` para o modelo exato).
+- **Entidades implementadas:** `Organization` (só `create`, `POST /organizations`, com checagem de duplicidade de CNPJ). Todas as outras ainda não têm Controller/Service/Domain/External — não implemente uma entidade especulativamente, só quando pedido.
+- **Setup compartilhado já existe** (criado uma única vez, não recriar): `src/external/repositories/remote/PrismaRemoteRepository.ts` (wrapper do `PrismaClient`) e `src/shared/erros/base/AlreadyExistsError.ts` (`ConflictException`, reaproveitável por qualquer entidade que precise checar duplicidade). `@nestjs/config` e `@nestjs/swagger` (`^7`, não `^11` — o projeto está no Nest 10) já são dependências do projeto.
+- Autenticação (JWT) ainda não foi implementada, mas já existe a skill `.claude/skills/auth` documentando o padrão (setup + como proteger uma rota) e o model `User` já existe no schema — pode ser implementada quando pedido.
 
 ## Arquitetura em camadas
 
@@ -61,5 +62,5 @@ Ordem sugerida, aplicando a skill de cada camada:
 pnpm --filter @excursion-trip/backend dev      # nest start --watch
 pnpm --filter @excursion-trip/backend build
 pnpm --filter @excursion-trip/backend lint
-pnpm --filter @excursion-trip/backend exec prisma migrate dev   # só depois do schema definido
+pnpm --filter @excursion-trip/backend exec prisma migrate dev   # nova migration após mudar o schema
 ```
