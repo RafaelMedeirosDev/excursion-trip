@@ -5,9 +5,10 @@ API NestJS + Prisma (PostgreSQL) para o sistema de gestão de excursões. Este a
 ## Estado atual
 
 - `prisma/schema.prisma` completo e migrado (`Organization`, `User`, `Supplier`, `Customer`, `Event`, `Excursion`, `VehicleBooking`, `BoardingPoint`, `Reservation`, `Payment`, `Expense` — ver `apps/backend/prisma/schema.prisma` para o modelo exato).
-- **Entidades implementadas:** `Organization` (só `create`, `POST /organizations`, com checagem de duplicidade de CNPJ). Todas as outras ainda não têm Controller/Service/Domain/External — não implemente uma entidade especulativamente, só quando pedido.
+- **Entidades implementadas:** `Organization` (só `create`, `POST /organizations`, checagem de duplicidade de CNPJ) e `User` (só `create`, `POST /users`, senha com hash bcrypt, checagem de duplicidade de email/cpf por organização). Todas as outras ainda não têm Controller/Service/Domain/External — não implemente uma entidade especulativamente, só quando pedido.
 - **Setup compartilhado já existe** (criado uma única vez, não recriar): `src/external/repositories/remote/PrismaRemoteRepository.ts` (wrapper do `PrismaClient`) e `src/shared/erros/base/AlreadyExistsError.ts` (`ConflictException`, reaproveitável por qualquer entidade que precise checar duplicidade). `@nestjs/config` e `@nestjs/swagger` (`^7`, não `^11` — o projeto está no Nest 10) já são dependências do projeto.
-- Autenticação (JWT) ainda não foi implementada, mas já existe a skill `.claude/skills/auth` documentando o padrão (setup + como proteger uma rota) e o model `User` já existe no schema — pode ser implementada quando pedido.
+- Autenticação (JWT) ainda não foi implementada — sem login/guards ainda, mesmo o `User` já existindo. A skill `.claude/skills/auth` documenta o padrão (setup + como proteger uma rota); implementar quando pedido.
+- **Nota de segurança conhecida:** `POST /users` retorna o model `User` completo, incluindo o hash da senha no campo `password` — decisão explícita do usuário pra seguir o padrão genérico das skills por enquanto (pode ser revisitado depois, ex.: omitir `password` da resposta).
 
 ## Arquitetura em camadas
 
