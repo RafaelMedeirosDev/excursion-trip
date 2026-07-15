@@ -9,6 +9,10 @@ export interface Create {
   returnDate: Date;
 }
 
+export interface FindById {
+  id: string;
+}
+
 export abstract class ExcursionRepository {
   abstract create({
     organizationId,
@@ -18,4 +22,6 @@ export abstract class ExcursionRepository {
     departureDate,
     returnDate,
   }: Create): Promise<Excursion>;
+
+  abstract findById({ id }: FindById): Promise<Excursion | null>;
 }

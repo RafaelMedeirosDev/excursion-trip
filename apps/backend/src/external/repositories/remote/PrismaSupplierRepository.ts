@@ -3,6 +3,7 @@ import { Supplier } from '@prisma/client';
 import {
   Create,
   FindByCnpj,
+  FindById,
   SupplierRepository,
 } from 'src/domain/SupplierRepository';
 import { PrismaRemoteRepository } from './PrismaRemoteRepository';
@@ -21,5 +22,9 @@ export class PrismaSupplierRepository implements SupplierRepository {
     return this.repository.supplier.findFirst({
       where: { organizationId, cnpj },
     });
+  }
+
+  findById({ id }: FindById): Promise<Supplier | null> {
+    return this.repository.supplier.findFirst({ where: { id } });
   }
 }

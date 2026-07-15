@@ -13,6 +13,10 @@ export interface FindByCnpj {
   cnpj: string;
 }
 
+export interface FindById {
+  id: string;
+}
+
 export abstract class SupplierRepository {
   abstract create({
     organizationId,
@@ -26,4 +30,6 @@ export abstract class SupplierRepository {
     organizationId,
     cnpj,
   }: FindByCnpj): Promise<Supplier | null>;
+
+  abstract findById({ id }: FindById): Promise<Supplier | null>;
 }
