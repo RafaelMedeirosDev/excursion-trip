@@ -11,6 +11,10 @@ export interface Create {
   endTime: string;
 }
 
+export interface FindById {
+  id: string;
+}
+
 export abstract class EventRepository {
   abstract create({
     organizationId,
@@ -22,4 +26,6 @@ export abstract class EventRepository {
     startTime,
     endTime,
   }: Create): Promise<Event>;
+
+  abstract findById({ id }: FindById): Promise<Event | null>;
 }
