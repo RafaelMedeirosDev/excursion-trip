@@ -23,6 +23,7 @@ API NestJS + Prisma (PostgreSQL) para o sistema de gestão de excursões. Este a
 - **Padrão de validação de FK entre entidades da mesma organização**: quando um DTO referencia outro recurso pelo id (ex.: `Excursion.eventId`, `VehicleBooking.excursionId`/`supplierId`/`userId`, `Expense.excursionId`/`vehicleBookingId`, `BoardingPoint.vehicleBookingId`, `Reservation.customerId`/`vehicleBookingId`/`boardingPointId`, `Payment.reservationId`), o `service` busca esse recurso (`XxxRepository.findById`) e confere se `organizationId` bate com o do token — se não bater ou não existir, lança o erro `XxxNotFound` correspondente (`404`), sem revelar se o recurso existe em outra organização. Já aplicado em `Excursion.eventId` (`EventNotFound`), `VehicleBooking.excursionId`/`supplierId`/`userId` (`ExcursionNotFound`/`SupplierNotFound`/`UserNotFound`), `Expense.excursionId`/`vehicleBookingId` (`ExcursionNotFound`/`VehicleBookingNotFound`, este último só se `vehicleBookingId` for informado — é opcional), `Reservation.customerId`/`vehicleBookingId`/`boardingPointId` (`CustomerNotFound`/`VehicleBookingNotFound`/`BoardingPointNotFound`) e `Payment.reservationId` (`ReservationNotFound`, novo). `BoardingPoint.vehicleBookingId` também reaproveita `VehicleBookingNotFound`.
 - **Setup compartilhado já existe** (criado uma única vez, não recriar): `src/external/repositories/remote/PrismaRemoteRepository.ts` (wrapper do `PrismaClient`), `src/shared/erros/base/AlreadyExistsError.ts` (`ConflictException`), `src/shared/erros/base/UnauthorizedError.ts` (`UnauthorizedException`) e `src/shared/erros/base/NotFoundError.ts` (`NotFoundException`) — reaproveitáveis por qualquer entidade. `@nestjs/config` e `@nestjs/swagger` (`^7`, não `^11` — o projeto está no Nest 10) já são dependências do projeto.
 - **Nota de segurança conhecida:** `POST /users` retorna o model `User` completo, incluindo o hash da senha no campo `password` — decisão explícita do usuário pra seguir o padrão genérico das skills por enquanto (pode ser revisitado depois, ex.: omitir `password` da resposta).
+- **Testes automatizados**: `jest.config.ts` na raiz do backend (`preset: ts-jest`, `moduleNameMapper` resolvendo `src/...` pros imports absolutos). Todos os 11 `Create*Service` + `LoginService` têm `.spec.ts` ao lado do arquivo testado em `src/service/`. Cobrem só a camada `service`, com mocks manuais dos `Repository` (`jest.Mocked<XRepository>` + `jest.fn()`, sem `Test.createTestingModule()` — `Service` é classe simples, o container do Nest não entra em jogo num teste unitário desse nível). Ainda não existe teste de `Controller`, `Prisma*Repository` (precisaria de banco) nem e2e — `Test.createTestingModule()`/e2e é o próximo passo natural quando isso for necessário. Rodar com `pnpm --filter @excursion-trip/backend test`.
 
 ## Arquitetura em camadas
 
@@ -66,6 +67,7 @@ Ordem sugerida, aplicando a skill de cada camada:
 3. `dto` — DTO de entrada da operação
 4. `erros` — erro(s) de negócio, se a operação tiver alguma invariante
 5. `service` — caso de uso, injeta o(s) `Repository` de `domain`
+5.1. `{Operation}{Entity}Service.spec.ts` ao lado do `service` — mock manual do(s) `Repository` (`jest.Mocked<XRepository>`), cobrindo o caminho de sucesso e todo erro que o `service` pode lançar
 6. `controller` — endpoint HTTP, injeta o(s) `Service`
 7. `tools` — só se a operação precisar ser exposta para a IA
 8. Registrar tudo em `app.module.ts` (controllers, providers, binding `provide`/`useClass` — ver seção acima)
@@ -77,5 +79,7 @@ Ordem sugerida, aplicando a skill de cada camada:
 pnpm --filter @excursion-trip/backend dev      # nest start --watch
 pnpm --filter @excursion-trip/backend build
 pnpm --filter @excursion-trip/backend lint
+pnpm --filter @excursion-trip/backend test      # jest, roda os .spec.ts de src/service/
+pnpm --filter @excursion-trip/backend test:watch
 pnpm --filter @excursion-trip/backend exec prisma migrate dev   # nova migration após mudar o schema
 ```
