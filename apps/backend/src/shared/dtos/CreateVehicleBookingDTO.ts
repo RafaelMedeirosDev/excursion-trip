@@ -1,7 +1,6 @@
 import {
   IsInt,
   IsNotEmpty,
-  IsNumber,
   IsOptional,
   IsString,
   IsUUID,
@@ -35,7 +34,7 @@ export class CreateVehicleBookingDTO {
   capacity!: number;
 
   @IsNotEmpty()
-  @IsNumber()
+  @IsInt()
   @Min(0)
   value!: number;
 
@@ -48,7 +47,7 @@ export class CreateVehicleBookingDTO {
   returnTime?: string;
 
   @IsNotEmpty()
-  @IsNumber()
+  @IsInt()
   @Min(0)
   price!: number;
 }

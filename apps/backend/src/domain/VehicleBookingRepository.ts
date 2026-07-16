@@ -19,6 +19,10 @@ export interface FindByExcursionAndPlate {
   plate: string;
 }
 
+export interface FindById {
+  id: string;
+}
+
 export abstract class VehicleBookingRepository {
   abstract create({
     organizationId,
@@ -38,4 +42,6 @@ export abstract class VehicleBookingRepository {
     excursionId,
     plate,
   }: FindByExcursionAndPlate): Promise<VehicleBooking | null>;
+
+  abstract findById({ id }: FindById): Promise<VehicleBooking | null>;
 }
