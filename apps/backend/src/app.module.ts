@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { AuthController } from 'src/controller/AuthController';
+import { BoardingPointController } from 'src/controller/BoardingPointController';
 import { CustomerController } from 'src/controller/CustomerController';
 import { EventController } from 'src/controller/EventController';
 import { ExcursionController } from 'src/controller/ExcursionController';
@@ -11,6 +12,7 @@ import { OrganizationController } from 'src/controller/OrganizationController';
 import { SupplierController } from 'src/controller/SupplierController';
 import { UserController } from 'src/controller/UserController';
 import { VehicleBookingController } from 'src/controller/VehicleBookingController';
+import { BoardingPointRepository } from 'src/domain/BoardingPointRepository';
 import { CustomerRepository } from 'src/domain/CustomerRepository';
 import { EventRepository } from 'src/domain/EventRepository';
 import { ExcursionRepository } from 'src/domain/ExcursionRepository';
@@ -19,6 +21,7 @@ import { OrganizationRepository } from 'src/domain/OrganizationRepository';
 import { SupplierRepository } from 'src/domain/SupplierRepository';
 import { UserRepository } from 'src/domain/UserRepository';
 import { VehicleBookingRepository } from 'src/domain/VehicleBookingRepository';
+import { PrismaBoardingPointRepository } from 'src/external/repositories/remote/PrismaBoardingPointRepository';
 import { PrismaCustomerRepository } from 'src/external/repositories/remote/PrismaCustomerRepository';
 import { PrismaEventRepository } from 'src/external/repositories/remote/PrismaEventRepository';
 import { PrismaExcursionRepository } from 'src/external/repositories/remote/PrismaExcursionRepository';
@@ -30,6 +33,7 @@ import { PrismaUserRepository } from 'src/external/repositories/remote/PrismaUse
 import { PrismaVehicleBookingRepository } from 'src/external/repositories/remote/PrismaVehicleBookingRepository';
 import { JwtAuthGuard } from 'src/guards/JwtAuthGuard';
 import { RolesGuard } from 'src/guards/RolesGuard';
+import { CreateBoardingPointService } from 'src/service/CreateBoardingPointService';
 import { CreateCustomerService } from 'src/service/CreateCustomerService';
 import { CreateEventService } from 'src/service/CreateEventService';
 import { CreateExcursionService } from 'src/service/CreateExcursionService';
@@ -63,6 +67,7 @@ import { AppService } from './app.service';
     SupplierController,
     VehicleBookingController,
     ExpenseController,
+    BoardingPointController,
   ],
   providers: [
     AppService,
@@ -76,6 +81,7 @@ import { AppService } from './app.service';
     CreateSupplierService,
     CreateVehicleBookingService,
     CreateExpenseService,
+    CreateBoardingPointService,
     JwtStrategy,
     JwtAuthGuard,
     RolesGuard,
@@ -110,6 +116,10 @@ import { AppService } from './app.service';
     {
       provide: ExpenseRepository,
       useClass: PrismaExpenseRepository,
+    },
+    {
+      provide: BoardingPointRepository,
+      useClass: PrismaBoardingPointRepository,
     },
   ],
 })

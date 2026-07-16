@@ -62,6 +62,7 @@ model Organization {
   excursions      Excursion[]
   vehicleBookings VehicleBooking[]
   expenses        Expense[]
+  boardingPoints  BoardingPoint[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -221,12 +222,13 @@ model VehicleBooking {
 
 model BoardingPoint {
   id               String @id @default(uuid())
+  organizationId   String
   vehicleBookingId String
 
   address String
   time    String?
-  order   Int
 
+  organization   Organization   @relation(fields: [organizationId], references: [id])
   vehicleBooking VehicleBooking @relation(fields: [vehicleBookingId], references: [id])
 
   reservations Reservation[]
@@ -235,6 +237,7 @@ model BoardingPoint {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
+  @@index([organizationId])
   @@index([vehicleBookingId])
 }
 
