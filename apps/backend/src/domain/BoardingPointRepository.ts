@@ -7,6 +7,10 @@ export interface Create {
   time?: string;
 }
 
+export interface FindById {
+  id: string;
+}
+
 export abstract class BoardingPointRepository {
   abstract create({
     organizationId,
@@ -14,4 +18,6 @@ export abstract class BoardingPointRepository {
     address,
     time,
   }: Create): Promise<BoardingPoint>;
+
+  abstract findById({ id }: FindById): Promise<BoardingPoint | null>;
 }

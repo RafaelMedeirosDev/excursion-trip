@@ -4,6 +4,7 @@ import {
   Create,
   CustomerRepository,
   FindByCpf,
+  FindById,
 } from 'src/domain/CustomerRepository';
 import { PrismaRemoteRepository } from './PrismaRemoteRepository';
 
@@ -21,5 +22,9 @@ export class PrismaCustomerRepository implements CustomerRepository {
     return this.repository.customer.findFirst({
       where: { organizationId, cpf },
     });
+  }
+
+  findById({ id }: FindById): Promise<Customer | null> {
+    return this.repository.customer.findUnique({ where: { id } });
   }
 }

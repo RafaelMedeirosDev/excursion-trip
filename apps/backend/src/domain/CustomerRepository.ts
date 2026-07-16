@@ -13,6 +13,10 @@ export interface FindByCpf {
   cpf: string;
 }
 
+export interface FindById {
+  id: string;
+}
+
 export abstract class CustomerRepository {
   abstract create({
     organizationId,
@@ -26,4 +30,6 @@ export abstract class CustomerRepository {
     organizationId,
     cpf,
   }: FindByCpf): Promise<Customer | null>;
+
+  abstract findById({ id }: FindById): Promise<Customer | null>;
 }
