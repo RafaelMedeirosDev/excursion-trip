@@ -3,6 +3,7 @@ import { Reservation } from '@prisma/client';
 import {
   Create,
   FindByVehicleBookingAndCustomer,
+  FindById,
   ReservationRepository,
 } from 'src/domain/ReservationRepository';
 import { PrismaRemoteRepository } from './PrismaRemoteRepository';
@@ -38,5 +39,9 @@ export class PrismaReservationRepository implements ReservationRepository {
     return this.repository.reservation.findFirst({
       where: { vehicleBookingId, customerId },
     });
+  }
+
+  findById({ id }: FindById): Promise<Reservation | null> {
+    return this.repository.reservation.findUnique({ where: { id } });
   }
 }
