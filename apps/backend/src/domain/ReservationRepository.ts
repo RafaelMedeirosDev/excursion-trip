@@ -14,6 +14,10 @@ export interface FindByVehicleBookingAndCustomer {
   customerId: string;
 }
 
+export interface FindById {
+  id: string;
+}
+
 export abstract class ReservationRepository {
   abstract create({
     organizationId,
@@ -28,4 +32,6 @@ export abstract class ReservationRepository {
     vehicleBookingId,
     customerId,
   }: FindByVehicleBookingAndCustomer): Promise<Reservation | null>;
+
+  abstract findById({ id }: FindById): Promise<Reservation | null>;
 }

@@ -31,8 +31,8 @@ pnpm lint     # turbo run lint
 
 - Scaffold do monorepo pronto (workspaces, tsconfig/eslint compartilhados, NestJS rodando).
 - **`prisma/schema.prisma` completo e migrado** (11 models — ver `apps/backend/CLAUDE.md` para a lista e o estado de cada entidade).
-- **`Organization`, `User`, `Customer`, `Event`, `Excursion`, `Supplier`, `VehicleBooking`, `Expense`, `BoardingPoint` e `Reservation` (create) implementadas** (`POST /organizations`, `POST /users`, `POST /customers`, `POST /events`, `POST /excursions`, `POST /suppliers`, `POST /vehicle-bookings`, `POST /expenses`, `POST /boarding-points`, `POST /reservations`); resta só `Payment` — não implemente uma entidade especulativamente, espere pedido explícito.
-- **Login (JWT) implementado e rotas protegidas**: `POST /auth/login` é a única rota pública. `POST /organizations`/`POST /users`/`POST /events`/`POST /excursions`/`POST /suppliers`/`POST /vehicle-bookings`/`POST /boarding-points` exigem `ADM` autenticado; `POST /customers`/`POST /expenses`/`POST /reservations` aceitam qualquer autenticado (`ADM` ou `EMPLOYEE`). Não existe signup público — organizações novas são criadas manualmente por um ADM já existente.
+- **Todas as 11 entidades do schema têm `create` implementado** (`Organization`, `User`, `Customer`, `Event`, `Excursion`, `Supplier`, `VehicleBooking`, `Expense`, `BoardingPoint`, `Reservation` e `Payment` — domínio completo). Não implemente `list`/`update`/`delete` especulativamente, espere pedido explícito.
+- **Login (JWT) implementado e rotas protegidas**: `POST /auth/login` é a única rota pública. `POST /organizations`/`POST /users`/`POST /events`/`POST /excursions`/`POST /suppliers`/`POST /vehicle-bookings`/`POST /boarding-points` exigem `ADM` autenticado; `POST /customers`/`POST /expenses`/`POST /reservations`/`POST /payments` aceitam qualquer autenticado (`ADM` ou `EMPLOYEE`). Não existe signup público — organizações novas são criadas manualmente por um ADM já existente.
 - **Todo campo monetário é `Int` em centavos, nunca `Decimal`** (R$ 50,50 = `5050`) — ver `apps/backend/CLAUDE.md` para detalhes.
 
 ## Backend

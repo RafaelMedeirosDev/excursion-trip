@@ -9,6 +9,7 @@ import { EventController } from 'src/controller/EventController';
 import { ExcursionController } from 'src/controller/ExcursionController';
 import { ExpenseController } from 'src/controller/ExpenseController';
 import { OrganizationController } from 'src/controller/OrganizationController';
+import { PaymentController } from 'src/controller/PaymentController';
 import { ReservationController } from 'src/controller/ReservationController';
 import { SupplierController } from 'src/controller/SupplierController';
 import { UserController } from 'src/controller/UserController';
@@ -19,6 +20,7 @@ import { EventRepository } from 'src/domain/EventRepository';
 import { ExcursionRepository } from 'src/domain/ExcursionRepository';
 import { ExpenseRepository } from 'src/domain/ExpenseRepository';
 import { OrganizationRepository } from 'src/domain/OrganizationRepository';
+import { PaymentRepository } from 'src/domain/PaymentRepository';
 import { ReservationRepository } from 'src/domain/ReservationRepository';
 import { SupplierRepository } from 'src/domain/SupplierRepository';
 import { UserRepository } from 'src/domain/UserRepository';
@@ -29,6 +31,7 @@ import { PrismaEventRepository } from 'src/external/repositories/remote/PrismaEv
 import { PrismaExcursionRepository } from 'src/external/repositories/remote/PrismaExcursionRepository';
 import { PrismaExpenseRepository } from 'src/external/repositories/remote/PrismaExpenseRepository';
 import { PrismaOrganizationRepository } from 'src/external/repositories/remote/PrismaOrganizationRepository';
+import { PrismaPaymentRepository } from 'src/external/repositories/remote/PrismaPaymentRepository';
 import { PrismaRemoteRepository } from 'src/external/repositories/remote/PrismaRemoteRepository';
 import { PrismaReservationRepository } from 'src/external/repositories/remote/PrismaReservationRepository';
 import { PrismaSupplierRepository } from 'src/external/repositories/remote/PrismaSupplierRepository';
@@ -42,6 +45,7 @@ import { CreateEventService } from 'src/service/CreateEventService';
 import { CreateExcursionService } from 'src/service/CreateExcursionService';
 import { CreateExpenseService } from 'src/service/CreateExpenseService';
 import { CreateOrganizationService } from 'src/service/CreateOrganizationService';
+import { CreatePaymentService } from 'src/service/CreatePaymentService';
 import { CreateReservationService } from 'src/service/CreateReservationService';
 import { CreateSupplierService } from 'src/service/CreateSupplierService';
 import { CreateUserService } from 'src/service/CreateUserService';
@@ -73,6 +77,7 @@ import { AppService } from './app.service';
     ExpenseController,
     BoardingPointController,
     ReservationController,
+    PaymentController,
   ],
   providers: [
     AppService,
@@ -88,6 +93,7 @@ import { AppService } from './app.service';
     CreateExpenseService,
     CreateBoardingPointService,
     CreateReservationService,
+    CreatePaymentService,
     JwtStrategy,
     JwtAuthGuard,
     RolesGuard,
@@ -130,6 +136,10 @@ import { AppService } from './app.service';
     {
       provide: ReservationRepository,
       useClass: PrismaReservationRepository,
+    },
+    {
+      provide: PaymentRepository,
+      useClass: PrismaPaymentRepository,
     },
   ],
 })
