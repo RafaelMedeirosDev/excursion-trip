@@ -31,8 +31,9 @@ pnpm lint     # turbo run lint
 
 - Scaffold do monorepo pronto (workspaces, tsconfig/eslint compartilhados, NestJS rodando).
 - **`prisma/schema.prisma` completo e migrado** (11 models — ver `apps/backend/CLAUDE.md` para a lista e o estado de cada entidade).
-- **`Organization`, `User`, `Customer`, `Event`, `Excursion`, `Supplier` e `VehicleBooking` (create) implementadas** (`POST /organizations`, `POST /users`, `POST /customers`, `POST /events`, `POST /excursions`, `POST /suppliers`, `POST /vehicle-bookings`); as demais entidades ainda não — não implemente uma especulativamente, espere pedido explícito.
-- **Login (JWT) implementado e rotas protegidas**: `POST /auth/login` é a única rota pública. `POST /organizations`/`POST /users`/`POST /events`/`POST /excursions`/`POST /suppliers`/`POST /vehicle-bookings` exigem `ADM` autenticado; `POST /customers` aceita qualquer autenticado (`ADM` ou `EMPLOYEE`). Não existe signup público — organizações novas são criadas manualmente por um ADM já existente.
+- **`Organization`, `User`, `Customer`, `Event`, `Excursion`, `Supplier`, `VehicleBooking` e `Expense` (create) implementadas** (`POST /organizations`, `POST /users`, `POST /customers`, `POST /events`, `POST /excursions`, `POST /suppliers`, `POST /vehicle-bookings`, `POST /expenses`); as demais entidades ainda não — não implemente uma especulativamente, espere pedido explícito.
+- **Login (JWT) implementado e rotas protegidas**: `POST /auth/login` é a única rota pública. `POST /organizations`/`POST /users`/`POST /events`/`POST /excursions`/`POST /suppliers`/`POST /vehicle-bookings` exigem `ADM` autenticado; `POST /customers`/`POST /expenses` aceitam qualquer autenticado (`ADM` ou `EMPLOYEE`). Não existe signup público — organizações novas são criadas manualmente por um ADM já existente.
+- **Todo campo monetário é `Int` em centavos, nunca `Decimal`** (R$ 50,50 = `5050`) — ver `apps/backend/CLAUDE.md` para detalhes.
 
 ## Backend
 

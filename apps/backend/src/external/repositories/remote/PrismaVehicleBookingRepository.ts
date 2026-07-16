@@ -3,6 +3,7 @@ import { VehicleBooking } from '@prisma/client';
 import {
   Create,
   FindByExcursionAndPlate,
+  FindById,
   VehicleBookingRepository,
 } from 'src/domain/VehicleBookingRepository';
 import { PrismaRemoteRepository } from './PrismaRemoteRepository';
@@ -50,5 +51,9 @@ export class PrismaVehicleBookingRepository
     return this.repository.vehicleBooking.findFirst({
       where: { excursionId, plate },
     });
+  }
+
+  findById({ id }: FindById): Promise<VehicleBooking | null> {
+    return this.repository.vehicleBooking.findFirst({ where: { id } });
   }
 }

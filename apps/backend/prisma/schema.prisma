@@ -61,6 +61,7 @@ model Organization {
   events          Event[]
   excursions      Excursion[]
   vehicleBookings VehicleBooking[]
+  expenses        Expense[]
 
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
@@ -193,10 +194,10 @@ model VehicleBooking {
   vehicleType String
   plate       String?
   capacity    Int
-  value       Decimal @db.Decimal(10, 2)
+  value       Int
   startTime   String?
   returnTime  String?
-  price       Decimal @db.Decimal(10, 2)
+  price       Int
 
   organization Organization @relation(fields: [organizationId], references: [id])
   supplier     Supplier     @relation(fields: [supplierId], references: [id])
@@ -246,7 +247,7 @@ model Reservation {
   boardingPointId  String?
 
   status       ReservationStatus @default(PENDING)
-  agreedValue  Decimal           @db.Decimal(10, 2)
+  agreedValue  Int
   canceledAt   DateTime?
   cancelReason String?
 
@@ -275,7 +276,7 @@ model Payment {
   userId        String
 
   type   PaymentType
-  value  Decimal       @db.Decimal(10, 2)
+  value  Int
   method PaymentMethod
 
   reservation Reservation @relation(fields: [reservationId], references: [id])
@@ -289,14 +290,16 @@ model Payment {
 
 model Expense {
   id               String  @id @default(uuid())
+  organizationId   String
   vehicleBookingId String?
   excursionId      String
   userId           String
 
   category    ExpensesCategory
-  value       Decimal          @db.Decimal(10, 2)
+  value       Int
   description String
 
+  organization   Organization    @relation(fields: [organizationId], references: [id])
   vehicleBooking VehicleBooking? @relation(fields: [vehicleBookingId], references: [id])
   excursion      Excursion       @relation(fields: [excursionId], references: [id])
   user           User            @relation(fields: [userId], references: [id])
@@ -305,6 +308,7 @@ model Expense {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
+  @@index([organizationId])
   @@index([vehicleBookingId])
   @@index([excursionId])
   @@index([userId])
