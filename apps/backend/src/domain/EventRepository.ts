@@ -15,6 +15,12 @@ export interface FindById {
   id: string;
 }
 
+export interface FindAll {
+  organizationId: string;
+}
+
+export type Events = Omit<Event, 'deletedAt'>;
+
 export abstract class EventRepository {
   abstract create({
     organizationId,
@@ -28,4 +34,6 @@ export abstract class EventRepository {
   }: Create): Promise<Event>;
 
   abstract findById({ id }: FindById): Promise<Event | null>;
+
+  abstract findAll({ organizationId }: FindAll): Promise<Events[]>;
 }

@@ -21,6 +21,7 @@ describe('CreateEventService', () => {
     eventRepository = {
       create: jest.fn(),
       findById: jest.fn(),
+      findAll: jest.fn(),
     };
     service = new CreateEventService(eventRepository);
   });

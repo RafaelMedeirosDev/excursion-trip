@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { Event } from '@prisma/client';
-import { Create, EventRepository, FindById } from 'src/domain/EventRepository';
+import {
+  Create,
+  EventRepository,
+  Events,
+  FindAll,
+  FindById,
+} from 'src/domain/EventRepository';
 import { PrismaRemoteRepository } from './PrismaRemoteRepository';
 
 @Injectable()
@@ -33,5 +39,24 @@ export class PrismaEventRepository implements EventRepository {
 
   findById({ id }: FindById): Promise<Event | null> {
     return this.repository.event.findFirst({ where: { id } });
+  }
+
+  findAll({ organizationId }: FindAll): Promise<Events[]> {
+    return this.repository.event.findMany({
+      where: { organizationId, deletedAt: null },
+      select: {
+        id: true,
+        organizationId: true,
+        name: true,
+        address: true,
+        city: true,
+        startDate: true,
+        endDate: true,
+        startTime: true,
+        endTime: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
   }
 }
