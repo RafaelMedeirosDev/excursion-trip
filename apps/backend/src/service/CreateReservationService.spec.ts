@@ -36,6 +36,7 @@ describe('CreateReservationService', () => {
       create: jest.fn(),
       findByVehicleBookingAndCustomer: jest.fn(),
       findById: jest.fn(),
+      findAll: jest.fn(),
     };
     customerRepository = {
       create: jest.fn(),
