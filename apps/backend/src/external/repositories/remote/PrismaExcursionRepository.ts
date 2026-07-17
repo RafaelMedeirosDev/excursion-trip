@@ -3,6 +3,8 @@ import { Excursion } from '@prisma/client';
 import {
   Create,
   ExcursionRepository,
+  Excursions,
+  FindAll,
   FindById,
 } from 'src/domain/ExcursionRepository';
 import { PrismaRemoteRepository } from './PrismaRemoteRepository';
@@ -26,5 +28,12 @@ export class PrismaExcursionRepository implements ExcursionRepository {
 
   findById({ id }: FindById): Promise<Excursion | null> {
     return this.repository.excursion.findFirst({ where: { id } });
+  }
+
+  findAll({ organizationId }: FindAll): Promise<Excursions[]> {
+    return this.repository.excursion.findMany({
+      where: { organizationId },
+      include: { event: true },
+    });
   }
 }

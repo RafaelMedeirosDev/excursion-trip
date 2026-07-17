@@ -40,7 +40,11 @@ describe('CreateVehicleBookingService', () => {
       findByExcursionAndPlate: jest.fn(),
       findById: jest.fn(),
     };
-    excursionRepository = { create: jest.fn(), findById: jest.fn() };
+    excursionRepository = {
+      create: jest.fn(),
+      findById: jest.fn(),
+      findAll: jest.fn(),
+    };
     supplierRepository = {
       create: jest.fn(),
       findByCnpj: jest.fn(),

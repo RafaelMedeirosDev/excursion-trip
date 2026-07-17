@@ -1,4 +1,4 @@
-import { Excursion } from '@prisma/client';
+import { Event, Excursion } from '@prisma/client';
 
 export interface Create {
   organizationId: string;
@@ -13,6 +13,12 @@ export interface FindById {
   id: string;
 }
 
+export interface FindAll {
+  organizationId: string;
+}
+
+export type Excursions = Excursion & { event: Event };
+
 export abstract class ExcursionRepository {
   abstract create({
     organizationId,
@@ -24,4 +30,6 @@ export abstract class ExcursionRepository {
   }: Create): Promise<Excursion>;
 
   abstract findById({ id }: FindById): Promise<Excursion | null>;
+
+  abstract findAll({ organizationId }: FindAll): Promise<Excursions[]>;
 }
