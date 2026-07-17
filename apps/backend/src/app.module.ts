@@ -53,6 +53,7 @@ import { CreateVehicleBookingService } from 'src/service/CreateVehicleBookingSer
 import { ListCustomerService } from 'src/service/ListCustomerService';
 import { ListEventService } from 'src/service/ListEventService';
 import { ListExcursionService } from 'src/service/ListExcursionService';
+import { ListExpenseService } from 'src/service/ListExpenseService';
 import { ListSupplierService } from 'src/service/ListSupplierService';
 import { ListUserService } from 'src/service/ListUserService';
 import { ListVehicleBookingService } from 'src/service/ListVehicleBookingService';
@@ -103,6 +104,7 @@ import { AppService } from './app.service';
     CreateVehicleBookingService,
     ListVehicleBookingService,
     CreateExpenseService,
+    ListExpenseService,
     CreateBoardingPointService,
     CreateReservationService,
     CreatePaymentService,
