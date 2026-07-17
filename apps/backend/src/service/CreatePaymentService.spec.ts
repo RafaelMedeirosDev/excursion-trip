@@ -25,6 +25,7 @@ describe('CreatePaymentService', () => {
       create: jest.fn(),
       findByVehicleBookingAndCustomer: jest.fn(),
       findById: jest.fn(),
+      findAll: jest.fn(),
     };
     service = new CreatePaymentService(paymentRepository, reservationRepository);
 
