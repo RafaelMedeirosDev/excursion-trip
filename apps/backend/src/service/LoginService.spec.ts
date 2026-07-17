@@ -25,6 +25,7 @@ describe('LoginService', () => {
       findByEmail: jest.fn(),
       findByCpf: jest.fn(),
       findById: jest.fn(),
+      findAll: jest.fn(),
     };
     jwtService = { sign: jest.fn() } as unknown as jest.Mocked<JwtService>;
     service = new LoginService(userRepository, jwtService);

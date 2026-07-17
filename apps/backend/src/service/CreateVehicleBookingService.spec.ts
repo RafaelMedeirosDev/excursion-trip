@@ -51,6 +51,7 @@ describe('CreateVehicleBookingService', () => {
       findByEmail: jest.fn(),
       findByCpf: jest.fn(),
       findById: jest.fn(),
+      findAll: jest.fn(),
     };
     service = new CreateVehicleBookingService(
       vehicleBookingRepository,
