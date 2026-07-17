@@ -55,6 +55,7 @@ import { ListCustomerService } from 'src/service/ListCustomerService';
 import { ListEventService } from 'src/service/ListEventService';
 import { ListExcursionService } from 'src/service/ListExcursionService';
 import { ListExpenseService } from 'src/service/ListExpenseService';
+import { ListPaymentService } from 'src/service/ListPaymentService';
 import { ListReservationService } from 'src/service/ListReservationService';
 import { ListSupplierService } from 'src/service/ListSupplierService';
 import { ListUserService } from 'src/service/ListUserService';
@@ -112,6 +113,7 @@ import { AppService } from './app.service';
     CreateReservationService,
     ListReservationService,
     CreatePaymentService,
+    ListPaymentService,
     JwtStrategy,
     JwtAuthGuard,
     RolesGuard,
