@@ -50,6 +50,7 @@ import { CreateReservationService } from 'src/service/CreateReservationService';
 import { CreateSupplierService } from 'src/service/CreateSupplierService';
 import { CreateUserService } from 'src/service/CreateUserService';
 import { CreateVehicleBookingService } from 'src/service/CreateVehicleBookingService';
+import { ListUserService } from 'src/service/ListUserService';
 import { LoginService } from 'src/service/LoginService';
 import { JwtStrategy } from 'src/strategies/JwtStrategy';
 import { AppController } from './app.controller';
@@ -84,6 +85,7 @@ import { AppService } from './app.service';
     PrismaRemoteRepository,
     CreateOrganizationService,
     CreateUserService,
+    ListUserService,
     LoginService,
     CreateCustomerService,
     CreateEventService,

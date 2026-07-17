@@ -23,6 +23,12 @@ export interface FindById {
   id: string;
 }
 
+export interface FindAll {
+  organizationId: string;
+}
+
+export type Users = Omit<User, 'password' | 'deletedAt'>;
+
 export abstract class UserRepository {
   abstract create({
     organizationId,
@@ -39,4 +45,6 @@ export abstract class UserRepository {
   abstract findByCpf({ organizationId, cpf }: FindByCpf): Promise<User | null>;
 
   abstract findById({ id }: FindById): Promise<User | null>;
+
+  abstract findAll({ organizationId }: FindAll): Promise<Users[]>;
 }

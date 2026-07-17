@@ -26,6 +26,7 @@ describe('CreateUserService', () => {
       findByEmail: jest.fn(),
       findByCpf: jest.fn(),
       findById: jest.fn(),
+      findAll: jest.fn(),
     };
     service = new CreateUserService(userRepository);
     (bcrypt.hash as jest.Mock).mockResolvedValue('senha-hasheada');

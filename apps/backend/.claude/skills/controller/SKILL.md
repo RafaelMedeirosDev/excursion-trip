@@ -11,7 +11,7 @@ Gera a camada HTTP de uma entidade seguindo a convencao do projeto. O Controller
 
 - Arquivo: `src/controller/{Entity}Controller.ts` — PascalCase, sem kebab-case, sem sufixo com ponto
 - Classe: `{Entity}Controller`
-- Imports usam caminho absoluto a partir de `src` (ex.: `'src/domain/{Entity}Repository'`), nao relativo — mesmo padrao das demais skills (`domain`, `external`, `dto`, `service`, `module`). Confirmado que o `nest build` reescreve corretamente para `require` relativo no `dist`
+- Imports usam caminho absoluto a partir de `src` (ex.: `'src/domain/{Entity}Repository'`), nao relativo — mesmo padrao das demais skills (`domain`, `external`, `dto`, `service`). Confirmado que o `nest build` reescreve corretamente para `require` relativo no `dist`
 - Rota base: `@Controller('/{entities-kebab}')` — plural, kebab-case, com `/` inicial (isso e URL HTTP, nao nome de arquivo — fica em minusculas mesmo)
 - Cada operacao HTTP e resolvida por **um Service dedicado** (um por caso de uso), injetado via construtor:
   - `create` -> `Create{Entity}Service`
@@ -34,7 +34,7 @@ Gera a camada HTTP de uma entidade seguindo a convencao do projeto. O Controller
 | Operacao   | Decorator        | Parametro                            | Retorno                      |
 |------------|-------------------|----------------------------------------|--------------------------------|
 | create     | `@Post()`         | `@Body() { ... }: Create{Entity}DTO`   | `Promise<{Entity}>`            |
-| list       | `@Get()`          | —                                       | `Promise<{Entity}s[]>`         |
+| list       | `@Get()`          | `@CurrentUser() currentUser: JwtPayload` | `Promise<{Entity}s[]>`       |
 | findById   | `@Get(':id')`     | `@Param('id') id: string`              | `Promise<{Entity}s \| null>`   |
 | update     | `@Patch(':id')`   | `@Param('id') id`, `@Body() { ... }`   | `Promise<{Entity}>`            |
 | delete     | `@Delete(':id')`  | `@Param('id') id: string`              | `Promise<void>`                |
@@ -42,14 +42,19 @@ Gera a camada HTTP de uma entidade seguindo a convencao do projeto. O Controller
 ## Template generico
 
 ```ts
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { {Entity} } from '@prisma/client';
 import { {Entity}s } from 'src/domain/{Entity}Repository';
+import { CurrentUser } from 'src/decorators/CurrentUser';
+import { JwtAuthGuard } from 'src/guards/JwtAuthGuard';
+import { RolesGuard } from 'src/guards/RolesGuard';
 import { Create{Entity}Service } from 'src/service/Create{Entity}Service';
 import { List{Entity}Service } from 'src/service/List{Entity}Service';
 import { Create{Entity}DTO } from 'src/shared/dtos/Create{Entity}DTO';
+import { JwtPayload } from 'src/strategies/JwtStrategy';
 
 @Controller('/{entities-kebab}')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class {Entity}Controller {
   constructor(
     private readonly create{Entity}Service: Create{Entity}Service,
@@ -57,16 +62,26 @@ export class {Entity}Controller {
   ) {}
 
   @Post()
-  create(@Body() { /* campos de Create{Entity}DTO */ }: Create{Entity}DTO): Promise<{Entity}> {
-    return this.create{Entity}Service.execute({ /* campos */ });
+  create(
+    @Body() { /* campos de Create{Entity}DTO */ }: Create{Entity}DTO,
+    @CurrentUser() currentUser: JwtPayload,
+  ): Promise<{Entity}> {
+    return this.create{Entity}Service.execute({
+      organizationId: currentUser.organizationId,
+      /* demais campos */
+    });
   }
 
   @Get()
-  list(): Promise<{Entity}s[]> {
-    return this.list{Entity}Service.execute();
+  list(@CurrentUser() currentUser: JwtPayload): Promise<{Entity}s[]> {
+    return this.list{Entity}Service.execute({
+      organizationId: currentUser.organizationId,
+    });
   }
 }
 ```
+
+Este projeto usa autenticacao JWT em toda rota de negocio (`@UseGuards(JwtAuthGuard, RolesGuard)` na classe, `@CurrentUser()` pra extrair `organizationId`/`userId` do token) e e multi-tenant — `organizationId` sempre vem do token, nunca do body. Adicione `@Roles(Role.X)` no metodo quando a operacao for restrita a uma role especifica (ver skill `auth`).
 
 Adicione `@Get(':id')`, `@Patch(':id')` ou `@Delete(':id')` seguindo a mesma forma (ver tabela acima) somente quando o Service daquele caso de uso existir.
 
@@ -77,7 +92,7 @@ Pedido concreto: salvar um contato e trazer a lista completa de contatos da agen
 - `src/controller/ContactController.ts` -> `ContactController`, rota `/contacts`
 - Injeta `CreateContactService` e `ListContactService`
 - `POST /contacts` com `@Body() { name, phone }: CreateContactDTO` -> `Promise<Contact>` (de `@prisma/client`)
-- `GET /contacts` -> `Promise<Contact[]>` (Contact nao tem relations, entao nao existe tipo hidratado separado — ver skill `domain`)
+- `GET /contacts` -> `Promise<Contact[]>` (Contact nao tem relations, entao nao existe tipo hidratado separado — ver skill `domain`). Escopado por `organizationId` do token, igual ao template acima
 
 ## Escopo desta skill
 
@@ -87,6 +102,6 @@ Esta skill cuida **apenas da camada Controller**. Ela assume que o DTO (`shared/
 
 1. Confirmar o nome da entidade e quais operacoes sao necessarias agora (nao assumir CRUD completo)
 2. Confirmar quais Services, DTO e contrato de dominio essas operacoes vao usar (sem criar esses arquivos)
-3. Criar o controller seguindo o template
-4. Registrar o controller no module correspondente (`src/module/{entity}/{Entity}Module.ts` — ver skill `module`)
+3. Criar o controller seguindo o template — `@UseGuards(JwtAuthGuard, RolesGuard)` na classe, `@CurrentUser()` pra `organizationId`/`userId`, `@Roles(Role.X)` no metodo se a operacao for restrita
+4. Registrar o controller direto em `src/app.module.ts` (`controllers`) — nao existe module por entidade nesse projeto, nem skill `module`
 5. Rodar o build para validar — se as dependencias (Service/DTO/domain) ainda nao existirem, o erro de compilacao esperado e de import faltante, nao do controller em si

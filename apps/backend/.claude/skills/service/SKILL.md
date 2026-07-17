@@ -12,7 +12,8 @@ E aqui que mora a regra de negocio. Um Service e uma classe com **uma unica resp
 - Arquivo: `src/service/{Operation}{Entity}Service.ts` — PascalCase, sem kebab-case, sem sufixo com ponto
 - Classe: `{Operation}{Entity}Service` (ex.: `CreateContactService`, `ListContactService`, `FindContactService`)
 - `@Injectable()` na classe
-- **Um metodo publico so**: `execute(...)`. Se a operacao precisa de entrada estruturada, declare uma `interface Request { ... }` no proprio arquivo (sem `export` — e privada ao caso de uso, namespaced pelo arquivo). Se a operacao nao tem entrada (ex.: `list`), `execute()` nao recebe parametro
+- **Um metodo publico so**: `execute(...)`. Se a operacao precisa de entrada estruturada, declare uma `interface Request { ... }` no proprio arquivo (sem `export` — e privada ao caso de uso, namespaced pelo arquivo)
+- **Este projeto e multi-tenant**: `List{Entity}Service.execute()` sempre recebe `{ organizationId }` (nunca sem parametro) e repassa pro `findAll` do Repository — o `organizationId` vem de `@CurrentUser()` no controller, nunca e assumido implicitamente
 - Construtor injeta **somente Repository abstratos de `domain`** (nunca a implementacao concreta de `external`, nunca Prisma direto) — inversao de dependencia. Pode injetar mais de um Repository quando a regra de negocio precisa consultar outra entidade antes de agir
 - Toda validacao/regra de negocio fica aqui. Quando uma invariante e violada, lance um erro de dominio de `shared/erros/cases/*` (nao use `throw new Error(...)` solto)
 - Tipo de retorno segue a mesma convencao da camada controller/domain:
@@ -42,18 +43,22 @@ export class {Operation}{Entity}Service {
 }
 ```
 
-## Template generico — leitura sem entrada (list)
+## Template generico — leitura escopada por organizacao (list)
 
 ```ts
 import { Injectable } from '@nestjs/common';
 import { {Entity}Repository, {Entity}s } from 'src/domain/{Entity}Repository';
 
+interface Request {
+  organizationId: string;
+}
+
 @Injectable()
 export class List{Entity}Service {
   constructor(private readonly {entityCamel}Repository: {Entity}Repository) {}
 
-  async execute(): Promise<{Entity}s[]> {
-    return await this.{entityCamel}Repository.findAll();
+  async execute({ organizationId }: Request): Promise<{Entity}s[]> {
+    return await this.{entityCamel}Repository.findAll({ organizationId });
   }
 }
 ```
@@ -101,6 +106,7 @@ Esta skill cuida **apenas da camada Service**. Ela assume que o(s) Repository de
 1. Confirmar a operacao (create/list/findById/update/delete), a entidade e se ha alguma regra de negocio envolvida
 2. Confirmar quais Repository(s) de `domain` a operacao precisa injetar
 3. Se houver regra de validacao, confirmar (ou sinalizar a necessidade de) a classe de erro em `shared/erros/cases`
-4. Criar `src/service/{Operation}{Entity}Service.ts` seguindo o template adequado
-5. Registrar o Service como provider no module correspondente
-6. Rodar o build para validar
+4. Criar `src/service/{Operation}{Entity}Service.ts` seguindo o template adequado — `list` sempre recebe `{ organizationId }`
+5. Escrever `{Operation}{Entity}Service.spec.ts` ao lado (mock manual do(s) Repository, sem `Test.createTestingModule()`)
+6. Registrar o Service em `providers` de `src/app.module.ts` — nao existe module por entidade nesse projeto
+7. Rodar o build e os testes para validar

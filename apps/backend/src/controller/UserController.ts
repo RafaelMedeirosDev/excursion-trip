@@ -1,17 +1,22 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { Role, User } from '@prisma/client';
+import { Users } from 'src/domain/UserRepository';
 import { CurrentUser } from 'src/decorators/CurrentUser';
 import { Roles } from 'src/decorators/Roles';
 import { JwtAuthGuard } from 'src/guards/JwtAuthGuard';
 import { RolesGuard } from 'src/guards/RolesGuard';
 import { CreateUserService } from 'src/service/CreateUserService';
+import { ListUserService } from 'src/service/ListUserService';
 import { CreateUserDTO } from 'src/shared/dtos/CreateUserDTO';
 import { JwtPayload } from 'src/strategies/JwtStrategy';
 
 @Controller('/users')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class UserController {
-  constructor(private readonly createUserService: CreateUserService) {}
+  constructor(
+    private readonly createUserService: CreateUserService,
+    private readonly listUserService: ListUserService,
+  ) {}
 
   @Post()
   @Roles(Role.ADM)
@@ -27,6 +32,14 @@ export class UserController {
       phone,
       cpf,
       role,
+    });
+  }
+
+  @Get()
+  @Roles(Role.ADM)
+  list(@CurrentUser() currentUser: JwtPayload): Promise<Users[]> {
+    return this.listUserService.execute({
+      organizationId: currentUser.organizationId,
     });
   }
 }
