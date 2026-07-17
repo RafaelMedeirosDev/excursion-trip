@@ -3,6 +3,8 @@ import { Customer } from '@prisma/client';
 import {
   Create,
   CustomerRepository,
+  Customers,
+  FindAll,
   FindByCpf,
   FindById,
 } from 'src/domain/CustomerRepository';
@@ -26,5 +28,21 @@ export class PrismaCustomerRepository implements CustomerRepository {
 
   findById({ id }: FindById): Promise<Customer | null> {
     return this.repository.customer.findUnique({ where: { id } });
+  }
+
+  findAll({ organizationId }: FindAll): Promise<Customers[]> {
+    return this.repository.customer.findMany({
+      where: { organizationId, deletedAt: null },
+      select: {
+        id: true,
+        organizationId: true,
+        name: true,
+        email: true,
+        phone: true,
+        cpf: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
   }
 }
