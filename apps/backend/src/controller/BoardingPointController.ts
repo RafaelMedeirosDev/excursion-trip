@@ -1,10 +1,12 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { BoardingPoint, Role } from '@prisma/client';
+import { BoardingPoints } from 'src/domain/BoardingPointRepository';
 import { CurrentUser } from 'src/decorators/CurrentUser';
 import { Roles } from 'src/decorators/Roles';
 import { JwtAuthGuard } from 'src/guards/JwtAuthGuard';
 import { RolesGuard } from 'src/guards/RolesGuard';
 import { CreateBoardingPointService } from 'src/service/CreateBoardingPointService';
+import { ListBoardingPointService } from 'src/service/ListBoardingPointService';
 import { CreateBoardingPointDTO } from 'src/shared/dtos/CreateBoardingPointDTO';
 import { JwtPayload } from 'src/strategies/JwtStrategy';
 
@@ -13,6 +15,7 @@ import { JwtPayload } from 'src/strategies/JwtStrategy';
 export class BoardingPointController {
   constructor(
     private readonly createBoardingPointService: CreateBoardingPointService,
+    private readonly listBoardingPointService: ListBoardingPointService,
   ) {}
 
   @Post()
@@ -26,6 +29,14 @@ export class BoardingPointController {
       vehicleBookingId,
       address,
       time,
+    });
+  }
+
+  @Get()
+  @Roles(Role.ADM)
+  list(@CurrentUser() currentUser: JwtPayload): Promise<BoardingPoints[]> {
+    return this.listBoardingPointService.execute({
+      organizationId: currentUser.organizationId,
     });
   }
 }

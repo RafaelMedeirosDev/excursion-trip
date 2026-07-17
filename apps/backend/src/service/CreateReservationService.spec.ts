@@ -49,7 +49,11 @@ describe('CreateReservationService', () => {
       findById: jest.fn(),
       findAll: jest.fn(),
     };
-    boardingPointRepository = { create: jest.fn(), findById: jest.fn() };
+    boardingPointRepository = {
+      create: jest.fn(),
+      findById: jest.fn(),
+      findAll: jest.fn(),
+    };
     service = new CreateReservationService(
       reservationRepository,
       customerRepository,
