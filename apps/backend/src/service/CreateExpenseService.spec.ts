@@ -35,6 +35,7 @@ describe('CreateExpenseService', () => {
       create: jest.fn(),
       findByExcursionAndPlate: jest.fn(),
       findById: jest.fn(),
+      findAll: jest.fn(),
     };
     service = new CreateExpenseService(
       expenseRepository,

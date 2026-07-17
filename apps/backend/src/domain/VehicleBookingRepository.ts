@@ -1,4 +1,4 @@
-import { VehicleBooking } from '@prisma/client';
+import { Excursion, Supplier, User, VehicleBooking } from '@prisma/client';
 
 export interface Create {
   organizationId: string;
@@ -23,6 +23,16 @@ export interface FindById {
   id: string;
 }
 
+export interface FindAll {
+  organizationId: string;
+}
+
+export type VehicleBookings = Omit<VehicleBooking, 'deletedAt'> & {
+  excursion: Excursion;
+  supplier: Omit<Supplier, 'deletedAt'>;
+  user: Omit<User, 'password' | 'deletedAt'>;
+};
+
 export abstract class VehicleBookingRepository {
   abstract create({
     organizationId,
@@ -44,4 +54,6 @@ export abstract class VehicleBookingRepository {
   }: FindByExcursionAndPlate): Promise<VehicleBooking | null>;
 
   abstract findById({ id }: FindById): Promise<VehicleBooking | null>;
+
+  abstract findAll({ organizationId }: FindAll): Promise<VehicleBookings[]>;
 }

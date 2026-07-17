@@ -55,6 +55,7 @@ import { ListEventService } from 'src/service/ListEventService';
 import { ListExcursionService } from 'src/service/ListExcursionService';
 import { ListSupplierService } from 'src/service/ListSupplierService';
 import { ListUserService } from 'src/service/ListUserService';
+import { ListVehicleBookingService } from 'src/service/ListVehicleBookingService';
 import { LoginService } from 'src/service/LoginService';
 import { JwtStrategy } from 'src/strategies/JwtStrategy';
 import { AppController } from './app.controller';
@@ -100,6 +101,7 @@ import { AppService } from './app.service';
     CreateSupplierService,
     ListSupplierService,
     CreateVehicleBookingService,
+    ListVehicleBookingService,
     CreateExpenseService,
     CreateBoardingPointService,
     CreateReservationService,
