@@ -2,9 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { VehicleBooking } from '@prisma/client';
 import {
   Create,
+  FindAll,
   FindByExcursionAndPlate,
   FindById,
   VehicleBookingRepository,
+  VehicleBookings,
 } from 'src/domain/VehicleBookingRepository';
 import { PrismaRemoteRepository } from './PrismaRemoteRepository';
 
@@ -55,5 +57,53 @@ export class PrismaVehicleBookingRepository
 
   findById({ id }: FindById): Promise<VehicleBooking | null> {
     return this.repository.vehicleBooking.findFirst({ where: { id } });
+  }
+
+  findAll({ organizationId }: FindAll): Promise<VehicleBookings[]> {
+    return this.repository.vehicleBooking.findMany({
+      where: { organizationId, deletedAt: null },
+      select: {
+        id: true,
+        organizationId: true,
+        supplierId: true,
+        excursionId: true,
+        userId: true,
+        vehicleType: true,
+        plate: true,
+        capacity: true,
+        value: true,
+        startTime: true,
+        returnTime: true,
+        price: true,
+        createdAt: true,
+        updatedAt: true,
+        excursion: true,
+        supplier: {
+          select: {
+            id: true,
+            organizationId: true,
+            name: true,
+            cnpj: true,
+            address: true,
+            phone: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+        user: {
+          select: {
+            id: true,
+            organizationId: true,
+            name: true,
+            email: true,
+            phone: true,
+            cpf: true,
+            role: true,
+            createdAt: true,
+            updatedAt: true,
+          },
+        },
+      },
+    });
   }
 }

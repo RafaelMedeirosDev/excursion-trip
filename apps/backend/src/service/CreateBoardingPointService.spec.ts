@@ -24,6 +24,7 @@ describe('CreateBoardingPointService', () => {
       create: jest.fn(),
       findByExcursionAndPlate: jest.fn(),
       findById: jest.fn(),
+      findAll: jest.fn(),
     };
     service = new CreateBoardingPointService(
       boardingPointRepository,

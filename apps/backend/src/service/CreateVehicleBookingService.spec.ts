@@ -39,6 +39,7 @@ describe('CreateVehicleBookingService', () => {
       create: jest.fn(),
       findByExcursionAndPlate: jest.fn(),
       findById: jest.fn(),
+      findAll: jest.fn(),
     };
     excursionRepository = {
       create: jest.fn(),
