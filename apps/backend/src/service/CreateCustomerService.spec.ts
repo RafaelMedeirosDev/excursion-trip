@@ -19,6 +19,7 @@ describe('CreateCustomerService', () => {
       create: jest.fn(),
       findByCpf: jest.fn(),
       findById: jest.fn(),
+      findAll: jest.fn(),
     };
     service = new CreateCustomerService(customerRepository);
   });
