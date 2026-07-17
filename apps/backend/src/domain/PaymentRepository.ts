@@ -1,4 +1,10 @@
-import { Payment, PaymentMethod, PaymentType } from '@prisma/client';
+import {
+  Payment,
+  PaymentMethod,
+  PaymentType,
+  Reservation,
+  User,
+} from '@prisma/client';
 
 export interface Create {
   organizationId: string;
@@ -9,6 +15,16 @@ export interface Create {
   method: PaymentMethod;
 }
 
+export interface FindAll {
+  organizationId: string;
+  userId?: string;
+}
+
+export type Payments = Payment & {
+  reservation: Omit<Reservation, 'deletedAt'>;
+  user: Omit<User, 'password' | 'deletedAt'>;
+};
+
 export abstract class PaymentRepository {
   abstract create({
     organizationId,
@@ -18,4 +34,6 @@ export abstract class PaymentRepository {
     value,
     method,
   }: Create): Promise<Payment>;
+
+  abstract findAll({ organizationId, userId }: FindAll): Promise<Payments[]>;
 }

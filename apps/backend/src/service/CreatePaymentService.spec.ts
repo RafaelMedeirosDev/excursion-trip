@@ -20,7 +20,7 @@ describe('CreatePaymentService', () => {
   };
 
   beforeEach(() => {
-    paymentRepository = { create: jest.fn() };
+    paymentRepository = { create: jest.fn(), findAll: jest.fn() };
     reservationRepository = {
       create: jest.fn(),
       findByVehicleBookingAndCustomer: jest.fn(),
