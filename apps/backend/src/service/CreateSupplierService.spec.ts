@@ -19,6 +19,7 @@ describe('CreateSupplierService', () => {
       create: jest.fn(),
       findByCnpj: jest.fn(),
       findById: jest.fn(),
+      findAll: jest.fn(),
     };
     service = new CreateSupplierService(supplierRepository);
   });

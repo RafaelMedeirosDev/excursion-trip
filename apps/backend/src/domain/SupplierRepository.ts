@@ -17,6 +17,12 @@ export interface FindById {
   id: string;
 }
 
+export interface FindAll {
+  organizationId: string;
+}
+
+export type Suppliers = Omit<Supplier, 'deletedAt'>;
+
 export abstract class SupplierRepository {
   abstract create({
     organizationId,
@@ -32,4 +38,6 @@ export abstract class SupplierRepository {
   }: FindByCnpj): Promise<Supplier | null>;
 
   abstract findById({ id }: FindById): Promise<Supplier | null>;
+
+  abstract findAll({ organizationId }: FindAll): Promise<Suppliers[]>;
 }

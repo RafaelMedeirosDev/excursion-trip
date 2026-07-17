@@ -2,9 +2,11 @@ import { Injectable } from '@nestjs/common';
 import { Supplier } from '@prisma/client';
 import {
   Create,
+  FindAll,
   FindByCnpj,
   FindById,
   SupplierRepository,
+  Suppliers,
 } from 'src/domain/SupplierRepository';
 import { PrismaRemoteRepository } from './PrismaRemoteRepository';
 
@@ -26,5 +28,21 @@ export class PrismaSupplierRepository implements SupplierRepository {
 
   findById({ id }: FindById): Promise<Supplier | null> {
     return this.repository.supplier.findFirst({ where: { id } });
+  }
+
+  findAll({ organizationId }: FindAll): Promise<Suppliers[]> {
+    return this.repository.supplier.findMany({
+      where: { organizationId, deletedAt: null },
+      select: {
+        id: true,
+        organizationId: true,
+        name: true,
+        cnpj: true,
+        address: true,
+        phone: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
   }
 }
