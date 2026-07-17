@@ -19,7 +19,11 @@ describe('CreateBoardingPointService', () => {
   };
 
   beforeEach(() => {
-    boardingPointRepository = { create: jest.fn(), findById: jest.fn() };
+    boardingPointRepository = {
+      create: jest.fn(),
+      findById: jest.fn(),
+      findAll: jest.fn(),
+    };
     vehicleBookingRepository = {
       create: jest.fn(),
       findByExcursionAndPlate: jest.fn(),
