@@ -1,4 +1,10 @@
-import { Excursion, Supplier, User, VehicleBooking } from '@prisma/client';
+import {
+  Excursion,
+  ExcursionStatus,
+  Supplier,
+  User,
+  VehicleBooking,
+} from '@prisma/client';
 import { ExcursionRepository } from 'src/domain/ExcursionRepository';
 import { SupplierRepository } from 'src/domain/SupplierRepository';
 import { UserRepository } from 'src/domain/UserRepository';
@@ -7,6 +13,7 @@ import { ExcursionNotFound } from 'src/shared/erros/cases/ExcursionNotFound';
 import { SupplierNotFound } from 'src/shared/erros/cases/SupplierNotFound';
 import { UserNotFound } from 'src/shared/erros/cases/UserNotFound';
 import { VehicleBookingAlreadyExists } from 'src/shared/erros/cases/VehicleBookingAlreadyExists';
+import { VehicleBookingExcursionNotAvailable } from 'src/shared/erros/cases/VehicleBookingExcursionNotAvailable';
 import { CreateVehicleBookingService } from './CreateVehicleBookingService';
 
 describe('CreateVehicleBookingService', () => {
@@ -30,7 +37,11 @@ describe('CreateVehicleBookingService', () => {
     price: 15000,
   };
 
-  const excursion = { id: 'excursion-1', organizationId } as Excursion;
+  const excursion = {
+    id: 'excursion-1',
+    organizationId,
+    status: ExcursionStatus.PLANNING,
+  } as Excursion;
   const supplier = { id: 'supplier-1', organizationId } as Supplier;
   const user = { id: 'user-1', organizationId } as User;
 
@@ -151,6 +162,18 @@ describe('CreateVehicleBookingService', () => {
 
     await expect(service.execute(request)).rejects.toBeInstanceOf(
       VehicleBookingAlreadyExists,
+    );
+    expect(vehicleBookingRepository.create).not.toHaveBeenCalled();
+  });
+
+  it('lança VehicleBookingExcursionNotAvailable quando a excursion não está em PLANNING nem OPEN', async () => {
+    excursionRepository.findById.mockResolvedValue({
+      ...excursion,
+      status: ExcursionStatus.CLOSED,
+    });
+
+    await expect(service.execute(request)).rejects.toBeInstanceOf(
+      VehicleBookingExcursionNotAvailable,
     );
     expect(vehicleBookingRepository.create).not.toHaveBeenCalled();
   });

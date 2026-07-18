@@ -1,16 +1,20 @@
 import {
   BoardingPoint,
   Customer,
+  Excursion,
+  ExcursionStatus,
   Reservation,
   VehicleBooking,
 } from '@prisma/client';
 import { BoardingPointRepository } from 'src/domain/BoardingPointRepository';
 import { CustomerRepository } from 'src/domain/CustomerRepository';
+import { ExcursionRepository } from 'src/domain/ExcursionRepository';
 import { ReservationRepository } from 'src/domain/ReservationRepository';
 import { VehicleBookingRepository } from 'src/domain/VehicleBookingRepository';
 import { BoardingPointNotFound } from 'src/shared/erros/cases/BoardingPointNotFound';
 import { CustomerNotFound } from 'src/shared/erros/cases/CustomerNotFound';
 import { ReservationAlreadyExists } from 'src/shared/erros/cases/ReservationAlreadyExists';
+import { ReservationExcursionNotAvailable } from 'src/shared/erros/cases/ReservationExcursionNotAvailable';
 import { VehicleBookingNotFound } from 'src/shared/erros/cases/VehicleBookingNotFound';
 import { CreateReservationService } from './CreateReservationService';
 
@@ -19,6 +23,7 @@ describe('CreateReservationService', () => {
   let customerRepository: jest.Mocked<CustomerRepository>;
   let vehicleBookingRepository: jest.Mocked<VehicleBookingRepository>;
   let boardingPointRepository: jest.Mocked<BoardingPointRepository>;
+  let excursionRepository: jest.Mocked<ExcursionRepository>;
   let service: CreateReservationService;
 
   const organizationId = 'org-1';
@@ -55,11 +60,18 @@ describe('CreateReservationService', () => {
       findById: jest.fn(),
       findAll: jest.fn(),
     };
+    excursionRepository = {
+      create: jest.fn(),
+      findById: jest.fn(),
+      findAll: jest.fn(),
+      updateStatus: jest.fn(),
+    };
     service = new CreateReservationService(
       reservationRepository,
       customerRepository,
       vehicleBookingRepository,
       boardingPointRepository,
+      excursionRepository,
     );
 
     customerRepository.findById.mockResolvedValue({
@@ -69,7 +81,13 @@ describe('CreateReservationService', () => {
     vehicleBookingRepository.findById.mockResolvedValue({
       id: 'vb-1',
       organizationId,
+      excursionId: 'excursion-1',
     } as VehicleBooking);
+    excursionRepository.findById.mockResolvedValue({
+      id: 'excursion-1',
+      organizationId,
+      status: ExcursionStatus.OPEN,
+    } as Excursion);
     reservationRepository.findByVehicleBookingAndCustomer.mockResolvedValue(
       null,
     );
@@ -158,6 +176,19 @@ describe('CreateReservationService', () => {
 
     await expect(service.execute(request)).rejects.toBeInstanceOf(
       ReservationAlreadyExists,
+    );
+    expect(reservationRepository.create).not.toHaveBeenCalled();
+  });
+
+  it('lança ReservationExcursionNotAvailable quando a excursion não está em PLANNING nem OPEN', async () => {
+    excursionRepository.findById.mockResolvedValue({
+      id: 'excursion-1',
+      organizationId,
+      status: ExcursionStatus.CLOSED,
+    } as Excursion);
+
+    await expect(service.execute(request)).rejects.toBeInstanceOf(
+      ReservationExcursionNotAvailable,
     );
     expect(reservationRepository.create).not.toHaveBeenCalled();
   });
