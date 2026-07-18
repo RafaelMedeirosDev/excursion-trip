@@ -170,6 +170,8 @@ model Excursion {
   departureDate DateTime
   returnDate    DateTime
   status        ExcursionStatus @default(PLANNING)
+  canceledAt    DateTime?
+  cancelReason  String?
 
   organization Organization @relation(fields: [organizationId], references: [id])
   event        Event        @relation(fields: [eventId], references: [id])

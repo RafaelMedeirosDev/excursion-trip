@@ -6,6 +6,7 @@ import {
   Excursions,
   FindAll,
   FindById,
+  UpdateStatus,
 } from 'src/domain/ExcursionRepository';
 import { PrismaRemoteRepository } from './PrismaRemoteRepository';
 
@@ -34,6 +35,18 @@ export class PrismaExcursionRepository implements ExcursionRepository {
     return this.repository.excursion.findMany({
       where: { organizationId },
       include: { event: true },
+    });
+  }
+
+  updateStatus({
+    id,
+    status,
+    canceledAt,
+    cancelReason,
+  }: UpdateStatus): Promise<Excursion> {
+    return this.repository.excursion.update({
+      where: { id },
+      data: { status, canceledAt, cancelReason },
     });
   }
 }

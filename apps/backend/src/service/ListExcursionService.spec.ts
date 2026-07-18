@@ -15,6 +15,7 @@ describe('ListExcursionService', () => {
       create: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
+      updateStatus: jest.fn(),
     };
     service = new ListExcursionService(excursionRepository);
   });
