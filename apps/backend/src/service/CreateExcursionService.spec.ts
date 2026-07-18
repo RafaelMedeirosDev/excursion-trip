@@ -25,6 +25,7 @@ describe('CreateExcursionService', () => {
       create: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
+      updateStatus: jest.fn(),
     };
     eventRepository = {
       create: jest.fn(),
