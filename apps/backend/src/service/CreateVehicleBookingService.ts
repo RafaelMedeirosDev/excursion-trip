@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { VehicleBooking } from '@prisma/client';
+import { ExcursionStatus, VehicleBooking } from '@prisma/client';
 import { ExcursionRepository } from 'src/domain/ExcursionRepository';
 import { SupplierRepository } from 'src/domain/SupplierRepository';
 import { UserRepository } from 'src/domain/UserRepository';
@@ -8,6 +8,12 @@ import { ExcursionNotFound } from 'src/shared/erros/cases/ExcursionNotFound';
 import { SupplierNotFound } from 'src/shared/erros/cases/SupplierNotFound';
 import { UserNotFound } from 'src/shared/erros/cases/UserNotFound';
 import { VehicleBookingAlreadyExists } from 'src/shared/erros/cases/VehicleBookingAlreadyExists';
+import { VehicleBookingExcursionNotAvailable } from 'src/shared/erros/cases/VehicleBookingExcursionNotAvailable';
+
+const ALLOWED_STATUSES: ExcursionStatus[] = [
+  ExcursionStatus.PLANNING,
+  ExcursionStatus.OPEN,
+];
 
 interface Request {
   organizationId: string;
@@ -51,6 +57,10 @@ export class CreateVehicleBookingService {
 
     if (!excursion || excursion.organizationId !== organizationId) {
       throw new ExcursionNotFound();
+    }
+
+    if (!ALLOWED_STATUSES.includes(excursion.status)) {
+      throw new VehicleBookingExcursionNotAvailable();
     }
 
     const supplier = await this.supplierRepository.findById({
