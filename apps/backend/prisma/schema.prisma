@@ -252,7 +252,7 @@ model Reservation {
   vehicleBookingId String
   boardingPointId  String?
 
-  status       ReservationStatus @default(PENDING)
+  status       ReservationStatus @default(WAITLIST)
   agreedValue  Int
   canceledAt   DateTime?
   cancelReason String?

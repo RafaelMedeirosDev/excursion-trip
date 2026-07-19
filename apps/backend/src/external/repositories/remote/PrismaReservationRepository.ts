@@ -7,6 +7,7 @@ import {
   FindById,
   ReservationRepository,
   Reservations,
+  UpdateStatus,
 } from 'src/domain/ReservationRepository';
 import { PrismaRemoteRepository } from './PrismaRemoteRepository';
 
@@ -122,6 +123,18 @@ export class PrismaReservationRepository implements ReservationRepository {
           },
         },
       },
+    });
+  }
+
+  updateStatus({
+    id,
+    status,
+    canceledAt,
+    cancelReason,
+  }: UpdateStatus): Promise<Reservation> {
+    return this.repository.reservation.update({
+      where: { id },
+      data: { status, canceledAt, cancelReason },
     });
   }
 }

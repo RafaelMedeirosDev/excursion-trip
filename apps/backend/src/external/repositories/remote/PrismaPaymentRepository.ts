@@ -3,6 +3,7 @@ import { Payment } from '@prisma/client';
 import {
   Create,
   FindAll,
+  FindByReservationId,
   PaymentRepository,
   Payments,
 } from 'src/domain/PaymentRepository';
@@ -71,5 +72,11 @@ export class PrismaPaymentRepository implements PaymentRepository {
         },
       },
     });
+  }
+
+  findByReservationId({
+    reservationId,
+  }: FindByReservationId): Promise<Payment[]> {
+    return this.repository.payment.findMany({ where: { reservationId } });
   }
 }

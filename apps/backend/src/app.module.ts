@@ -39,6 +39,8 @@ import { PrismaUserRepository } from 'src/external/repositories/remote/PrismaUse
 import { PrismaVehicleBookingRepository } from 'src/external/repositories/remote/PrismaVehicleBookingRepository';
 import { JwtAuthGuard } from 'src/guards/JwtAuthGuard';
 import { RolesGuard } from 'src/guards/RolesGuard';
+import { CancelReservationService } from 'src/service/CancelReservationService';
+import { ConfirmReservationService } from 'src/service/ConfirmReservationService';
 import { CreateBoardingPointService } from 'src/service/CreateBoardingPointService';
 import { CreateCustomerService } from 'src/service/CreateCustomerService';
 import { CreateEventService } from 'src/service/CreateEventService';
@@ -61,6 +63,7 @@ import { ListSupplierService } from 'src/service/ListSupplierService';
 import { ListUserService } from 'src/service/ListUserService';
 import { ListVehicleBookingService } from 'src/service/ListVehicleBookingService';
 import { LoginService } from 'src/service/LoginService';
+import { PendingReservationService } from 'src/service/PendingReservationService';
 import { UpdateExcursionStatusService } from 'src/service/UpdateExcursionStatusService';
 import { JwtStrategy } from 'src/strategies/JwtStrategy';
 import { AppController } from './app.controller';
@@ -114,6 +117,9 @@ import { AppService } from './app.service';
     ListBoardingPointService,
     CreateReservationService,
     ListReservationService,
+    PendingReservationService,
+    ConfirmReservationService,
+    CancelReservationService,
     CreatePaymentService,
     ListPaymentService,
     JwtStrategy,
