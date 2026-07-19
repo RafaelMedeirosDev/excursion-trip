@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Role } from '@prisma/client';
+import { ReservationStatus, Role } from '@prisma/client';
 import {
   Reservations,
   ReservationRepository,
@@ -9,6 +9,7 @@ interface Request {
   organizationId: string;
   userId: string;
   role: Role;
+  status?: ReservationStatus;
 }
 
 @Injectable()
@@ -21,10 +22,12 @@ export class ListReservationService {
     organizationId,
     userId,
     role,
+    status,
   }: Request): Promise<Reservations[]> {
     return await this.reservationRepository.findAll({
       organizationId,
       userId: role === Role.ADM ? undefined : userId,
+      status,
     });
   }
 }

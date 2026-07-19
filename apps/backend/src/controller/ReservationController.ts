@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { Reservation } from '@prisma/client';
@@ -18,6 +19,7 @@ import { ListReservationService } from 'src/service/ListReservationService';
 import { PendingReservationService } from 'src/service/PendingReservationService';
 import { CancelReservationDTO } from 'src/shared/dtos/CancelReservationDTO';
 import { CreateReservationDTO } from 'src/shared/dtos/CreateReservationDTO';
+import { ListReservationDTO } from 'src/shared/dtos/ListReservationDTO';
 import { JwtPayload } from 'src/strategies/JwtStrategy';
 
 @Controller('/reservations')
@@ -48,11 +50,15 @@ export class ReservationController {
   }
 
   @Get()
-  list(@CurrentUser() currentUser: JwtPayload): Promise<Reservations[]> {
+  list(
+    @Query() { status }: ListReservationDTO,
+    @CurrentUser() currentUser: JwtPayload,
+  ): Promise<Reservations[]> {
     return this.listReservationService.execute({
       organizationId: currentUser.organizationId,
       userId: currentUser.sub,
       role: currentUser.role,
+      status,
     });
   }
 
