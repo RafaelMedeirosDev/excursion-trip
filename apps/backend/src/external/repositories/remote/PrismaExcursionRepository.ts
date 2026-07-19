@@ -31,9 +31,9 @@ export class PrismaExcursionRepository implements ExcursionRepository {
     return this.repository.excursion.findFirst({ where: { id } });
   }
 
-  findAll({ organizationId }: FindAll): Promise<Excursions[]> {
+  findAll({ organizationId, status }: FindAll): Promise<Excursions[]> {
     return this.repository.excursion.findMany({
-      where: { organizationId },
+      where: { organizationId, ...(status ? { status } : {}) },
       include: { event: true },
     });
   }
