@@ -25,7 +25,12 @@ pnpm install
 pnpm dev      # turbo run dev em todos os apps
 pnpm build    # turbo run build
 pnpm lint     # turbo run lint
+pnpm test     # turbo run test
 ```
+
+## CI
+
+`.github/workflows/ci.yml` roda `pnpm build && pnpm lint && pnpm test` em todo Pull Request pra `main` (GitHub Actions, Node 20 + pnpm, sem banco — os testes do backend só usam mocks de `Repository`, não tocam Postgres).
 
 ## Estado atual
 
