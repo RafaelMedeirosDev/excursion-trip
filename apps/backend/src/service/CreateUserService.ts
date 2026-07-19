@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { Role, User } from '@prisma/client';
+import { Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { UserRepository } from 'src/domain/UserRepository';
+import { UserRepository, Users } from 'src/domain/UserRepository';
 import { UserAlreadyExists } from 'src/shared/erros/cases/UserAlreadyExists';
 
 interface Request {
@@ -28,7 +28,7 @@ export class CreateUserService {
     phone,
     cpf,
     role,
-  }: Request): Promise<User> {
+  }: Request): Promise<Users> {
     const emailAlreadyExists = await this.userRepository.findByEmail({
       email,
     });

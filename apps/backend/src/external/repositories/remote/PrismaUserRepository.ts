@@ -23,9 +23,20 @@ export class PrismaUserRepository implements UserRepository {
     phone,
     cpf,
     role,
-  }: Create): Promise<User> {
+  }: Create): Promise<Users> {
     return this.repository.user.create({
       data: { organizationId, name, email, password, phone, cpf, role },
+      select: {
+        id: true,
+        organizationId: true,
+        name: true,
+        email: true,
+        phone: true,
+        cpf: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
     });
   }
 
