@@ -1,4 +1,4 @@
-import { Role } from '@prisma/client';
+import { ReservationStatus, Role } from '@prisma/client';
 import {
   Reservations,
   ReservationRepository,
@@ -59,5 +59,39 @@ describe('ListReservationService', () => {
       userId,
     });
     expect(result).toEqual(reservations);
+  });
+
+  it('ADM: repassa o status pro findAll quando informado', async () => {
+    reservationRepository.findAll.mockResolvedValue([]);
+
+    await service.execute({
+      organizationId,
+      userId,
+      role: Role.ADM,
+      status: ReservationStatus.CONFIRMED,
+    });
+
+    expect(reservationRepository.findAll).toHaveBeenCalledWith({
+      organizationId,
+      userId: undefined,
+      status: ReservationStatus.CONFIRMED,
+    });
+  });
+
+  it('EMPLOYEE: filtro de status se combina com o filtro por userId, não o substitui', async () => {
+    reservationRepository.findAll.mockResolvedValue([]);
+
+    await service.execute({
+      organizationId,
+      userId,
+      role: Role.EMPLOYEE,
+      status: ReservationStatus.WAITLIST,
+    });
+
+    expect(reservationRepository.findAll).toHaveBeenCalledWith({
+      organizationId,
+      userId,
+      status: ReservationStatus.WAITLIST,
+    });
   });
 });
