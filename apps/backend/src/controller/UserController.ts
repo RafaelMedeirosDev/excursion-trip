@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
-import { Role, User } from '@prisma/client';
+import { Role } from '@prisma/client';
 import { Users } from 'src/domain/UserRepository';
 import { CurrentUser } from 'src/decorators/CurrentUser';
 import { Roles } from 'src/decorators/Roles';
@@ -23,7 +23,7 @@ export class UserController {
   create(
     @Body() { name, email, password, phone, cpf, role }: CreateUserDTO,
     @CurrentUser() currentUser: JwtPayload,
-  ): Promise<User> {
+  ): Promise<Users> {
     return this.createUserService.execute({
       organizationId: currentUser.organizationId,
       name,

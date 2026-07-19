@@ -1,6 +1,6 @@
 import { Role, User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
-import { UserRepository } from 'src/domain/UserRepository';
+import { UserRepository, Users } from 'src/domain/UserRepository';
 import { UserAlreadyExists } from 'src/shared/erros/cases/UserAlreadyExists';
 import { CreateUserService } from './CreateUserService';
 
@@ -35,7 +35,7 @@ describe('CreateUserService', () => {
   it('cria o usuário com a senha hasheada quando email e cpf estão livres', async () => {
     userRepository.findByEmail.mockResolvedValue(null);
     userRepository.findByCpf.mockResolvedValue(null);
-    userRepository.create.mockResolvedValue({ id: 'user-1' } as User);
+    userRepository.create.mockResolvedValue({ id: 'user-1' } as Users);
 
     const result = await service.execute(request);
 

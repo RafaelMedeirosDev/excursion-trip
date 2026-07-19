@@ -38,7 +38,7 @@ export abstract class UserRepository {
     phone,
     cpf,
     role,
-  }: Create): Promise<User>;
+  }: Create): Promise<Users>;
 
   abstract findByEmail({ email }: FindByEmail): Promise<User | null>;
 

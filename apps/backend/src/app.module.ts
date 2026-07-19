@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
+import { ThrottlerModule } from '@nestjs/throttler';
 import { AuthController } from 'src/controller/AuthController';
 import { BoardingPointController } from 'src/controller/BoardingPointController';
 import { CustomerController } from 'src/controller/CustomerController';
@@ -77,6 +78,7 @@ import { AppService } from './app.service';
       secret: process.env.JWT_SECRET,
       signOptions: { expiresIn: process.env.JWT_EXPIRES_IN ?? '1d' },
     }),
+    ThrottlerModule.forRoot([{ ttl: 60000, limit: 5 }]),
   ],
   controllers: [
     AppController,
