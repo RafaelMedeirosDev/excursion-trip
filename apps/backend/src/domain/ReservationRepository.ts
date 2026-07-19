@@ -2,6 +2,7 @@ import {
   BoardingPoint,
   Customer,
   Reservation,
+  ReservationStatus,
   User,
   VehicleBooking,
 } from '@prisma/client';
@@ -36,6 +37,13 @@ export type Reservations = Omit<Reservation, 'deletedAt'> & {
   user: Omit<User, 'password' | 'deletedAt'>;
 };
 
+export interface UpdateStatus {
+  id: string;
+  status: ReservationStatus;
+  canceledAt?: Date;
+  cancelReason?: string;
+}
+
 export abstract class ReservationRepository {
   abstract create({
     organizationId,
@@ -54,4 +62,11 @@ export abstract class ReservationRepository {
   abstract findById({ id }: FindById): Promise<Reservation | null>;
 
   abstract findAll({ organizationId, userId }: FindAll): Promise<Reservations[]>;
+
+  abstract updateStatus({
+    id,
+    status,
+    canceledAt,
+    cancelReason,
+  }: UpdateStatus): Promise<Reservation>;
 }

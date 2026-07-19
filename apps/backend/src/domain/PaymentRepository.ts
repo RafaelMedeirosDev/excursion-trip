@@ -20,6 +20,10 @@ export interface FindAll {
   userId?: string;
 }
 
+export interface FindByReservationId {
+  reservationId: string;
+}
+
 export type Payments = Payment & {
   reservation: Omit<Reservation, 'deletedAt'>;
   user: Omit<User, 'password' | 'deletedAt'>;
@@ -36,4 +40,8 @@ export abstract class PaymentRepository {
   }: Create): Promise<Payment>;
 
   abstract findAll({ organizationId, userId }: FindAll): Promise<Payments[]>;
+
+  abstract findByReservationId({
+    reservationId,
+  }: FindByReservationId): Promise<Payment[]>;
 }

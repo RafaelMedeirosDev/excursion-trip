@@ -20,12 +20,17 @@ describe('CreatePaymentService', () => {
   };
 
   beforeEach(() => {
-    paymentRepository = { create: jest.fn(), findAll: jest.fn() };
+    paymentRepository = {
+      create: jest.fn(),
+      findAll: jest.fn(),
+      findByReservationId: jest.fn(),
+    };
     reservationRepository = {
       create: jest.fn(),
       findByVehicleBookingAndCustomer: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
+      updateStatus: jest.fn(),
     };
     service = new CreatePaymentService(paymentRepository, reservationRepository);
 

@@ -13,6 +13,7 @@ describe('ListPaymentService', () => {
     paymentRepository = {
       create: jest.fn(),
       findAll: jest.fn(),
+      findByReservationId: jest.fn(),
     };
     service = new ListPaymentService(paymentRepository);
   });
