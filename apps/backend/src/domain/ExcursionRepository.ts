@@ -15,6 +15,7 @@ export interface FindById {
 
 export interface FindAll {
   organizationId: string;
+  status?: ExcursionStatus;
 }
 
 export type Excursions = Excursion & { event: Event };
@@ -38,7 +39,7 @@ export abstract class ExcursionRepository {
 
   abstract findById({ id }: FindById): Promise<Excursion | null>;
 
-  abstract findAll({ organizationId }: FindAll): Promise<Excursions[]>;
+  abstract findAll({ organizationId, status }: FindAll): Promise<Excursions[]>;
 
   abstract updateStatus({
     id,

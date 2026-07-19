@@ -5,6 +5,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { Excursion, Role } from '@prisma/client';
@@ -17,6 +18,7 @@ import { CreateExcursionService } from 'src/service/CreateExcursionService';
 import { ListExcursionService } from 'src/service/ListExcursionService';
 import { UpdateExcursionStatusService } from 'src/service/UpdateExcursionStatusService';
 import { CreateExcursionDTO } from 'src/shared/dtos/CreateExcursionDTO';
+import { ListExcursionDTO } from 'src/shared/dtos/ListExcursionDTO';
 import { UpdateExcursionStatusDTO } from 'src/shared/dtos/UpdateExcursionStatusDTO';
 import { JwtPayload } from 'src/strategies/JwtStrategy';
 
@@ -47,9 +49,13 @@ export class ExcursionController {
 
   @Get()
   @Roles(Role.ADM)
-  list(@CurrentUser() currentUser: JwtPayload): Promise<Excursions[]> {
+  list(
+    @Query() { status }: ListExcursionDTO,
+    @CurrentUser() currentUser: JwtPayload,
+  ): Promise<Excursions[]> {
     return this.listExcursionService.execute({
       organizationId: currentUser.organizationId,
+      status,
     });
   }
 

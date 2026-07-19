@@ -1,3 +1,4 @@
+import { ExcursionStatus } from '@prisma/client';
 import {
   ExcursionRepository,
   Excursions,
@@ -30,7 +31,19 @@ describe('ListExcursionService', () => {
 
     expect(excursionRepository.findAll).toHaveBeenCalledWith({
       organizationId,
+      status: undefined,
     });
     expect(result).toEqual(excursions);
+  });
+
+  it('repassa o status pro findAll quando informado', async () => {
+    excursionRepository.findAll.mockResolvedValue([]);
+
+    await service.execute({ organizationId, status: ExcursionStatus.OPEN });
+
+    expect(excursionRepository.findAll).toHaveBeenCalledWith({
+      organizationId,
+      status: ExcursionStatus.OPEN,
+    });
   });
 });
