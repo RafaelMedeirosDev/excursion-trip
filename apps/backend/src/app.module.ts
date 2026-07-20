@@ -22,6 +22,7 @@ import { ExcursionRepository } from 'src/domain/ExcursionRepository';
 import { ExpenseRepository } from 'src/domain/ExpenseRepository';
 import { OrganizationRepository } from 'src/domain/OrganizationRepository';
 import { PaymentRepository } from 'src/domain/PaymentRepository';
+import { RefreshTokenRepository } from 'src/domain/RefreshTokenRepository';
 import { ReservationRepository } from 'src/domain/ReservationRepository';
 import { SupplierRepository } from 'src/domain/SupplierRepository';
 import { UserRepository } from 'src/domain/UserRepository';
@@ -34,6 +35,7 @@ import { PrismaExpenseRepository } from 'src/external/repositories/remote/Prisma
 import { PrismaOrganizationRepository } from 'src/external/repositories/remote/PrismaOrganizationRepository';
 import { PrismaPaymentRepository } from 'src/external/repositories/remote/PrismaPaymentRepository';
 import { PrismaRemoteRepository } from 'src/external/repositories/remote/PrismaRemoteRepository';
+import { PrismaRefreshTokenRepository } from 'src/external/repositories/remote/PrismaRefreshTokenRepository';
 import { PrismaReservationRepository } from 'src/external/repositories/remote/PrismaReservationRepository';
 import { PrismaSupplierRepository } from 'src/external/repositories/remote/PrismaSupplierRepository';
 import { PrismaUserRepository } from 'src/external/repositories/remote/PrismaUserRepository';
@@ -64,7 +66,9 @@ import { ListSupplierService } from 'src/service/ListSupplierService';
 import { ListUserService } from 'src/service/ListUserService';
 import { ListVehicleBookingService } from 'src/service/ListVehicleBookingService';
 import { LoginService } from 'src/service/LoginService';
+import { LogoutService } from 'src/service/LogoutService';
 import { PendingReservationService } from 'src/service/PendingReservationService';
+import { RefreshTokenService } from 'src/service/RefreshTokenService';
 import { UpdateExcursionStatusService } from 'src/service/UpdateExcursionStatusService';
 import { JwtStrategy } from 'src/strategies/JwtStrategy';
 import { AppController } from './app.controller';
@@ -102,6 +106,8 @@ import { AppService } from './app.service';
     CreateUserService,
     ListUserService,
     LoginService,
+    RefreshTokenService,
+    LogoutService,
     CreateCustomerService,
     ListCustomerService,
     CreateEventService,
@@ -170,6 +176,10 @@ import { AppService } from './app.service';
     {
       provide: PaymentRepository,
       useClass: PrismaPaymentRepository,
+    },
+    {
+      provide: RefreshTokenRepository,
+      useClass: PrismaRefreshTokenRepository,
     },
   ],
 })
