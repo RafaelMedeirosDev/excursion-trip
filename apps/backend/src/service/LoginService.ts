@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
+import { createHash, randomBytes } from 'crypto';
+import { RefreshTokenRepository } from 'src/domain/RefreshTokenRepository';
 import { UserRepository } from 'src/domain/UserRepository';
 import { InvalidCredentials } from 'src/shared/erros/cases/InvalidCredentials';
 
@@ -11,12 +13,14 @@ interface Request {
 
 interface Response {
   accessToken: string;
+  refreshToken: string;
 }
 
 @Injectable()
 export class LoginService {
   constructor(
     private readonly userRepository: UserRepository,
+    private readonly refreshTokenRepository: RefreshTokenRepository,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -33,6 +37,20 @@ export class LoginService {
       role: user.role,
     });
 
-    return { accessToken };
+    const refreshToken = randomBytes(32).toString('hex');
+    const tokenHash = createHash('sha256').update(refreshToken).digest('hex');
+    const expiresAt = new Date();
+    expiresAt.setHours(
+      expiresAt.getHours() +
+        Number(process.env.REFRESH_TOKEN_EXPIRES_IN_HOURS),
+    );
+
+    await this.refreshTokenRepository.create({
+      userId: user.id,
+      tokenHash,
+      expiresAt,
+    });
+
+    return { accessToken, refreshToken };
   }
 }
