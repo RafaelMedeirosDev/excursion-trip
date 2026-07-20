@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseUUIDPipe,
   Post,
   Query,
   UseGuards,
@@ -15,6 +16,7 @@ import { RolesGuard } from 'src/guards/RolesGuard';
 import { CancelReservationService } from 'src/service/CancelReservationService';
 import { ConfirmReservationService } from 'src/service/ConfirmReservationService';
 import { CreateReservationService } from 'src/service/CreateReservationService';
+import { GetReservationService } from 'src/service/GetReservationService';
 import { ListReservationService } from 'src/service/ListReservationService';
 import { PendingReservationService } from 'src/service/PendingReservationService';
 import { CancelReservationDTO } from 'src/shared/dtos/CancelReservationDTO';
@@ -31,6 +33,7 @@ export class ReservationController {
     private readonly pendingReservationService: PendingReservationService,
     private readonly confirmReservationService: ConfirmReservationService,
     private readonly cancelReservationService: CancelReservationService,
+    private readonly getReservationService: GetReservationService,
   ) {}
 
   @Post()
@@ -59,6 +62,19 @@ export class ReservationController {
       userId: currentUser.sub,
       role: currentUser.role,
       status,
+    });
+  }
+
+  @Get(':id')
+  get(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() currentUser: JwtPayload,
+  ): Promise<Reservation> {
+    return this.getReservationService.execute({
+      organizationId: currentUser.organizationId,
+      userId: currentUser.sub,
+      role: currentUser.role,
+      id,
     });
   }
 

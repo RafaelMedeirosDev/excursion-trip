@@ -48,8 +48,21 @@ export class PrismaUserRepository implements UserRepository {
     return this.repository.user.findFirst({ where: { organizationId, cpf } });
   }
 
-  findById({ id }: FindById): Promise<User | null> {
-    return this.repository.user.findFirst({ where: { id } });
+  findById({ id }: FindById): Promise<Users | null> {
+    return this.repository.user.findFirst({
+      where: { id },
+      select: {
+        id: true,
+        organizationId: true,
+        name: true,
+        email: true,
+        phone: true,
+        cpf: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
   }
 
   findAll({ organizationId }: FindAll): Promise<Users[]> {

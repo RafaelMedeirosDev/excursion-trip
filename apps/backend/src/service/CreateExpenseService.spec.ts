@@ -25,7 +25,11 @@ describe('CreateExpenseService', () => {
   };
 
   beforeEach(() => {
-    expenseRepository = { create: jest.fn(), findAll: jest.fn() };
+    expenseRepository = {
+      create: jest.fn(),
+      findById: jest.fn(),
+      findAll: jest.fn(),
+    };
     excursionRepository = {
       create: jest.fn(),
       findById: jest.fn(),

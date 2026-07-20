@@ -55,6 +55,16 @@ import { CreateReservationService } from 'src/service/CreateReservationService';
 import { CreateSupplierService } from 'src/service/CreateSupplierService';
 import { CreateUserService } from 'src/service/CreateUserService';
 import { CreateVehicleBookingService } from 'src/service/CreateVehicleBookingService';
+import { GetBoardingPointService } from 'src/service/GetBoardingPointService';
+import { GetCustomerService } from 'src/service/GetCustomerService';
+import { GetEventService } from 'src/service/GetEventService';
+import { GetExcursionService } from 'src/service/GetExcursionService';
+import { GetExpenseService } from 'src/service/GetExpenseService';
+import { GetPaymentService } from 'src/service/GetPaymentService';
+import { GetReservationService } from 'src/service/GetReservationService';
+import { GetSupplierService } from 'src/service/GetSupplierService';
+import { GetUserService } from 'src/service/GetUserService';
+import { GetVehicleBookingService } from 'src/service/GetVehicleBookingService';
 import { ListBoardingPointService } from 'src/service/ListBoardingPointService';
 import { ListCustomerService } from 'src/service/ListCustomerService';
 import { ListEventService } from 'src/service/ListEventService';
@@ -105,31 +115,41 @@ import { AppService } from './app.service';
     CreateOrganizationService,
     CreateUserService,
     ListUserService,
+    GetUserService,
     LoginService,
     RefreshTokenService,
     LogoutService,
     CreateCustomerService,
     ListCustomerService,
+    GetCustomerService,
     CreateEventService,
     ListEventService,
+    GetEventService,
     CreateExcursionService,
     ListExcursionService,
+    GetExcursionService,
     UpdateExcursionStatusService,
     CreateSupplierService,
     ListSupplierService,
+    GetSupplierService,
     CreateVehicleBookingService,
     ListVehicleBookingService,
+    GetVehicleBookingService,
     CreateExpenseService,
     ListExpenseService,
+    GetExpenseService,
     CreateBoardingPointService,
     ListBoardingPointService,
+    GetBoardingPointService,
     CreateReservationService,
     ListReservationService,
+    GetReservationService,
     PendingReservationService,
     ConfirmReservationService,
     CancelReservationService,
     CreatePaymentService,
     ListPaymentService,
+    GetPaymentService,
     JwtStrategy,
     JwtAuthGuard,
     RolesGuard,

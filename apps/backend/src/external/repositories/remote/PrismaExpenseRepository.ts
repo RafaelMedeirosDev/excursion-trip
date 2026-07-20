@@ -5,6 +5,7 @@ import {
   ExpenseRepository,
   Expenses,
   FindAll,
+  FindById,
 } from 'src/domain/ExpenseRepository';
 import { PrismaRemoteRepository } from './PrismaRemoteRepository';
 
@@ -32,6 +33,10 @@ export class PrismaExpenseRepository implements ExpenseRepository {
         description,
       },
     });
+  }
+
+  findById({ id }: FindById): Promise<Expense | null> {
+    return this.repository.expense.findFirst({ where: { id } });
   }
 
   findAll({ organizationId }: FindAll): Promise<Expenses[]> {
