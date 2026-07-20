@@ -77,6 +77,7 @@ describe('ConfirmReservationService', () => {
     };
     paymentRepository = {
       create: jest.fn(),
+      findById: jest.fn(),
       findAll: jest.fn(),
       findByReservationId: jest.fn(),
     };

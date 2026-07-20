@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  ParseUUIDPipe,
   Patch,
   Post,
   Query,
@@ -15,6 +16,7 @@ import { Roles } from 'src/decorators/Roles';
 import { JwtAuthGuard } from 'src/guards/JwtAuthGuard';
 import { RolesGuard } from 'src/guards/RolesGuard';
 import { CreateExcursionService } from 'src/service/CreateExcursionService';
+import { GetExcursionService } from 'src/service/GetExcursionService';
 import { ListExcursionService } from 'src/service/ListExcursionService';
 import { UpdateExcursionStatusService } from 'src/service/UpdateExcursionStatusService';
 import { CreateExcursionDTO } from 'src/shared/dtos/CreateExcursionDTO';
@@ -29,6 +31,7 @@ export class ExcursionController {
     private readonly createExcursionService: CreateExcursionService,
     private readonly listExcursionService: ListExcursionService,
     private readonly updateExcursionStatusService: UpdateExcursionStatusService,
+    private readonly getExcursionService: GetExcursionService,
   ) {}
 
   @Post()
@@ -56,6 +59,18 @@ export class ExcursionController {
     return this.listExcursionService.execute({
       organizationId: currentUser.organizationId,
       status,
+    });
+  }
+
+  @Get(':id')
+  @Roles(Role.ADM)
+  get(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() currentUser: JwtPayload,
+  ): Promise<Excursion> {
+    return this.getExcursionService.execute({
+      organizationId: currentUser.organizationId,
+      id,
     });
   }
 

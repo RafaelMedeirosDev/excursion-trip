@@ -44,7 +44,7 @@ export abstract class UserRepository {
 
   abstract findByCpf({ organizationId, cpf }: FindByCpf): Promise<User | null>;
 
-  abstract findById({ id }: FindById): Promise<User | null>;
+  abstract findById({ id }: FindById): Promise<Users | null>;
 
   abstract findAll({ organizationId }: FindAll): Promise<Users[]>;
 }

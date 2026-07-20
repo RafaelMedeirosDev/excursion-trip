@@ -15,6 +15,10 @@ export interface Create {
   method: PaymentMethod;
 }
 
+export interface FindById {
+  id: string;
+}
+
 export interface FindAll {
   organizationId: string;
   userId?: string;
@@ -38,6 +42,8 @@ export abstract class PaymentRepository {
     value,
     method,
   }: Create): Promise<Payment>;
+
+  abstract findById({ id }: FindById): Promise<Payment | null>;
 
   abstract findAll({ organizationId, userId }: FindAll): Promise<Payments[]>;
 

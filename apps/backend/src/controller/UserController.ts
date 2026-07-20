@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { Role } from '@prisma/client';
 import { Users } from 'src/domain/UserRepository';
 import { CurrentUser } from 'src/decorators/CurrentUser';
@@ -6,6 +14,7 @@ import { Roles } from 'src/decorators/Roles';
 import { JwtAuthGuard } from 'src/guards/JwtAuthGuard';
 import { RolesGuard } from 'src/guards/RolesGuard';
 import { CreateUserService } from 'src/service/CreateUserService';
+import { GetUserService } from 'src/service/GetUserService';
 import { ListUserService } from 'src/service/ListUserService';
 import { CreateUserDTO } from 'src/shared/dtos/CreateUserDTO';
 import { JwtPayload } from 'src/strategies/JwtStrategy';
@@ -16,6 +25,7 @@ export class UserController {
   constructor(
     private readonly createUserService: CreateUserService,
     private readonly listUserService: ListUserService,
+    private readonly getUserService: GetUserService,
   ) {}
 
   @Post()
@@ -40,6 +50,18 @@ export class UserController {
   list(@CurrentUser() currentUser: JwtPayload): Promise<Users[]> {
     return this.listUserService.execute({
       organizationId: currentUser.organizationId,
+    });
+  }
+
+  @Get(':id')
+  @Roles(Role.ADM)
+  get(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() currentUser: JwtPayload,
+  ): Promise<Users> {
+    return this.getUserService.execute({
+      organizationId: currentUser.organizationId,
+      id,
     });
   }
 }

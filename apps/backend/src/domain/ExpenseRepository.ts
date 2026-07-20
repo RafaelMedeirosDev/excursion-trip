@@ -16,6 +16,10 @@ export interface Create {
   description: string;
 }
 
+export interface FindById {
+  id: string;
+}
+
 export interface FindAll {
   organizationId: string;
 }
@@ -36,6 +40,8 @@ export abstract class ExpenseRepository {
     value,
     description,
   }: Create): Promise<Expense>;
+
+  abstract findById({ id }: FindById): Promise<Expense | null>;
 
   abstract findAll({ organizationId }: FindAll): Promise<Expenses[]>;
 }

@@ -10,6 +10,7 @@ describe('ListExpenseService', () => {
   beforeEach(() => {
     expenseRepository = {
       create: jest.fn(),
+      findById: jest.fn(),
       findAll: jest.fn(),
     };
     service = new ListExpenseService(expenseRepository);
