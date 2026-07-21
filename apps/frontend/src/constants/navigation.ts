@@ -1,5 +1,6 @@
 import type { LucideIcon } from "lucide-react";
 import {
+  Building2,
   Bus,
   CalendarDays,
   CreditCard,
@@ -67,6 +68,14 @@ export const NAV_ITEMS: NavItem[] = [
     label: "Eventos",
     href: "/events",
     icon: CalendarDays,
+    group: "Administrativo",
+    adminOnly: true,
+    implemented: true,
+  },
+  {
+    label: "Fornecedores",
+    href: "/suppliers",
+    icon: Building2,
     group: "Administrativo",
     adminOnly: true,
     implemented: true,
