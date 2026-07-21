@@ -15,6 +15,9 @@ import { CustomersPage } from "@/features/customers/pages/CustomersPage";
 import { CreateSupplierPage } from "@/features/suppliers/pages/CreateSupplierPage";
 import { SupplierDetailsPage } from "@/features/suppliers/pages/SupplierDetailsPage";
 import { SuppliersPage } from "@/features/suppliers/pages/SuppliersPage";
+import { CreateUserPage } from "@/features/users/pages/CreateUserPage";
+import { UserDetailsPage } from "@/features/users/pages/UserDetailsPage";
+import { UsersPage } from "@/features/users/pages/UsersPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { AdminRoute } from "@/routes/AdminRoute";
 import { PrivateRoute } from "@/routes/PrivateRoute";
@@ -45,6 +48,10 @@ export function AppRouter() {
             <Route path="/suppliers" element={<SuppliersPage />} />
             <Route path="/suppliers/new" element={<CreateSupplierPage />} />
             <Route path="/suppliers/:id" element={<SupplierDetailsPage />} />
+
+            <Route path="/users" element={<UsersPage />} />
+            <Route path="/users/new" element={<CreateUserPage />} />
+            <Route path="/users/:id" element={<UserDetailsPage />} />
           </Route>
 
           <Route path="/passengers" element={<CustomersPage />} />
