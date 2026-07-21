@@ -36,8 +36,8 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/excursions",
     icon: Route,
     group: "Operacional",
-    adminOnly: false,
-    implemented: false,
+    adminOnly: true,
+    implemented: true,
   },
   {
     label: "Reservas",

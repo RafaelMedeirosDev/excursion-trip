@@ -6,6 +6,9 @@ import { DashboardPage } from "@/features/dashboard/pages/DashboardPage";
 import { CreateEventPage } from "@/features/events/pages/CreateEventPage";
 import { EventDetailsPage } from "@/features/events/pages/EventDetailsPage";
 import { EventsPage } from "@/features/events/pages/EventsPage";
+import { CreateExcursionPage } from "@/features/excursions/pages/CreateExcursionPage";
+import { ExcursionDetailsPage } from "@/features/excursions/pages/ExcursionDetailsPage";
+import { ExcursionsPage } from "@/features/excursions/pages/ExcursionsPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { AdminRoute } from "@/routes/AdminRoute";
 import { PrivateRoute } from "@/routes/PrivateRoute";
@@ -28,6 +31,10 @@ export function AppRouter() {
             <Route path="/events" element={<EventsPage />} />
             <Route path="/events/new" element={<CreateEventPage />} />
             <Route path="/events/:id" element={<EventDetailsPage />} />
+
+            <Route path="/excursions" element={<ExcursionsPage />} />
+            <Route path="/excursions/new" element={<CreateExcursionPage />} />
+            <Route path="/excursions/:id" element={<ExcursionDetailsPage />} />
           </Route>
         </Route>
       </Route>
