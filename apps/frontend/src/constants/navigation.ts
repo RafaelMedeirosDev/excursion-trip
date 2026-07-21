@@ -61,7 +61,7 @@ export const NAV_ITEMS: NavItem[] = [
     icon: UserRound,
     group: "Operacional",
     adminOnly: false,
-    implemented: false,
+    implemented: true,
   },
   {
     label: "Eventos",

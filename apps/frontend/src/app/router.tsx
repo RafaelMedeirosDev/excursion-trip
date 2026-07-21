@@ -9,6 +9,9 @@ import { EventsPage } from "@/features/events/pages/EventsPage";
 import { CreateExcursionPage } from "@/features/excursions/pages/CreateExcursionPage";
 import { ExcursionDetailsPage } from "@/features/excursions/pages/ExcursionDetailsPage";
 import { ExcursionsPage } from "@/features/excursions/pages/ExcursionsPage";
+import { CreateCustomerPage } from "@/features/customers/pages/CreateCustomerPage";
+import { CustomerDetailsPage } from "@/features/customers/pages/CustomerDetailsPage";
+import { CustomersPage } from "@/features/customers/pages/CustomersPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { AdminRoute } from "@/routes/AdminRoute";
 import { PrivateRoute } from "@/routes/PrivateRoute";
@@ -36,6 +39,10 @@ export function AppRouter() {
             <Route path="/excursions/new" element={<CreateExcursionPage />} />
             <Route path="/excursions/:id" element={<ExcursionDetailsPage />} />
           </Route>
+
+          <Route path="/passengers" element={<CustomersPage />} />
+          <Route path="/passengers/new" element={<CreateCustomerPage />} />
+          <Route path="/passengers/:id" element={<CustomerDetailsPage />} />
         </Route>
       </Route>
 
