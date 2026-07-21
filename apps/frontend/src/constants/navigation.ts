@@ -102,6 +102,6 @@ export const NAV_ITEMS: NavItem[] = [
     icon: UserCog,
     group: "Administrativo",
     adminOnly: true,
-    implemented: false,
+    implemented: true,
   },
 ];
