@@ -69,7 +69,7 @@ export const NAV_ITEMS: NavItem[] = [
     icon: CalendarDays,
     group: "Administrativo",
     adminOnly: true,
-    implemented: false,
+    implemented: true,
   },
   {
     label: "Veículos",
