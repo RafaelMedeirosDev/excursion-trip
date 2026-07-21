@@ -94,7 +94,7 @@ export const NAV_ITEMS: NavItem[] = [
     icon: MapPin,
     group: "Administrativo",
     adminOnly: true,
-    implemented: false,
+    implemented: true,
   },
   {
     label: "Usuários",
