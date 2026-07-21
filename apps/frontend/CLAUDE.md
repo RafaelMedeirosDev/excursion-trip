@@ -10,7 +10,8 @@ Vite, React 19, TypeScript, Tailwind CSS (v3, formato clássico com `tailwind.co
 
 - **Bootstrap completo** (branch `feat/frontend-bootstrap`): Vite+React+TS rodando (`pnpm --filter @excursion-trip/frontend dev`, porta `3001` — mesma porta já configurada como `CORS_ORIGIN` no backend), Tailwind + base do shadcn/ui configurados, ESLint reaproveitando `packages/config/eslint.base.js` (mesmo padrão do backend) + plugins `react-hooks`/`react-refresh`.
 - **Login funcional de ponta a ponta contra o backend real**: `LoginPage` → `POST /auth/login` → guarda `accessToken` (memória) + `refreshToken` (`localStorage`) → redireciona pro `Dashboard`, protegido por `PrivateRoute`. `Sair` chama `POST /auth/logout`. Testado via curl simulando as chamadas exatas do frontend (login, decode do JWT, refresh com rotação, preflight de CORS) — sem ferramenta de navegador disponível no ambiente de desenvolvimento assistido, então a renderização visual em si não foi conferida automaticamente, só a camada de rede/lógica.
-- **Páginas existentes até agora**: `LoginPage` (`/login`), `DashboardPage` placeholder (`/`), `NotFoundPage` (`*`). O resto dos módulos (Excursions, Events, Passengers, Reservations, Payments, Vehicles, BoardingPoints, Users) ainda não foi implementado — vem em branches separadas, uma por módulo, mesmo fluxo do backend (implementa → usuário testa → confirma → só aí commit/push).
+- **Páginas existentes até agora**: `LoginPage` (`/login`), `DashboardPage` (`/`), `NotFoundPage` (`*`). O resto dos módulos (Excursions, Events, Passengers, Reservations, Payments, Vehicles, BoardingPoints, Users) ainda não foi implementado — vem em branches separadas, uma por módulo, mesmo fluxo do backend (implementa → usuário testa → confirma → só aí commit/push).
+- **Shell visual completo** (branch `feat/app-shell`): `AppLayout` agora compõe `Sidebar` + `Header` de verdade (antes era um placeholder de uma linha). `Sidebar`: navegação agrupada (`Operacional`/`Administrativo`), lida de `constants/navigation.ts` — único arquivo a tocar quando um módulo novo virar rota de verdade (`implemented: false → true`). Itens ainda não implementados aparecem esmaecidos com badge "em breve", sem link — evita cair num 404. Itens `adminOnly: true` (Eventos, Veículos, Pontos de Embarque, Usuários) somem completamente da Sidebar pra `EMPLOYEE` (reforço de UX, não é a fonte de verdade de permissão — isso é o backend). Fixa no desktop, vira drawer com overlay em telas pequenas (`md:` breakpoint do Tailwind). `Header`: menu do usuário (`shadcn dropdown-menu`) com a `role` traduzida (`ADM`→"Administrador", `EMPLOYEE`→"Funcionário") e "Sair" — sem nome/e-mail, mesma limitação de JWT já documentada abaixo. `PageTitle` (`components/layout/PageTitle.tsx`) fica dentro do conteúdo de cada página, não no `Header` — cada página é dona do próprio título + ação opcional (ex.: botão "+ Novo" quando existir).
 
 ## Arquitetura: por domínio (`features/`), não por tipo
 
@@ -23,13 +24,14 @@ src/
     auth/
     dashboard/
   components/
-    ui/           # shadcn/ui — Button, Input, Label, Card (mais entram sob demanda via `pnpm dlx shadcn add`)
-    layout/       # AppLayout, AuthLayout (shell completo com Sidebar/Header ainda não implementado)
+    ui/           # shadcn/ui — Button, Input, Label, Card, DropdownMenu (mais entram sob demanda via `pnpm dlx shadcn add`)
+    layout/       # AppLayout (Sidebar+Header+Outlet), AuthLayout, Sidebar, Header, PageTitle
   routes/         # PrivateRoute, PublicRoute
   services/http/  # client.ts (instância axios) + interceptors.ts (token + refresh-and-retry)
   store/          # authStore.ts (zustand) — só estado de sessão, nunca estado de servidor
   lib/            # queryClient.ts, jwt.ts (decode), utils.ts (cn())
   config/         # env.ts
+  constants/      # navigation.ts (itens da Sidebar — label/href/ícone/grupo/adminOnly/implemented)
   pages/          # páginas sem domínio (NotFoundPage)
   styles/         # globals.css (Tailwind + CSS vars do shadcn)
 ```
