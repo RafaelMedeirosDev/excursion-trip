@@ -18,6 +18,9 @@ import { SuppliersPage } from "@/features/suppliers/pages/SuppliersPage";
 import { CreateUserPage } from "@/features/users/pages/CreateUserPage";
 import { UserDetailsPage } from "@/features/users/pages/UserDetailsPage";
 import { UsersPage } from "@/features/users/pages/UsersPage";
+import { CreateVehicleBookingPage } from "@/features/vehicleBookings/pages/CreateVehicleBookingPage";
+import { VehicleBookingDetailsPage } from "@/features/vehicleBookings/pages/VehicleBookingDetailsPage";
+import { VehicleBookingsPage } from "@/features/vehicleBookings/pages/VehicleBookingsPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { AdminRoute } from "@/routes/AdminRoute";
 import { PrivateRoute } from "@/routes/PrivateRoute";
@@ -52,6 +55,10 @@ export function AppRouter() {
             <Route path="/users" element={<UsersPage />} />
             <Route path="/users/new" element={<CreateUserPage />} />
             <Route path="/users/:id" element={<UserDetailsPage />} />
+
+            <Route path="/vehicles" element={<VehicleBookingsPage />} />
+            <Route path="/vehicles/new" element={<CreateVehicleBookingPage />} />
+            <Route path="/vehicles/:id" element={<VehicleBookingDetailsPage />} />
           </Route>
 
           <Route path="/passengers" element={<CustomersPage />} />

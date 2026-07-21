@@ -86,7 +86,7 @@ export const NAV_ITEMS: NavItem[] = [
     icon: Bus,
     group: "Administrativo",
     adminOnly: true,
-    implemented: false,
+    implemented: true,
   },
   {
     label: "Pontos de Embarque",
