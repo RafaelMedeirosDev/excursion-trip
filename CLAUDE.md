@@ -8,7 +8,7 @@ Monorepo (Turborepo + pnpm) para um SaaS de gestão de excursões para eventos. 
 excursion-trip/
 ├── apps/
 │   ├── backend/     # API NestJS + Prisma — ver apps/backend/CLAUDE.md
-│   └── frontend/     # reservado, framework ainda não escolhido
+│   └── frontend/     # SPA React + Vite — ver apps/frontend/CLAUDE.md
 ├── packages/
 │   ├── config/        # tsconfig e eslint base compartilhados
 │   └── shared/         # tipos/enums compartilhados entre backend e frontend (ainda vazio)
@@ -16,7 +16,7 @@ excursion-trip/
 
 ## Stack
 
-TypeScript, Node.js 20, pnpm workspaces, Turborepo, NestJS, Prisma ORM, PostgreSQL.
+TypeScript, Node.js 20, pnpm workspaces, Turborepo, NestJS, Prisma ORM, PostgreSQL, React (Vite) + Tailwind CSS + shadcn/ui.
 
 ## Comandos (raiz)
 
@@ -43,3 +43,7 @@ pnpm test     # turbo run test
 ## Backend
 
 A arquitetura em camadas do backend (Controller → Service → Domain/External), convenções de nomenclatura e templates de código vivem em `apps/backend/CLAUDE.md` e nas skills de `apps/backend/.claude/skills/`. Sempre consulte a skill da camada correspondente (`controller`, `domain`, `service`, `external`, `dto`, `erros`, `tools`) antes de gerar código nessa camada — elas são a fonte de verdade sobre convenções, não este arquivo. Não existe skill `module`: o registro em `app.module.ts` é feito inline ao final de cada camada, conforme descrito em `apps/backend/CLAUDE.md`.
+
+## Frontend
+
+Estrutura por domínio (`features/{módulo}/`), não por tipo — cada domínio concentra sua própria `api`/`components`/`hooks`/`pages`, camada compartilhada (`components/ui`, `services/http`, `store`) enxuta. Detalhes completos (arquitetura, auth, shadcn/ui, estado atual por módulo) em `apps/frontend/CLAUDE.md`. Mesmo fluxo de trabalho do backend: 1 branch por feature/módulo, usuário testa antes do commit/push.
