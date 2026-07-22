@@ -1,3 +1,10 @@
+export type Role = "ADM" | "EMPLOYEE";
+
+export const ROLE_LABELS: Record<Role, string> = {
+  ADM: "Administrador",
+  EMPLOYEE: "Funcionário",
+};
+
 export type UF =
   | "AC"
   | "AL"

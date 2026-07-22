@@ -1,7 +1,9 @@
+import type { Role } from "@excursion-trip/shared";
+
 export interface JwtPayload {
   sub: string;
   organizationId: string;
-  role: "ADM" | "EMPLOYEE";
+  role: Role;
   iat: number;
   exp: number;
 }

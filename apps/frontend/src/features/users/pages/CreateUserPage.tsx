@@ -14,7 +14,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ROLE_LABELS } from "@/features/users/constants";
+import { ROLE_LABELS } from "@excursion-trip/shared";
 import { useCreateUser } from "@/features/users/hooks/useCreateUser";
 import {
   createUserSchema,
