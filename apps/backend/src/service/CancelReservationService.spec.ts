@@ -53,7 +53,7 @@ describe('CancelReservationService', () => {
   beforeEach(() => {
     reservationRepository = {
       create: jest.fn(),
-      findByVehicleBookingAndCustomer: jest.fn(),
+      findActiveByEventAndCustomer: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
       updateStatus: jest.fn(),

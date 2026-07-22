@@ -317,7 +317,6 @@ model Reservation {
   updatedAt DateTime  @updatedAt
   deletedAt DateTime?
 
-  @@unique([vehicleBookingId, customerId])
   @@index([organizationId])
   @@index([userId])
   @@index([customerId])

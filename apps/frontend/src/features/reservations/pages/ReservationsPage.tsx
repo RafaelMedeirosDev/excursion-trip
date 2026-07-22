@@ -1,0 +1,176 @@
+import type { ReservationStatus } from "@excursion-trip/shared";
+import { Plus, Ticket } from "lucide-react";
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import { EmptyState } from "@/components/feedback/EmptyState";
+import { PageTitle } from "@/components/layout/PageTitle";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useEvents } from "@/features/events/hooks/useEvents";
+import { useVehicleBookings } from "@/features/vehicleBookings/hooks/useVehicleBookings";
+import { ReservationStatusBadge } from "@/features/reservations/components/ReservationStatusBadge";
+import { STATUS_LABELS } from "@/features/reservations/constants";
+import { useReservations } from "@/features/reservations/hooks/useReservations";
+
+const STATUS_FILTERS: ReservationStatus[] = [
+  "WAITLIST",
+  "PENDING",
+  "CONFIRMED",
+  "CANCELED",
+];
+
+function formatCurrency(cents: number) {
+  return (cents / 100).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
+
+export function ReservationsPage() {
+  const [statusFilter, setStatusFilter] = useState<ReservationStatus | "ALL">(
+    "ALL",
+  );
+  const { data: reservations, isLoading } = useReservations(
+    statusFilter === "ALL" ? undefined : statusFilter,
+  );
+  const { data: vehicleBookings } = useVehicleBookings();
+  const { data: events } = useEvents();
+
+  const eventNameById = new Map(events?.map((event) => [event.id, event.name]));
+  const eventNameByVehicleBookingId = new Map(
+    vehicleBookings?.map((vehicleBooking) => [
+      vehicleBooking.id,
+      eventNameById.get(vehicleBooking.excursion.eventId) ?? "—",
+    ]),
+  );
+
+  return (
+    <div>
+      <PageTitle
+        title="Reservas"
+        description="Reservas registradas na sua organização."
+        action={
+          <Button asChild>
+            <Link to="/reservations/new">
+              <Plus className="mr-2 size-4" />
+              Nova Reserva
+            </Link>
+          </Button>
+        }
+      />
+
+      <div className="mb-4 w-48">
+        <Select
+          value={statusFilter}
+          onValueChange={(value) =>
+            setStatusFilter(value as ReservationStatus | "ALL")
+          }
+        >
+          <SelectTrigger>
+            <SelectValue placeholder="Status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">Todos os status</SelectItem>
+            {STATUS_FILTERS.map((status) => (
+              <SelectItem key={status} value={status}>
+                {STATUS_LABELS[status]}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      {isLoading && (
+        <div className="space-y-2">
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+          <Skeleton className="h-10 w-full" />
+        </div>
+      )}
+
+      {!isLoading && reservations && reservations.length === 0 && (
+        <EmptyState
+          icon={Ticket}
+          title="Nenhuma reserva encontrada"
+          description={
+            statusFilter === "ALL"
+              ? "Crie a primeira reserva da sua organização."
+              : "Nenhuma reserva nesse status."
+          }
+          action={
+            statusFilter === "ALL" ? (
+              <Button asChild>
+                <Link to="/reservations/new">
+                  <Plus className="mr-2 size-4" />
+                  Nova Reserva
+                </Link>
+              </Button>
+            ) : undefined
+          }
+        />
+      )}
+
+      {!isLoading && reservations && reservations.length > 0 && (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead>Cliente</TableHead>
+              <TableHead>Evento</TableHead>
+              <TableHead>Veículo</TableHead>
+              <TableHead>Ponto de embarque</TableHead>
+              <TableHead>Valor combinado</TableHead>
+              <TableHead>Status</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {reservations.map((reservation) => (
+              <TableRow key={reservation.id}>
+                <TableCell>
+                  <Link
+                    to={`/reservations/${reservation.id}`}
+                    className="font-medium hover:underline"
+                  >
+                    {reservation.customer.name}
+                  </Link>
+                </TableCell>
+                <TableCell>
+                  {eventNameByVehicleBookingId.get(
+                    reservation.vehicleBookingId,
+                  ) ?? "—"}
+                </TableCell>
+                <TableCell>
+                  {reservation.vehicleBooking.vehicleType}
+                  {reservation.vehicleBooking.plate
+                    ? ` — ${reservation.vehicleBooking.plate}`
+                    : ""}
+                </TableCell>
+                <TableCell>
+                  {reservation.boardingPoint?.address ?? "—"}
+                </TableCell>
+                <TableCell>{formatCurrency(reservation.agreedValue)}</TableCell>
+                <TableCell>
+                  <ReservationStatusBadge status={reservation.status} />
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </div>
+  );
+}

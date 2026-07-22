@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { Reservation } from '@prisma/client';
+import { Reservation, ReservationStatus } from '@prisma/client';
 import {
   Create,
+  FindActiveByEventAndCustomer,
   FindAll,
-  FindByVehicleBookingAndCustomer,
   FindById,
   ReservationRepository,
   Reservations,
@@ -35,12 +35,16 @@ export class PrismaReservationRepository implements ReservationRepository {
     });
   }
 
-  findByVehicleBookingAndCustomer({
-    vehicleBookingId,
+  findActiveByEventAndCustomer({
+    eventId,
     customerId,
-  }: FindByVehicleBookingAndCustomer): Promise<Reservation | null> {
+  }: FindActiveByEventAndCustomer): Promise<Reservation | null> {
     return this.repository.reservation.findFirst({
-      where: { vehicleBookingId, customerId },
+      where: {
+        customerId,
+        status: { not: ReservationStatus.CANCELED },
+        vehicleBooking: { excursion: { eventId } },
+      },
     });
   }
 

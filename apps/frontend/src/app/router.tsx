@@ -24,6 +24,9 @@ import { VehicleBookingsPage } from "@/features/vehicleBookings/pages/VehicleBoo
 import { BoardingPointDetailsPage } from "@/features/boardingPoints/pages/BoardingPointDetailsPage";
 import { BoardingPointsPage } from "@/features/boardingPoints/pages/BoardingPointsPage";
 import { CreateBoardingPointPage } from "@/features/boardingPoints/pages/CreateBoardingPointPage";
+import { CreateReservationPage } from "@/features/reservations/pages/CreateReservationPage";
+import { ReservationDetailsPage } from "@/features/reservations/pages/ReservationDetailsPage";
+import { ReservationsPage } from "@/features/reservations/pages/ReservationsPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { AdminRoute } from "@/routes/AdminRoute";
 import { PrivateRoute } from "@/routes/PrivateRoute";
@@ -77,6 +80,13 @@ export function AppRouter() {
           <Route path="/passengers" element={<CustomersPage />} />
           <Route path="/passengers/new" element={<CreateCustomerPage />} />
           <Route path="/passengers/:id" element={<CustomerDetailsPage />} />
+
+          <Route path="/reservations" element={<ReservationsPage />} />
+          <Route path="/reservations/new" element={<CreateReservationPage />} />
+          <Route
+            path="/reservations/:id"
+            element={<ReservationDetailsPage />}
+          />
         </Route>
       </Route>
 

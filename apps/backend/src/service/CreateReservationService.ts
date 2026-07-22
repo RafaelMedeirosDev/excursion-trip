@@ -82,8 +82,8 @@ export class CreateReservationService {
     }
 
     const existingReservation =
-      await this.reservationRepository.findByVehicleBookingAndCustomer({
-        vehicleBookingId,
+      await this.reservationRepository.findActiveByEventAndCustomer({
+        eventId: excursion.eventId,
         customerId,
       });
 

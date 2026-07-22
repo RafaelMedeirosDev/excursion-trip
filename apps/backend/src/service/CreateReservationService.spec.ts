@@ -39,7 +39,7 @@ describe('CreateReservationService', () => {
   beforeEach(() => {
     reservationRepository = {
       create: jest.fn(),
-      findByVehicleBookingAndCustomer: jest.fn(),
+      findActiveByEventAndCustomer: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
       updateStatus: jest.fn(),
@@ -87,9 +87,10 @@ describe('CreateReservationService', () => {
     excursionRepository.findById.mockResolvedValue({
       id: 'excursion-1',
       organizationId,
+      eventId: 'event-1',
       status: ExcursionStatus.OPEN,
     } as Excursion);
-    reservationRepository.findByVehicleBookingAndCustomer.mockResolvedValue(
+    reservationRepository.findActiveByEventAndCustomer.mockResolvedValue(
       null,
     );
   });
@@ -170,14 +171,20 @@ describe('CreateReservationService', () => {
     expect(reservationRepository.create).not.toHaveBeenCalled();
   });
 
-  it('lança ReservationAlreadyExists quando o cliente já tem reserva nesse vehicleBooking', async () => {
-    reservationRepository.findByVehicleBookingAndCustomer.mockResolvedValue({
+  it('lança ReservationAlreadyExists quando o cliente já tem reserva ativa nesse evento', async () => {
+    reservationRepository.findActiveByEventAndCustomer.mockResolvedValue({
       id: 'reservation-existente',
     } as Reservation);
 
     await expect(service.execute(request)).rejects.toBeInstanceOf(
       ReservationAlreadyExists,
     );
+    expect(
+      reservationRepository.findActiveByEventAndCustomer,
+    ).toHaveBeenCalledWith({
+      eventId: 'event-1',
+      customerId: request.customerId,
+    });
     expect(reservationRepository.create).not.toHaveBeenCalled();
   });
 

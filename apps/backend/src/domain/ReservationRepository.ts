@@ -16,8 +16,8 @@ export interface Create {
   agreedValue: number;
 }
 
-export interface FindByVehicleBookingAndCustomer {
-  vehicleBookingId: string;
+export interface FindActiveByEventAndCustomer {
+  eventId: string;
   customerId: string;
 }
 
@@ -55,10 +55,10 @@ export abstract class ReservationRepository {
     agreedValue,
   }: Create): Promise<Reservation>;
 
-  abstract findByVehicleBookingAndCustomer({
-    vehicleBookingId,
+  abstract findActiveByEventAndCustomer({
+    eventId,
     customerId,
-  }: FindByVehicleBookingAndCustomer): Promise<Reservation | null>;
+  }: FindActiveByEventAndCustomer): Promise<Reservation | null>;
 
   abstract findById({ id }: FindById): Promise<Reservation | null>;
 
