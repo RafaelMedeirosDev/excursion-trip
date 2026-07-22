@@ -2,6 +2,7 @@ import { Excursion, Event } from '@prisma/client';
 import { EventRepository } from 'src/domain/EventRepository';
 import { ExcursionRepository } from 'src/domain/ExcursionRepository';
 import { EventNotFound } from 'src/shared/erros/cases/EventNotFound';
+import { ExcursionInvalidDateRange } from 'src/shared/erros/cases/ExcursionInvalidDateRange';
 import { CreateExcursionService } from './CreateExcursionService';
 
 describe('CreateExcursionService', () => {
@@ -78,6 +79,22 @@ describe('CreateExcursionService', () => {
     await expect(service.execute(request)).rejects.toBeInstanceOf(
       EventNotFound,
     );
+    expect(excursionRepository.create).not.toHaveBeenCalled();
+  });
+
+  it('lança ExcursionInvalidDateRange quando returnDate é antes de departureDate', async () => {
+    eventRepository.findById.mockResolvedValue({
+      id: request.eventId,
+      organizationId,
+    } as Event);
+
+    await expect(
+      service.execute({
+        ...request,
+        departureDate: '2027-01-02T00:00:00.000Z',
+        returnDate: '2027-01-01T00:00:00.000Z',
+      }),
+    ).rejects.toBeInstanceOf(ExcursionInvalidDateRange);
     expect(excursionRepository.create).not.toHaveBeenCalled();
   });
 });

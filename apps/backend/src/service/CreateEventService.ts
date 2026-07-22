@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Event } from '@prisma/client';
 import { EventRepository } from 'src/domain/EventRepository';
+import { EventInvalidDateRange } from 'src/shared/erros/cases/EventInvalidDateRange';
 
 interface Request {
   organizationId: string;
@@ -27,6 +28,10 @@ export class CreateEventService {
     startTime,
     endTime,
   }: Request): Promise<Event> {
+    if (new Date(endDate) < new Date(startDate)) {
+      throw new EventInvalidDateRange();
+    }
+
     return await this.eventRepository.create({
       organizationId,
       name,

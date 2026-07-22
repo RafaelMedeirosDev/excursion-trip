@@ -3,6 +3,7 @@ import { Excursion } from '@prisma/client';
 import { EventRepository } from 'src/domain/EventRepository';
 import { ExcursionRepository } from 'src/domain/ExcursionRepository';
 import { EventNotFound } from 'src/shared/erros/cases/EventNotFound';
+import { ExcursionInvalidDateRange } from 'src/shared/erros/cases/ExcursionInvalidDateRange';
 
 interface Request {
   organizationId: string;
@@ -32,6 +33,10 @@ export class CreateExcursionService {
 
     if (!event || event.organizationId !== organizationId) {
       throw new EventNotFound();
+    }
+
+    if (new Date(returnDate) < new Date(departureDate)) {
+      throw new ExcursionInvalidDateRange();
     }
 
     return await this.excursionRepository.create({
