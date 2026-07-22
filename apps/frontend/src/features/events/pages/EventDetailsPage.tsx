@@ -1,4 +1,5 @@
 import { isAxiosError } from "axios";
+import { UF_LABELS } from "@excursion-trip/shared";
 import { CalendarX2 } from "lucide-react";
 import { Link, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -52,6 +53,7 @@ export function EventDetailsPage() {
         <CardContent className="grid grid-cols-1 gap-4 pt-6 sm:grid-cols-2">
           <Field label="Endereço" value={event.address} />
           <Field label="Cidade" value={event.city} />
+          <Field label="Estado" value={UF_LABELS[event.state]} />
           <Field label="Data de início" value={formatDate(event.startDate)} />
           <Field label="Data de término" value={formatDate(event.endDate)} />
           <Field label="Horário de início" value={event.startTime} />

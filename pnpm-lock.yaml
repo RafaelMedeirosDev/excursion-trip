@@ -111,6 +111,9 @@ importers:
 
   apps/frontend:
     dependencies:
+      '@excursion-trip/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
       '@hookform/resolvers':
         specifier: ^5.4.0
         version: 5.4.0(react-hook-form@7.82.0(react@19.2.7))

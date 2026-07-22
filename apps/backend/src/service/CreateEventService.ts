@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Event } from '@prisma/client';
+import { Event, UF } from '@prisma/client';
 import { EventRepository } from 'src/domain/EventRepository';
 import { EventInvalidDateRange } from 'src/shared/erros/cases/EventInvalidDateRange';
 
@@ -8,6 +8,7 @@ interface Request {
   name: string;
   address: string;
   city: string;
+  state: UF;
   startDate: string;
   endDate: string;
   startTime: string;
@@ -23,6 +24,7 @@ export class CreateEventService {
     name,
     address,
     city,
+    state,
     startDate,
     endDate,
     startTime,
@@ -37,6 +39,7 @@ export class CreateEventService {
       name,
       address,
       city,
+      state,
       startDate: new Date(startDate),
       endDate: new Date(endDate),
       startTime,

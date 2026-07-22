@@ -66,6 +66,7 @@ export function EventsPage() {
             <TableRow>
               <TableHead>Nome</TableHead>
               <TableHead>Cidade</TableHead>
+              <TableHead>UF</TableHead>
               <TableHead>Início</TableHead>
               <TableHead>Fim</TableHead>
             </TableRow>
@@ -82,6 +83,7 @@ export function EventsPage() {
                   </Link>
                 </TableCell>
                 <TableCell>{event.city}</TableCell>
+                <TableCell>{event.state}</TableCell>
                 <TableCell>{formatDate(event.startDate)}</TableCell>
                 <TableCell>{formatDate(event.endDate)}</TableCell>
               </TableRow>

@@ -1,10 +1,11 @@
-import { Event } from '@prisma/client';
+import { Event, UF } from '@prisma/client';
 
 export interface Create {
   organizationId: string;
   name: string;
   address: string;
   city: string;
+  state: UF;
   startDate: Date;
   endDate: Date;
   startTime: string;
@@ -27,6 +28,7 @@ export abstract class EventRepository {
     name,
     address,
     city,
+    state,
     startDate,
     endDate,
     startTime,

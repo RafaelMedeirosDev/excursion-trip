@@ -11,8 +11,10 @@ excursion-trip/
 │   └── frontend/     # SPA React + Vite — ver apps/frontend/CLAUDE.md
 ├── packages/
 │   ├── config/        # tsconfig e eslint base compartilhados
-│   └── shared/         # tipos/enums compartilhados entre backend e frontend (ainda vazio)
+│   └── shared/         # tipos/enums espelhados pro frontend não redeclarar (ver nota abaixo)
 ```
+
+**`packages/shared`**: usado só pelo frontend (`workspace:*` em `dependencies`, não `devDependencies` — é import em tempo de execução), pra centralizar tipos/enums que o frontend precisaria redeclarar em cada `features/{módulo}` (ex.: `UF`). **O backend não depende desse pacote** — continua usando os enums gerados por `@prisma/client` normalmente, que são a fonte de verdade real (`schema.prisma`); enums do Prisma são `enum` TS nominal, não união de literais, então não dá pra backend importar o tipo do `shared` e passar direto pro Prisma sem fricção. Os valores em `packages/shared` são mantidos manualmente em sincronia com o `schema.prisma` (mesmo princípio de nunca redeclarar um enum à mão, só que agora centralizado num lugar em vez de espalhado por `features/*/types`). Nem todo enum do projeto está lá — `ExcursionStatus`/`Role`, que já existiam duplicados em módulos mergeados antes do `shared` existir de fato, continuam como estão; migrar os dois é cleanup futuro, não foi bundlado na primeira feature que usou o pacote.
 
 ## Stack
 
