@@ -5,6 +5,8 @@ export const ROLE_LABELS: Record<Role, string> = {
   EMPLOYEE: "Funcionário",
 };
 
+export type ReservationStatus = "WAITLIST" | "PENDING" | "CONFIRMED" | "CANCELED";
+
 export type UF =
   | "AC"
   | "AL"

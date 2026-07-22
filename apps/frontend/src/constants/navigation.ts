@@ -46,7 +46,7 @@ export const NAV_ITEMS: NavItem[] = [
     icon: Ticket,
     group: "Operacional",
     adminOnly: false,
-    implemented: false,
+    implemented: true,
   },
   {
     label: "Pagamentos",
