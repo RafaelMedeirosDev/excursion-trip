@@ -1,4 +1,5 @@
-import { IsDateString, IsNotEmpty, IsString } from 'class-validator';
+import { UF } from '@prisma/client';
+import { IsDateString, IsEnum, IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateEventDTO {
   @IsNotEmpty()
@@ -12,6 +13,10 @@ export class CreateEventDTO {
   @IsNotEmpty()
   @IsString()
   city!: string;
+
+  @IsNotEmpty()
+  @IsEnum(UF)
+  state!: UF;
 
   @IsNotEmpty()
   @IsDateString()

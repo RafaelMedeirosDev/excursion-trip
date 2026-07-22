@@ -1,16 +1,29 @@
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
+import { UF_LABELS } from "@excursion-trip/shared";
+import { Controller, useForm } from "react-hook-form";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageTitle } from "@/components/layout/PageTitle";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useCreateEvent } from "@/features/events/hooks/useCreateEvent";
 import {
   createEventSchema,
   type CreateEventInput,
 } from "@/features/events/validations/eventSchema";
+
+const UF_OPTIONS = Object.entries(UF_LABELS) as [
+  keyof typeof UF_LABELS,
+  string,
+][];
 
 export function CreateEventPage() {
   const navigate = useNavigate();
@@ -18,6 +31,7 @@ export function CreateEventPage() {
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<CreateEventInput>({
@@ -72,7 +86,32 @@ export function CreateEventPage() {
               )}
             </div>
 
-            <div />
+            <div className="space-y-2">
+              <Label htmlFor="state">UF</Label>
+              <Controller
+                name="state"
+                control={control}
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger id="state">
+                      <SelectValue placeholder="Selecione um estado" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {UF_OPTIONS.map(([value, label]) => (
+                        <SelectItem key={value} value={value}>
+                          {label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.state && (
+                <p className="text-sm text-destructive">
+                  {errors.state.message}
+                </p>
+              )}
+            </div>
 
             <div className="space-y-2">
               <Label htmlFor="startDate">Data de início</Label>

@@ -5,6 +5,14 @@ export const createEventSchema = z
     name: z.string().min(1, "Nome é obrigatório"),
     address: z.string().min(1, "Endereço é obrigatório"),
     city: z.string().min(1, "Cidade é obrigatória"),
+    state: z.enum(
+      [
+        "AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT",
+        "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO",
+        "RR", "SC", "SP", "SE", "TO",
+      ],
+      { message: "Selecione um estado" },
+    ),
     startDate: z.string().min(1, "Data de início é obrigatória"),
     endDate: z.string().min(1, "Data de término é obrigatória"),
     startTime: z.string().min(1, "Horário de início é obrigatório"),
