@@ -45,4 +45,18 @@ export const reservationsApi = {
     );
     return data;
   },
+
+  markReservationPending: async (id: string): Promise<Reservation> => {
+    const { data } = await httpClient.post<Reservation>(
+      `/reservations/${id}/pending`,
+    );
+    return data;
+  },
+
+  confirmReservation: async (id: string): Promise<Reservation> => {
+    const { data } = await httpClient.post<Reservation>(
+      `/reservations/${id}/confirm`,
+    );
+    return data;
+  },
 };
