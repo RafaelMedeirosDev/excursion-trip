@@ -6,7 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { PageTitle } from "@/components/layout/PageTitle";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ROLE_LABELS } from "@/features/users/constants";
+import { ROLE_LABELS } from "@excursion-trip/shared";
 import { useUser } from "@/features/users/hooks/useUser";
 
 export function UserDetailsPage() {

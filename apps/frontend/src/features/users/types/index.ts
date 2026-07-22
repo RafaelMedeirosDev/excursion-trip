@@ -1,4 +1,4 @@
-export type Role = "ADM" | "EMPLOYEE";
+import type { Role } from "@excursion-trip/shared";
 
 export interface User {
   id: string;

@@ -1,3 +1,4 @@
+import type { Role } from "@excursion-trip/shared";
 import { useCallback } from "react";
 import { authApi } from "@/features/auth/api/authApi";
 import { useAuthStore } from "@/store/authStore";
@@ -26,7 +27,7 @@ export function useAuth() {
   }, [refreshToken, clear]);
 
   const hasRole = useCallback(
-    (role: "ADM" | "EMPLOYEE") => user?.role === role,
+    (role: Role) => user?.role === role,
     [user],
   );
 

@@ -12,7 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { ROLE_LABELS } from "@/features/users/constants";
+import { ROLE_LABELS } from "@excursion-trip/shared";
 import { useUsers } from "@/features/users/hooks/useUsers";
 
 export function UsersPage() {
