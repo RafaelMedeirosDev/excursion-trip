@@ -27,6 +27,9 @@ import { CreateBoardingPointPage } from "@/features/boardingPoints/pages/CreateB
 import { CreateReservationPage } from "@/features/reservations/pages/CreateReservationPage";
 import { ReservationDetailsPage } from "@/features/reservations/pages/ReservationDetailsPage";
 import { ReservationsPage } from "@/features/reservations/pages/ReservationsPage";
+import { CreatePaymentPage } from "@/features/payments/pages/CreatePaymentPage";
+import { PaymentDetailsPage } from "@/features/payments/pages/PaymentDetailsPage";
+import { PaymentsPage } from "@/features/payments/pages/PaymentsPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { AdminRoute } from "@/routes/AdminRoute";
 import { PrivateRoute } from "@/routes/PrivateRoute";
@@ -87,6 +90,10 @@ export function AppRouter() {
             path="/reservations/:id"
             element={<ReservationDetailsPage />}
           />
+
+          <Route path="/payments" element={<PaymentsPage />} />
+          <Route path="/payments/new" element={<CreatePaymentPage />} />
+          <Route path="/payments/:id" element={<PaymentDetailsPage />} />
         </Route>
       </Route>
 

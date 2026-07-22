@@ -7,6 +7,21 @@ export const ROLE_LABELS: Record<Role, string> = {
 
 export type ReservationStatus = "WAITLIST" | "PENDING" | "CONFIRMED" | "CANCELED";
 
+export type PaymentType = "PAYMENT" | "REVERSAL";
+
+export const PAYMENT_TYPE_LABELS: Record<PaymentType, string> = {
+  PAYMENT: "Pagamento",
+  REVERSAL: "Estorno",
+};
+
+export type PaymentMethod = "PIX" | "CASH" | "CARD";
+
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethod, string> = {
+  PIX: "PIX",
+  CASH: "Dinheiro",
+  CARD: "Cartão",
+};
+
 export type UF =
   | "AC"
   | "AL"

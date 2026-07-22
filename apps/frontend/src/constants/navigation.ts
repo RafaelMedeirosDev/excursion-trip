@@ -54,7 +54,7 @@ export const NAV_ITEMS: NavItem[] = [
     icon: CreditCard,
     group: "Operacional",
     adminOnly: false,
-    implemented: false,
+    implemented: true,
   },
   {
     label: "Passageiros",
