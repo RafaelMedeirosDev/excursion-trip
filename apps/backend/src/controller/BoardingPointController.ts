@@ -43,7 +43,6 @@ export class BoardingPointController {
   }
 
   @Get()
-  @Roles(Role.ADM)
   list(@CurrentUser() currentUser: JwtPayload): Promise<BoardingPoints[]> {
     return this.listBoardingPointService.execute({
       organizationId: currentUser.organizationId,
@@ -51,7 +50,6 @@ export class BoardingPointController {
   }
 
   @Get(':id')
-  @Roles(Role.ADM)
   get(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() currentUser: JwtPayload,

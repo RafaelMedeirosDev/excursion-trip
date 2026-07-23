@@ -54,7 +54,7 @@ export class ReservationController {
 
   @Get()
   list(
-    @Query() { status }: ListReservationDTO,
+    @Query() { status, vehicleBookingId }: ListReservationDTO,
     @CurrentUser() currentUser: JwtPayload,
   ): Promise<Reservations[]> {
     return this.listReservationService.execute({
@@ -62,6 +62,7 @@ export class ReservationController {
       userId: currentUser.sub,
       role: currentUser.role,
       status,
+      vehicleBookingId,
     });
   }
 

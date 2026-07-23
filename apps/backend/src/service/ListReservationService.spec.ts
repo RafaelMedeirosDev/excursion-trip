@@ -1,12 +1,15 @@
-import { ReservationStatus, Role } from '@prisma/client';
+import { ReservationStatus, Role, VehicleBooking } from '@prisma/client';
 import {
   Reservations,
   ReservationRepository,
 } from 'src/domain/ReservationRepository';
+import { VehicleBookingRepository } from 'src/domain/VehicleBookingRepository';
+import { VehicleBookingNotFound } from 'src/shared/erros/cases/VehicleBookingNotFound';
 import { ListReservationService } from './ListReservationService';
 
 describe('ListReservationService', () => {
   let reservationRepository: jest.Mocked<ReservationRepository>;
+  let vehicleBookingRepository: jest.Mocked<VehicleBookingRepository>;
   let service: ListReservationService;
 
   const organizationId = 'org-1';
@@ -20,7 +23,16 @@ describe('ListReservationService', () => {
       findAll: jest.fn(),
       updateStatus: jest.fn(),
     };
-    service = new ListReservationService(reservationRepository);
+    vehicleBookingRepository = {
+      create: jest.fn(),
+      findByExcursionAndPlate: jest.fn(),
+      findById: jest.fn(),
+      findAll: jest.fn(),
+    };
+    service = new ListReservationService(
+      reservationRepository,
+      vehicleBookingRepository,
+    );
   });
 
   it('ADM: lista todas as reservas da organização, sem filtrar por userId', async () => {
@@ -93,5 +105,97 @@ describe('ListReservationService', () => {
       userId,
       status: ReservationStatus.WAITLIST,
     });
+  });
+
+  it('ADM: com vehicleBookingId, lista todas as reservas do veículo, sem filtrar por userId', async () => {
+    vehicleBookingRepository.findById.mockResolvedValue({
+      id: 'vb-1',
+      organizationId,
+      userId: 'outro-user',
+    } as VehicleBooking);
+    reservationRepository.findAll.mockResolvedValue([]);
+
+    await service.execute({
+      organizationId,
+      userId,
+      role: Role.ADM,
+      vehicleBookingId: 'vb-1',
+    });
+
+    expect(reservationRepository.findAll).toHaveBeenCalledWith({
+      organizationId,
+      status: undefined,
+      vehicleBookingId: 'vb-1',
+    });
+  });
+
+  it('EMPLOYEE dono do veículo: com vehicleBookingId, lista todas as reservas do veículo (não só as dele)', async () => {
+    vehicleBookingRepository.findById.mockResolvedValue({
+      id: 'vb-1',
+      organizationId,
+      userId,
+    } as VehicleBooking);
+    reservationRepository.findAll.mockResolvedValue([]);
+
+    await service.execute({
+      organizationId,
+      userId,
+      role: Role.EMPLOYEE,
+      vehicleBookingId: 'vb-1',
+    });
+
+    expect(reservationRepository.findAll).toHaveBeenCalledWith({
+      organizationId,
+      status: undefined,
+      vehicleBookingId: 'vb-1',
+    });
+  });
+
+  it('EMPLOYEE que não é o responsável: lança VehicleBookingNotFound', async () => {
+    vehicleBookingRepository.findById.mockResolvedValue({
+      id: 'vb-1',
+      organizationId,
+      userId: 'outro-user',
+    } as VehicleBooking);
+
+    await expect(
+      service.execute({
+        organizationId,
+        userId,
+        role: Role.EMPLOYEE,
+        vehicleBookingId: 'vb-1',
+      }),
+    ).rejects.toBeInstanceOf(VehicleBookingNotFound);
+    expect(reservationRepository.findAll).not.toHaveBeenCalled();
+  });
+
+  it('vehicleBookingId de outra organização: lança VehicleBookingNotFound', async () => {
+    vehicleBookingRepository.findById.mockResolvedValue({
+      id: 'vb-1',
+      organizationId: 'org-2',
+      userId,
+    } as VehicleBooking);
+
+    await expect(
+      service.execute({
+        organizationId,
+        userId,
+        role: Role.ADM,
+        vehicleBookingId: 'vb-1',
+      }),
+    ).rejects.toBeInstanceOf(VehicleBookingNotFound);
+  });
+
+  it('vehicleBookingId inexistente: lança VehicleBookingNotFound', async () => {
+    vehicleBookingRepository.findById.mockResolvedValue(null);
+
+    await expect(
+      service.execute({
+        organizationId,
+        userId,
+        role: Role.ADM,
+        vehicleBookingId: 'vb-1',
+      }),
+    ).rejects.toBeInstanceOf(VehicleBookingNotFound);
   });
 });

@@ -1,10 +1,12 @@
-import { Reservation, Role } from '@prisma/client';
+import { Reservation, Role, VehicleBooking } from '@prisma/client';
 import { ReservationRepository } from 'src/domain/ReservationRepository';
+import { VehicleBookingRepository } from 'src/domain/VehicleBookingRepository';
 import { ReservationNotFound } from 'src/shared/erros/cases/ReservationNotFound';
 import { GetReservationService } from './GetReservationService';
 
 describe('GetReservationService', () => {
   let reservationRepository: jest.Mocked<ReservationRepository>;
+  let vehicleBookingRepository: jest.Mocked<VehicleBookingRepository>;
   let service: GetReservationService;
 
   const organizationId = 'org-1';
@@ -13,6 +15,7 @@ describe('GetReservationService', () => {
     id: 'reservation-1',
     organizationId,
     userId,
+    vehicleBookingId: 'vb-1',
   } as Reservation;
 
   beforeEach(() => {
@@ -23,7 +26,16 @@ describe('GetReservationService', () => {
       findAll: jest.fn(),
       updateStatus: jest.fn(),
     };
-    service = new GetReservationService(reservationRepository);
+    vehicleBookingRepository = {
+      create: jest.fn(),
+      findByExcursionAndPlate: jest.fn(),
+      findById: jest.fn(),
+      findAll: jest.fn(),
+    };
+    service = new GetReservationService(
+      reservationRepository,
+      vehicleBookingRepository,
+    );
   });
 
   it('ADM: retorna a reservation mesmo não sendo o próprio userId', async () => {
@@ -52,14 +64,37 @@ describe('GetReservationService', () => {
     expect(result).toEqual(reservation);
   });
 
-  it('EMPLOYEE: lança ReservationNotFound quando a reservation é de outro usuário', async () => {
+  it('EMPLOYEE: retorna a reservation quando é o responsável pelo vehicleBooking, mesmo sem ter registrado', async () => {
     reservationRepository.findById.mockResolvedValue(reservation);
+    vehicleBookingRepository.findById.mockResolvedValue({
+      id: 'vb-1',
+      organizationId,
+      userId: 'outro-user',
+    } as VehicleBooking);
+
+    const result = await service.execute({
+      organizationId,
+      id: 'reservation-1',
+      userId: 'outro-user',
+      role: Role.EMPLOYEE,
+    });
+
+    expect(result).toEqual(reservation);
+  });
+
+  it('EMPLOYEE: lança ReservationNotFound quando nem registrou nem é responsável pelo vehicleBooking', async () => {
+    reservationRepository.findById.mockResolvedValue(reservation);
+    vehicleBookingRepository.findById.mockResolvedValue({
+      id: 'vb-1',
+      organizationId,
+      userId: 'outro-user',
+    } as VehicleBooking);
 
     await expect(
       service.execute({
         organizationId,
         id: 'reservation-1',
-        userId: 'outro-user',
+        userId: 'terceiro-user',
         role: Role.EMPLOYEE,
       }),
     ).rejects.toBeInstanceOf(ReservationNotFound);

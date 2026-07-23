@@ -1,4 +1,4 @@
-import { VehicleBooking } from '@prisma/client';
+import { Role, VehicleBooking } from '@prisma/client';
 import { VehicleBookingRepository } from 'src/domain/VehicleBookingRepository';
 import { VehicleBookingNotFound } from 'src/shared/erros/cases/VehicleBookingNotFound';
 import { GetVehicleBookingService } from './GetVehicleBookingService';
@@ -8,7 +8,12 @@ describe('GetVehicleBookingService', () => {
   let service: GetVehicleBookingService;
 
   const organizationId = 'org-1';
-  const vehicleBooking = { id: 'vb-1', organizationId } as VehicleBooking;
+  const userId = 'user-1';
+  const vehicleBooking = {
+    id: 'vb-1',
+    organizationId,
+    userId,
+  } as VehicleBooking;
 
   beforeEach(() => {
     vehicleBookingRepository = {
@@ -20,19 +25,50 @@ describe('GetVehicleBookingService', () => {
     service = new GetVehicleBookingService(vehicleBookingRepository);
   });
 
-  it('retorna o vehicleBooking quando pertence à organização', async () => {
+  it('ADM: retorna o vehicleBooking mesmo não sendo o responsável', async () => {
     vehicleBookingRepository.findById.mockResolvedValue(vehicleBooking);
 
-    const result = await service.execute({ organizationId, id: 'vb-1' });
+    const result = await service.execute({
+      organizationId,
+      id: 'vb-1',
+      userId: 'outro-user',
+      role: Role.ADM,
+    });
 
     expect(result).toEqual(vehicleBooking);
+  });
+
+  it('EMPLOYEE: retorna o vehicleBooking quando é o responsável', async () => {
+    vehicleBookingRepository.findById.mockResolvedValue(vehicleBooking);
+
+    const result = await service.execute({
+      organizationId,
+      id: 'vb-1',
+      userId,
+      role: Role.EMPLOYEE,
+    });
+
+    expect(result).toEqual(vehicleBooking);
+  });
+
+  it('EMPLOYEE: lança VehicleBookingNotFound quando não é o responsável', async () => {
+    vehicleBookingRepository.findById.mockResolvedValue(vehicleBooking);
+
+    await expect(
+      service.execute({
+        organizationId,
+        id: 'vb-1',
+        userId: 'outro-user',
+        role: Role.EMPLOYEE,
+      }),
+    ).rejects.toBeInstanceOf(VehicleBookingNotFound);
   });
 
   it('lança VehicleBookingNotFound quando o vehicleBooking não existe', async () => {
     vehicleBookingRepository.findById.mockResolvedValue(null);
 
     await expect(
-      service.execute({ organizationId, id: 'vb-1' }),
+      service.execute({ organizationId, id: 'vb-1', userId, role: Role.ADM }),
     ).rejects.toBeInstanceOf(VehicleBookingNotFound);
   });
 
@@ -43,7 +79,7 @@ describe('GetVehicleBookingService', () => {
     });
 
     await expect(
-      service.execute({ organizationId, id: 'vb-1' }),
+      service.execute({ organizationId, id: 'vb-1', userId, role: Role.ADM }),
     ).rejects.toBeInstanceOf(VehicleBookingNotFound);
   });
 });

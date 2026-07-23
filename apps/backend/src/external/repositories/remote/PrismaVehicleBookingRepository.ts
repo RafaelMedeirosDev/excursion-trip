@@ -59,9 +59,13 @@ export class PrismaVehicleBookingRepository
     return this.repository.vehicleBooking.findFirst({ where: { id } });
   }
 
-  findAll({ organizationId }: FindAll): Promise<VehicleBookings[]> {
+  findAll({ organizationId, userId }: FindAll): Promise<VehicleBookings[]> {
     return this.repository.vehicleBooking.findMany({
-      where: { organizationId, deletedAt: null },
+      where: {
+        organizationId,
+        deletedAt: null,
+        ...(userId ? { userId } : {}),
+      },
       select: {
         id: true,
         organizationId: true,

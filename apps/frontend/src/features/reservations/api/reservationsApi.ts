@@ -10,11 +10,13 @@ import type {
 export const reservationsApi = {
   getReservations: async (
     status?: ReservationStatus,
+    vehicleBookingId?: string,
   ): Promise<ReservationWithRelations[]> => {
     const { data } = await httpClient.get<ReservationWithRelations[]>(
       "/reservations",
       {
-        params: status ? { status } : undefined,
+        params:
+          status || vehicleBookingId ? { status, vehicleBookingId } : undefined,
       },
     );
     return data;

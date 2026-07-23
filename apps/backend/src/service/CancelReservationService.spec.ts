@@ -134,6 +134,21 @@ describe('CancelReservationService', () => {
     expect(reservationRepository.updateStatus).not.toHaveBeenCalled();
   });
 
+  it('EMPLOYEE responsável pelo vehicleBooking consegue cancelar mesmo sem ter registrado', async () => {
+    vehicleBookingRepository.findById.mockResolvedValue({
+      ...vehicleBooking,
+      userId: 'user-2',
+    });
+    reservationRepository.updateStatus.mockResolvedValue({
+      ...reservation,
+      status: ReservationStatus.CANCELED,
+    });
+
+    await service.execute({ ...request, role: Role.EMPLOYEE, userId: 'user-2' });
+
+    expect(reservationRepository.updateStatus).toHaveBeenCalled();
+  });
+
   it('lança InvalidReservationStatusTransition quando a reservation já está CANCELED', async () => {
     reservationRepository.findById.mockResolvedValue({
       ...reservation,

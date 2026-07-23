@@ -85,7 +85,7 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/vehicles",
     icon: Bus,
     group: "Administrativo",
-    adminOnly: true,
+    adminOnly: false,
     implemented: true,
   },
   {
@@ -93,7 +93,7 @@ export const NAV_ITEMS: NavItem[] = [
     href: "/boarding-points",
     icon: MapPin,
     group: "Administrativo",
-    adminOnly: true,
+    adminOnly: false,
     implemented: true,
   },
   {
