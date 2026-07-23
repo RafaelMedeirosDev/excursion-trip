@@ -1,9 +1,17 @@
 import { PAYMENT_METHOD_LABELS, PAYMENT_TYPE_LABELS } from "@excursion-trip/shared";
 import { CreditCard, Plus } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { PageTitle } from "@/components/layout/PageTitle";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -13,7 +21,9 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useEvents } from "@/features/events/hooks/useEvents";
 import { useReservations } from "@/features/reservations/hooks/useReservations";
+import { useVehicleBookings } from "@/features/vehicleBookings/hooks/useVehicleBookings";
 import { usePayments } from "@/features/payments/hooks/usePayments";
 
 function formatCurrency(cents: number) {
@@ -27,16 +37,44 @@ function formatDate(value: string) {
   return new Date(value).toLocaleDateString("pt-BR");
 }
 
+function vehicleLabel(vehicleType: string, plate: string | null) {
+  return plate ? `${vehicleType} — ${plate}` : vehicleType;
+}
+
 export function PaymentsPage() {
+  const [eventFilter, setEventFilter] = useState<string>("ALL");
   const { data: payments, isLoading } = usePayments();
   const { data: reservations } = useReservations();
+  const { data: vehicleBookings } = useVehicleBookings();
+  const { data: events } = useEvents();
 
-  const customerNameByReservationId = new Map(
-    reservations?.map((reservation) => [
-      reservation.id,
-      reservation.customer.name,
+  const reservationById = new Map(
+    reservations?.map((reservation) => [reservation.id, reservation]),
+  );
+
+  const eventNameById = new Map(events?.map((event) => [event.id, event.name]));
+  const eventNameByVehicleBookingId = new Map(
+    vehicleBookings?.map((vehicleBooking) => [
+      vehicleBooking.id,
+      eventNameById.get(vehicleBooking.excursion.eventId) ?? "—",
     ]),
   );
+  const eventIdByVehicleBookingId = new Map(
+    vehicleBookings?.map((vehicleBooking) => [
+      vehicleBooking.id,
+      vehicleBooking.excursion.eventId,
+    ]),
+  );
+
+  const filteredPayments = payments?.filter((payment) => {
+    if (eventFilter === "ALL") return true;
+
+    const reservation = reservationById.get(payment.reservationId);
+    return reservation
+      ? eventIdByVehicleBookingId.get(reservation.vehicleBookingId) ===
+          eventFilter
+      : false;
+  });
 
   return (
     <div>
@@ -53,6 +91,22 @@ export function PaymentsPage() {
         }
       />
 
+      <div className="mb-4 w-64">
+        <Select value={eventFilter} onValueChange={setEventFilter}>
+          <SelectTrigger>
+            <SelectValue placeholder="Evento" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ALL">Todos os eventos</SelectItem>
+            {events?.map((event) => (
+              <SelectItem key={event.id} value={event.id}>
+                {event.name}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       {isLoading && (
         <div className="space-y-2">
           <Skeleton className="h-10 w-full" />
@@ -61,27 +115,35 @@ export function PaymentsPage() {
         </div>
       )}
 
-      {!isLoading && payments && payments.length === 0 && (
+      {!isLoading && filteredPayments && filteredPayments.length === 0 && (
         <EmptyState
           icon={CreditCard}
           title="Nenhum pagamento registrado"
-          description="Registre o primeiro pagamento da sua organização."
+          description={
+            eventFilter === "ALL"
+              ? "Registre o primeiro pagamento da sua organização."
+              : "Nenhum pagamento pra esse evento."
+          }
           action={
-            <Button asChild>
-              <Link to="/payments/new">
-                <Plus className="mr-2 size-4" />
-                Novo Pagamento
-              </Link>
-            </Button>
+            eventFilter === "ALL" ? (
+              <Button asChild>
+                <Link to="/payments/new">
+                  <Plus className="mr-2 size-4" />
+                  Novo Pagamento
+                </Link>
+              </Button>
+            ) : undefined
           }
         />
       )}
 
-      {!isLoading && payments && payments.length > 0 && (
+      {!isLoading && filteredPayments && filteredPayments.length > 0 && (
         <Table>
           <TableHeader>
             <TableRow>
               <TableHead>Cliente</TableHead>
+              <TableHead>Veículo</TableHead>
+              <TableHead>Evento</TableHead>
               <TableHead>Tipo</TableHead>
               <TableHead>Valor</TableHead>
               <TableHead>Método</TableHead>
@@ -89,23 +151,41 @@ export function PaymentsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {payments.map((payment) => (
-              <TableRow key={payment.id}>
-                <TableCell>
-                  <Link
-                    to={`/payments/${payment.id}`}
-                    className="font-medium hover:underline"
-                  >
-                    {customerNameByReservationId.get(payment.reservationId) ??
-                      "—"}
-                  </Link>
-                </TableCell>
-                <TableCell>{PAYMENT_TYPE_LABELS[payment.type]}</TableCell>
-                <TableCell>{formatCurrency(payment.value)}</TableCell>
-                <TableCell>{PAYMENT_METHOD_LABELS[payment.method]}</TableCell>
-                <TableCell>{formatDate(payment.createdAt)}</TableCell>
-              </TableRow>
-            ))}
+            {filteredPayments.map((payment) => {
+              const reservation = reservationById.get(payment.reservationId);
+
+              return (
+                <TableRow key={payment.id}>
+                  <TableCell>
+                    <Link
+                      to={`/payments/${payment.id}`}
+                      className="font-medium hover:underline"
+                    >
+                      {reservation?.customer.name ?? "—"}
+                    </Link>
+                  </TableCell>
+                  <TableCell>
+                    {reservation
+                      ? vehicleLabel(
+                          reservation.vehicleBooking.vehicleType,
+                          reservation.vehicleBooking.plate,
+                        )
+                      : "—"}
+                  </TableCell>
+                  <TableCell>
+                    {reservation
+                      ? eventNameByVehicleBookingId.get(
+                          reservation.vehicleBookingId,
+                        ) ?? "—"
+                      : "—"}
+                  </TableCell>
+                  <TableCell>{PAYMENT_TYPE_LABELS[payment.type]}</TableCell>
+                  <TableCell>{formatCurrency(payment.value)}</TableCell>
+                  <TableCell>{PAYMENT_METHOD_LABELS[payment.method]}</TableCell>
+                  <TableCell>{formatDate(payment.createdAt)}</TableCell>
+                </TableRow>
+              );
+            })}
           </TableBody>
         </Table>
       )}
