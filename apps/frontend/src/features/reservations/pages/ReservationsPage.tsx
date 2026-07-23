@@ -3,6 +3,7 @@ import { Plus, Ticket } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { PageTitle } from "@/components/layout/PageTitle";
 import {
@@ -159,51 +160,112 @@ export function ReservationsPage() {
       )}
 
       {!isLoading && filteredReservations && filteredReservations.length > 0 && (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Cliente</TableHead>
-              <TableHead>Evento</TableHead>
-              <TableHead>Veículo</TableHead>
-              <TableHead>Ponto de embarque</TableHead>
-              <TableHead>Valor combinado</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+        <>
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Evento</TableHead>
+                  <TableHead>Veículo</TableHead>
+                  <TableHead>Ponto de embarque</TableHead>
+                  <TableHead>Valor combinado</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredReservations.map((reservation) => (
+                  <TableRow key={reservation.id}>
+                    <TableCell>
+                      <Link
+                        to={`/reservations/${reservation.id}`}
+                        className="font-medium hover:underline"
+                      >
+                        {reservation.customer.name}
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      {eventNameByVehicleBookingId.get(
+                        reservation.vehicleBookingId,
+                      ) ?? "—"}
+                    </TableCell>
+                    <TableCell>
+                      {reservation.vehicleBooking.vehicleType}
+                      {reservation.vehicleBooking.plate
+                        ? ` — ${reservation.vehicleBooking.plate}`
+                        : ""}
+                    </TableCell>
+                    <TableCell>
+                      {reservation.boardingPoint?.address ?? "—"}
+                    </TableCell>
+                    <TableCell>
+                      {formatCurrency(reservation.agreedValue)}
+                    </TableCell>
+                    <TableCell>
+                      <ReservationStatusBadge status={reservation.status} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="grid gap-3 md:hidden">
             {filteredReservations.map((reservation) => (
-              <TableRow key={reservation.id}>
-                <TableCell>
-                  <Link
-                    to={`/reservations/${reservation.id}`}
-                    className="font-medium hover:underline"
-                  >
-                    {reservation.customer.name}
-                  </Link>
-                </TableCell>
-                <TableCell>
-                  {eventNameByVehicleBookingId.get(
-                    reservation.vehicleBookingId,
-                  ) ?? "—"}
-                </TableCell>
-                <TableCell>
-                  {reservation.vehicleBooking.vehicleType}
-                  {reservation.vehicleBooking.plate
-                    ? ` — ${reservation.vehicleBooking.plate}`
-                    : ""}
-                </TableCell>
-                <TableCell>
-                  {reservation.boardingPoint?.address ?? "—"}
-                </TableCell>
-                <TableCell>{formatCurrency(reservation.agreedValue)}</TableCell>
-                <TableCell>
-                  <ReservationStatusBadge status={reservation.status} />
-                </TableCell>
-              </TableRow>
+              <Link key={reservation.id} to={`/reservations/${reservation.id}`}>
+                <Card className="transition-colors hover:bg-muted/50">
+                  <CardContent className="space-y-3 pt-6">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-medium">
+                        {reservation.customer.name}
+                      </span>
+                      <ReservationStatusBadge status={reservation.status} />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <CardField
+                        label="Evento"
+                        value={
+                          eventNameByVehicleBookingId.get(
+                            reservation.vehicleBookingId,
+                          ) ?? "—"
+                        }
+                      />
+                      <CardField
+                        label="Veículo"
+                        value={
+                          reservation.vehicleBooking.plate
+                            ? `${reservation.vehicleBooking.vehicleType} — ${reservation.vehicleBooking.plate}`
+                            : reservation.vehicleBooking.vehicleType
+                        }
+                      />
+                      <CardField
+                        label="Ponto de embarque"
+                        value={reservation.boardingPoint?.address ?? "—"}
+                      />
+                      <CardField
+                        label="Valor combinado"
+                        value={formatCurrency(reservation.agreedValue)}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
-          </TableBody>
-        </Table>
+          </div>
+        </>
       )}
+    </div>
+  );
+}
+
+function CardField({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs font-medium uppercase text-muted-foreground">
+        {label}
+      </p>
+      <p className="text-sm">{value}</p>
     </div>
   );
 }
