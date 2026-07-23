@@ -25,6 +25,7 @@ export interface FindById {
 
 export interface FindAll {
   organizationId: string;
+  userId?: string;
 }
 
 export type VehicleBookings = Omit<VehicleBooking, 'deletedAt'> & {
@@ -55,5 +56,5 @@ export abstract class VehicleBookingRepository {
 
   abstract findById({ id }: FindById): Promise<VehicleBooking | null>;
 
-  abstract findAll({ organizationId }: FindAll): Promise<VehicleBookings[]>;
+  abstract findAll({ organizationId, userId }: FindAll): Promise<VehicleBookings[]>;
 }

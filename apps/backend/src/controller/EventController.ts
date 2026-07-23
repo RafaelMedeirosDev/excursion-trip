@@ -58,7 +58,6 @@ export class EventController {
   }
 
   @Get()
-  @Roles(Role.ADM)
   list(@CurrentUser() currentUser: JwtPayload): Promise<Events[]> {
     return this.listEventService.execute({
       organizationId: currentUser.organizationId,
@@ -66,7 +65,6 @@ export class EventController {
   }
 
   @Get(':id')
-  @Roles(Role.ADM)
   get(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() currentUser: JwtPayload,

@@ -141,6 +141,21 @@ describe('PendingReservationService', () => {
     expect(reservationRepository.updateStatus).toHaveBeenCalled();
   });
 
+  it('EMPLOYEE responsável pelo vehicleBooking consegue mudar mesmo sem ter registrado', async () => {
+    vehicleBookingRepository.findById.mockResolvedValue({
+      ...vehicleBooking,
+      userId: 'user-2',
+    });
+    reservationRepository.updateStatus.mockResolvedValue({
+      ...reservation,
+      status: ReservationStatus.PENDING,
+    });
+
+    await service.execute({ ...request, role: Role.EMPLOYEE, userId: 'user-2' });
+
+    expect(reservationRepository.updateStatus).toHaveBeenCalled();
+  });
+
   it('lança InvalidReservationStatusTransition quando a reservation não está WAITLIST', async () => {
     reservationRepository.findById.mockResolvedValue({
       ...reservation,

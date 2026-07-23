@@ -52,13 +52,21 @@ export class PrismaReservationRepository implements ReservationRepository {
     return this.repository.reservation.findUnique({ where: { id } });
   }
 
-  findAll({ organizationId, userId, status }: FindAll): Promise<Reservations[]> {
+  findAll({
+    organizationId,
+    userId,
+    status,
+    vehicleBookingId,
+  }: FindAll): Promise<Reservations[]> {
     return this.repository.reservation.findMany({
       where: {
         organizationId,
         deletedAt: null,
-        ...(userId ? { userId } : {}),
         ...(status ? { status } : {}),
+        ...(vehicleBookingId ? { vehicleBookingId } : {}),
+        ...(userId && !vehicleBookingId
+          ? { OR: [{ userId }, { vehicleBooking: { userId } }] }
+          : {}),
       },
       select: {
         id: true,

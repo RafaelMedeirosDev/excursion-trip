@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useEvents } from "@/features/events/hooks/useEvents";
 import { useVehicleBookings } from "@/features/vehicleBookings/hooks/useVehicleBookings";
 
@@ -25,6 +26,8 @@ function formatCurrency(cents: number) {
 export function VehicleBookingsPage() {
   const { data: vehicleBookings, isLoading } = useVehicleBookings();
   const { data: events } = useEvents();
+  const { hasRole } = useAuth();
+  const canCreate = hasRole("ADM");
 
   const eventNameById = new Map(events?.map((event) => [event.id, event.name]));
 
@@ -34,12 +37,14 @@ export function VehicleBookingsPage() {
         title="Veículos"
         description="Veículos reservados para as excursões."
         action={
-          <Button asChild>
-            <Link to="/vehicles/new">
-              <Plus className="mr-2 size-4" />
-              Novo Veículo
-            </Link>
-          </Button>
+          canCreate ? (
+            <Button asChild>
+              <Link to="/vehicles/new">
+                <Plus className="mr-2 size-4" />
+                Novo Veículo
+              </Link>
+            </Button>
+          ) : undefined
         }
       />
 
@@ -57,12 +62,14 @@ export function VehicleBookingsPage() {
           title="Nenhum veículo cadastrado"
           description="Reserve o primeiro veículo pra uma excursão."
           action={
-            <Button asChild>
-              <Link to="/vehicles/new">
-                <Plus className="mr-2 size-4" />
-                Novo Veículo
-              </Link>
-            </Button>
+            canCreate ? (
+              <Button asChild>
+                <Link to="/vehicles/new">
+                  <Plus className="mr-2 size-4" />
+                  Novo Veículo
+                </Link>
+              </Button>
+            ) : undefined
           }
         />
       )}
@@ -76,6 +83,7 @@ export function VehicleBookingsPage() {
               <TableHead>Excursão</TableHead>
               <TableHead>Evento</TableHead>
               <TableHead>Fornecedor</TableHead>
+              <TableHead>Responsável</TableHead>
               <TableHead>Capacidade</TableHead>
               <TableHead>Preço</TableHead>
             </TableRow>
@@ -97,6 +105,7 @@ export function VehicleBookingsPage() {
                   {eventNameById.get(vehicleBooking.excursion.eventId) ?? "—"}
                 </TableCell>
                 <TableCell>{vehicleBooking.supplier.name}</TableCell>
+                <TableCell>{vehicleBooking.user.name}</TableCell>
                 <TableCell>{vehicleBooking.capacity}</TableCell>
                 <TableCell>{formatCurrency(vehicleBooking.price)}</TableCell>
               </TableRow>

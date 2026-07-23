@@ -65,20 +65,22 @@ export function AppRouter() {
             <Route path="/users/new" element={<CreateUserPage />} />
             <Route path="/users/:id" element={<UserDetailsPage />} />
 
-            <Route path="/vehicles" element={<VehicleBookingsPage />} />
             <Route path="/vehicles/new" element={<CreateVehicleBookingPage />} />
-            <Route path="/vehicles/:id" element={<VehicleBookingDetailsPage />} />
 
-            <Route path="/boarding-points" element={<BoardingPointsPage />} />
             <Route
               path="/boarding-points/new"
               element={<CreateBoardingPointPage />}
             />
-            <Route
-              path="/boarding-points/:id"
-              element={<BoardingPointDetailsPage />}
-            />
           </Route>
+
+          <Route path="/vehicles" element={<VehicleBookingsPage />} />
+          <Route path="/vehicles/:id" element={<VehicleBookingDetailsPage />} />
+
+          <Route path="/boarding-points" element={<BoardingPointsPage />} />
+          <Route
+            path="/boarding-points/:id"
+            element={<BoardingPointDetailsPage />}
+          />
 
           <Route path="/passengers" element={<CustomersPage />} />
           <Route path="/passengers/new" element={<CreateCustomerPage />} />

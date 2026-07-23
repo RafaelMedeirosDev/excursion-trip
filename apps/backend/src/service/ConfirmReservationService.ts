@@ -53,17 +53,21 @@ export class ConfirmReservationService {
       throw new ReservationNotFound();
     }
 
-    if (role !== Role.ADM && reservation.userId !== userId) {
+    const vehicleBooking = await this.vehicleBookingRepository.findById({
+      id: reservation.vehicleBookingId,
+    });
+
+    if (
+      role !== Role.ADM &&
+      reservation.userId !== userId &&
+      vehicleBooking?.userId !== userId
+    ) {
       throw new ReservationNotFound();
     }
 
     if (!ALLOWED_SOURCE_STATUSES.includes(reservation.status)) {
       throw new InvalidReservationStatusTransition();
     }
-
-    const vehicleBooking = await this.vehicleBookingRepository.findById({
-      id: reservation.vehicleBookingId,
-    });
 
     const excursion = vehicleBooking
       ? await this.excursionRepository.findById({

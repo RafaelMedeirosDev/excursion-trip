@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Reservation, Role } from '@prisma/client';
 import { ReservationRepository } from 'src/domain/ReservationRepository';
+import { VehicleBookingRepository } from 'src/domain/VehicleBookingRepository';
 import { ReservationNotFound } from 'src/shared/erros/cases/ReservationNotFound';
 
 interface Request {
@@ -14,6 +15,7 @@ interface Request {
 export class GetReservationService {
   constructor(
     private readonly reservationRepository: ReservationRepository,
+    private readonly vehicleBookingRepository: VehicleBookingRepository,
   ) {}
 
   async execute({
@@ -29,7 +31,13 @@ export class GetReservationService {
     }
 
     if (role !== Role.ADM && reservation.userId !== userId) {
-      throw new ReservationNotFound();
+      const vehicleBooking = await this.vehicleBookingRepository.findById({
+        id: reservation.vehicleBookingId,
+      });
+
+      if (!vehicleBooking || vehicleBooking.userId !== userId) {
+        throw new ReservationNotFound();
+      }
     }
 
     return reservation;

@@ -62,15 +62,15 @@ export class VehicleBookingController {
   }
 
   @Get()
-  @Roles(Role.ADM)
   list(@CurrentUser() currentUser: JwtPayload): Promise<VehicleBookings[]> {
     return this.listVehicleBookingService.execute({
       organizationId: currentUser.organizationId,
+      userId: currentUser.sub,
+      role: currentUser.role,
     });
   }
 
   @Get(':id')
-  @Roles(Role.ADM)
   get(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() currentUser: JwtPayload,
@@ -78,6 +78,8 @@ export class VehicleBookingController {
     return this.getVehicleBookingService.execute({
       organizationId: currentUser.organizationId,
       id,
+      userId: currentUser.sub,
+      role: currentUser.role,
     });
   }
 }

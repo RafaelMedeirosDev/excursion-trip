@@ -12,6 +12,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useVehicleBookings } from "@/features/vehicleBookings/hooks/useVehicleBookings";
 import { useBoardingPoints } from "@/features/boardingPoints/hooks/useBoardingPoints";
 
@@ -22,6 +23,8 @@ function vehicleLabel(vehicleType: string, plate: string | null) {
 export function BoardingPointsPage() {
   const { data: boardingPoints, isLoading } = useBoardingPoints();
   const { data: vehicleBookings } = useVehicleBookings();
+  const { hasRole } = useAuth();
+  const canCreate = hasRole("ADM");
 
   const vehicleLabelById = new Map(
     vehicleBookings?.map((vehicleBooking) => [
@@ -36,12 +39,14 @@ export function BoardingPointsPage() {
         title="Pontos de Embarque"
         description="Pontos de embarque cadastrados para os veículos."
         action={
-          <Button asChild>
-            <Link to="/boarding-points/new">
-              <Plus className="mr-2 size-4" />
-              Novo Ponto
-            </Link>
-          </Button>
+          canCreate ? (
+            <Button asChild>
+              <Link to="/boarding-points/new">
+                <Plus className="mr-2 size-4" />
+                Novo Ponto
+              </Link>
+            </Button>
+          ) : undefined
         }
       />
 
@@ -59,12 +64,14 @@ export function BoardingPointsPage() {
           title="Nenhum ponto de embarque cadastrado"
           description="Crie o primeiro ponto de embarque pra um veículo."
           action={
-            <Button asChild>
-              <Link to="/boarding-points/new">
-                <Plus className="mr-2 size-4" />
-                Novo Ponto
-              </Link>
-            </Button>
+            canCreate ? (
+              <Button asChild>
+                <Link to="/boarding-points/new">
+                  <Plus className="mr-2 size-4" />
+                  Novo Ponto
+                </Link>
+              </Button>
+            ) : undefined
           }
         />
       )}

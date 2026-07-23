@@ -29,6 +29,7 @@ export interface FindAll {
   organizationId: string;
   userId?: string;
   status?: ReservationStatus;
+  vehicleBookingId?: string;
 }
 
 export type Reservations = Omit<Reservation, 'deletedAt'> & {
@@ -66,6 +67,7 @@ export abstract class ReservationRepository {
     organizationId,
     userId,
     status,
+    vehicleBookingId,
   }: FindAll): Promise<Reservations[]>;
 
   abstract updateStatus({

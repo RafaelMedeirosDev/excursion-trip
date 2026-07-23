@@ -63,7 +63,6 @@ export class ExcursionController {
   }
 
   @Get(':id')
-  @Roles(Role.ADM)
   get(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() currentUser: JwtPayload,

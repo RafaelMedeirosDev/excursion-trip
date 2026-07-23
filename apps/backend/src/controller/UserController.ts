@@ -54,7 +54,6 @@ export class UserController {
   }
 
   @Get(':id')
-  @Roles(Role.ADM)
   get(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentUser() currentUser: JwtPayload,

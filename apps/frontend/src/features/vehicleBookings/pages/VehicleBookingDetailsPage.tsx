@@ -11,8 +11,11 @@ import {
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { PageTitle } from "@/components/layout/PageTitle";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useExcursion } from "@/features/excursions/hooks/useExcursion";
 import { useEvent } from "@/features/events/hooks/useEvent";
+import { ReservationStatusBadge } from "@/features/reservations/components/ReservationStatusBadge";
+import { useReservations } from "@/features/reservations/hooks/useReservations";
 import { useSupplier } from "@/features/suppliers/hooks/useSupplier";
 import { useUser } from "@/features/users/hooks/useUser";
 import { useVehicleBooking } from "@/features/vehicleBookings/hooks/useVehicleBooking";
@@ -26,11 +29,15 @@ function formatCurrency(cents: number) {
 
 export function VehicleBookingDetailsPage() {
   const { id } = useParams<{ id: string }>();
+  const { hasRole } = useAuth();
   const { data: vehicleBooking, isLoading, error } = useVehicleBooking(id ?? "");
   const { data: excursion } = useExcursion(vehicleBooking?.excursionId ?? "");
   const { data: event } = useEvent(excursion?.eventId ?? "");
   const { data: supplier } = useSupplier(vehicleBooking?.supplierId ?? "");
   const { data: user } = useUser(vehicleBooking?.userId ?? "");
+  const { data: reservations } = useReservations(undefined, vehicleBooking?.id, {
+    enabled: Boolean(vehicleBooking),
+  });
 
   if (isLoading) {
     return (
@@ -68,7 +75,9 @@ export function VehicleBookingDetailsPage() {
         <CardContent className="grid grid-cols-1 gap-4 pt-6 sm:grid-cols-2">
           <Field label="Placa" value={vehicleBooking.plate ?? "—"} />
           <Field label="Capacidade" value={String(vehicleBooking.capacity)} />
-          <Field label="Custo" value={formatCurrency(vehicleBooking.value)} />
+          {hasRole("ADM") && (
+            <Field label="Custo" value={formatCurrency(vehicleBooking.value)} />
+          )}
           <Field label="Preço do assento" value={formatCurrency(vehicleBooking.price)} />
           <Field label="Horário de saída" value={vehicleBooking.startTime ?? "—"} />
           <Field label="Horário de volta" value={vehicleBooking.returnTime ?? "—"} />
@@ -119,6 +128,41 @@ export function VehicleBookingDetailsPage() {
             </>
           ) : (
             <Skeleton className="h-6 w-48" />
+          )}
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Reservas</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {!reservations ? (
+            <Skeleton className="h-6 w-48" />
+          ) : reservations.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              Nenhuma reserva pra esse veículo ainda.
+            </p>
+          ) : (
+            <div className="space-y-3">
+              {reservations.map((reservation) => (
+                <Link
+                  key={reservation.id}
+                  to={`/reservations/${reservation.id}`}
+                  className="flex items-center justify-between rounded-md border p-3 text-sm hover:bg-accent"
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="font-medium">
+                      {reservation.customer.name}
+                    </span>
+                    <ReservationStatusBadge status={reservation.status} />
+                  </div>
+                  <span className="text-muted-foreground">
+                    {formatCurrency(reservation.agreedValue)}
+                  </span>
+                </Link>
+              ))}
+            </div>
           )}
         </CardContent>
       </Card>

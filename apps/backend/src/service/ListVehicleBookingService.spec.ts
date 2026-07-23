@@ -1,3 +1,4 @@
+import { Role } from '@prisma/client';
 import {
   VehicleBookingRepository,
   VehicleBookings,
@@ -9,6 +10,7 @@ describe('ListVehicleBookingService', () => {
   let service: ListVehicleBookingService;
 
   const organizationId = 'org-1';
+  const userId = 'user-1';
 
   beforeEach(() => {
     vehicleBookingRepository = {
@@ -20,7 +22,7 @@ describe('ListVehicleBookingService', () => {
     service = new ListVehicleBookingService(vehicleBookingRepository);
   });
 
-  it('lista os vehicle bookings da organização informada, com excursion/supplier/user incluídos', async () => {
+  it('ADM: lista todos os vehicle bookings da organização, sem filtrar por userId', async () => {
     const vehicleBookings = [
       {
         id: 'vb-1',
@@ -32,10 +34,34 @@ describe('ListVehicleBookingService', () => {
     ] as VehicleBookings[];
     vehicleBookingRepository.findAll.mockResolvedValue(vehicleBookings);
 
-    const result = await service.execute({ organizationId });
+    const result = await service.execute({
+      organizationId,
+      userId,
+      role: Role.ADM,
+    });
 
     expect(vehicleBookingRepository.findAll).toHaveBeenCalledWith({
       organizationId,
+      userId: undefined,
+    });
+    expect(result).toEqual(vehicleBookings);
+  });
+
+  it('EMPLOYEE: lista só os vehicle bookings sob responsabilidade dele (filtra por userId)', async () => {
+    const vehicleBookings = [
+      { id: 'vb-1', organizationId, userId },
+    ] as VehicleBookings[];
+    vehicleBookingRepository.findAll.mockResolvedValue(vehicleBookings);
+
+    const result = await service.execute({
+      organizationId,
+      userId,
+      role: Role.EMPLOYEE,
+    });
+
+    expect(vehicleBookingRepository.findAll).toHaveBeenCalledWith({
+      organizationId,
+      userId,
     });
     expect(result).toEqual(vehicleBookings);
   });
