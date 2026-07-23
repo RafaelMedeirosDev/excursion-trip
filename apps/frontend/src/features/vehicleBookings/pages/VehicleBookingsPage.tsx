@@ -1,6 +1,7 @@
 import { Bus, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { PageTitle } from "@/components/layout/PageTitle";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -75,44 +76,112 @@ export function VehicleBookingsPage() {
       )}
 
       {!isLoading && vehicleBookings && vehicleBookings.length > 0 && (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Placa</TableHead>
-              <TableHead>Excursão</TableHead>
-              <TableHead>Evento</TableHead>
-              <TableHead>Fornecedor</TableHead>
-              <TableHead>Responsável</TableHead>
-              <TableHead>Capacidade</TableHead>
-              <TableHead>Preço</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+        <>
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Placa</TableHead>
+                  <TableHead>Excursão</TableHead>
+                  <TableHead>Evento</TableHead>
+                  <TableHead>Fornecedor</TableHead>
+                  <TableHead>Responsável</TableHead>
+                  <TableHead>Capacidade</TableHead>
+                  <TableHead>Preço</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {vehicleBookings.map((vehicleBooking) => (
+                  <TableRow key={vehicleBooking.id}>
+                    <TableCell>
+                      <Link
+                        to={`/vehicles/${vehicleBooking.id}`}
+                        className="font-medium hover:underline"
+                      >
+                        {vehicleBooking.vehicleType}
+                      </Link>
+                    </TableCell>
+                    <TableCell>{vehicleBooking.plate ?? "—"}</TableCell>
+                    <TableCell>{vehicleBooking.excursion.name}</TableCell>
+                    <TableCell>
+                      {eventNameById.get(vehicleBooking.excursion.eventId) ??
+                        "—"}
+                    </TableCell>
+                    <TableCell>{vehicleBooking.supplier.name}</TableCell>
+                    <TableCell>{vehicleBooking.user.name}</TableCell>
+                    <TableCell>{vehicleBooking.capacity}</TableCell>
+                    <TableCell>
+                      {formatCurrency(vehicleBooking.price)}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="grid gap-3 md:hidden">
             {vehicleBookings.map((vehicleBooking) => (
-              <TableRow key={vehicleBooking.id}>
-                <TableCell>
-                  <Link
-                    to={`/vehicles/${vehicleBooking.id}`}
-                    className="font-medium hover:underline"
-                  >
-                    {vehicleBooking.vehicleType}
-                  </Link>
-                </TableCell>
-                <TableCell>{vehicleBooking.plate ?? "—"}</TableCell>
-                <TableCell>{vehicleBooking.excursion.name}</TableCell>
-                <TableCell>
-                  {eventNameById.get(vehicleBooking.excursion.eventId) ?? "—"}
-                </TableCell>
-                <TableCell>{vehicleBooking.supplier.name}</TableCell>
-                <TableCell>{vehicleBooking.user.name}</TableCell>
-                <TableCell>{vehicleBooking.capacity}</TableCell>
-                <TableCell>{formatCurrency(vehicleBooking.price)}</TableCell>
-              </TableRow>
+              <Link
+                key={vehicleBooking.id}
+                to={`/vehicles/${vehicleBooking.id}`}
+              >
+                <Card className="transition-colors hover:bg-muted/50">
+                  <CardContent className="space-y-3 pt-6">
+                    <span className="font-medium">
+                      {vehicleBooking.plate
+                        ? `${vehicleBooking.vehicleType} — ${vehicleBooking.plate}`
+                        : vehicleBooking.vehicleType}
+                    </span>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <CardField
+                        label="Excursão"
+                        value={vehicleBooking.excursion.name}
+                      />
+                      <CardField
+                        label="Evento"
+                        value={
+                          eventNameById.get(
+                            vehicleBooking.excursion.eventId,
+                          ) ?? "—"
+                        }
+                      />
+                      <CardField
+                        label="Fornecedor"
+                        value={vehicleBooking.supplier.name}
+                      />
+                      <CardField
+                        label="Responsável"
+                        value={vehicleBooking.user.name}
+                      />
+                      <CardField
+                        label="Capacidade"
+                        value={String(vehicleBooking.capacity)}
+                      />
+                      <CardField
+                        label="Preço"
+                        value={formatCurrency(vehicleBooking.price)}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
-          </TableBody>
-        </Table>
+          </div>
+        </>
       )}
+    </div>
+  );
+}
+
+function CardField({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs font-medium uppercase text-muted-foreground">
+        {label}
+      </p>
+      <p className="text-sm">{value}</p>
     </div>
   );
 }

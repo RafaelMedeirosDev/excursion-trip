@@ -1,6 +1,7 @@
 import { MapPin, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { PageTitle } from "@/components/layout/PageTitle";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -77,38 +78,89 @@ export function BoardingPointsPage() {
       )}
 
       {!isLoading && boardingPoints && boardingPoints.length > 0 && (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Endereço</TableHead>
-              <TableHead>Horário</TableHead>
-              <TableHead>Veículo</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+        <>
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Endereço</TableHead>
+                  <TableHead>Horário</TableHead>
+                  <TableHead>Veículo</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {boardingPoints.map((boardingPoint) => (
+                  <TableRow key={boardingPoint.id}>
+                    <TableCell>
+                      <Link
+                        to={`/boarding-points/${boardingPoint.id}`}
+                        className="font-medium hover:underline"
+                      >
+                        {boardingPoint.address}
+                      </Link>
+                    </TableCell>
+                    <TableCell>{boardingPoint.time ?? "—"}</TableCell>
+                    <TableCell>
+                      {vehicleLabelById.get(boardingPoint.vehicleBookingId) ??
+                        vehicleLabel(
+                          boardingPoint.vehicleBooking.vehicleType,
+                          boardingPoint.vehicleBooking.plate,
+                        )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="grid gap-3 md:hidden">
             {boardingPoints.map((boardingPoint) => (
-              <TableRow key={boardingPoint.id}>
-                <TableCell>
-                  <Link
-                    to={`/boarding-points/${boardingPoint.id}`}
-                    className="font-medium hover:underline"
-                  >
-                    {boardingPoint.address}
-                  </Link>
-                </TableCell>
-                <TableCell>{boardingPoint.time ?? "—"}</TableCell>
-                <TableCell>
-                  {vehicleLabelById.get(boardingPoint.vehicleBookingId) ??
-                    vehicleLabel(
-                      boardingPoint.vehicleBooking.vehicleType,
-                      boardingPoint.vehicleBooking.plate,
-                    )}
-                </TableCell>
-              </TableRow>
+              <Link
+                key={boardingPoint.id}
+                to={`/boarding-points/${boardingPoint.id}`}
+              >
+                <Card className="transition-colors hover:bg-muted/50">
+                  <CardContent className="space-y-3 pt-6">
+                    <span className="font-medium">
+                      {boardingPoint.address}
+                    </span>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <CardField
+                        label="Horário"
+                        value={boardingPoint.time ?? "—"}
+                      />
+                      <CardField
+                        label="Veículo"
+                        value={
+                          vehicleLabelById.get(
+                            boardingPoint.vehicleBookingId,
+                          ) ??
+                          vehicleLabel(
+                            boardingPoint.vehicleBooking.vehicleType,
+                            boardingPoint.vehicleBooking.plate,
+                          )
+                        }
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
-          </TableBody>
-        </Table>
+          </div>
+        </>
       )}
+    </div>
+  );
+}
+
+function CardField({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs font-medium uppercase text-muted-foreground">
+        {label}
+      </p>
+      <p className="text-sm">{value}</p>
     </div>
   );
 }
