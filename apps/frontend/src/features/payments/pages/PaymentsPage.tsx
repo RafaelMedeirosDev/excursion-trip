@@ -3,6 +3,7 @@ import { CreditCard, Plus } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { PageTitle } from "@/components/layout/PageTitle";
 import {
@@ -138,57 +139,134 @@ export function PaymentsPage() {
       )}
 
       {!isLoading && filteredPayments && filteredPayments.length > 0 && (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Cliente</TableHead>
-              <TableHead>Veículo</TableHead>
-              <TableHead>Evento</TableHead>
-              <TableHead>Tipo</TableHead>
-              <TableHead>Valor</TableHead>
-              <TableHead>Método</TableHead>
-              <TableHead>Data</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+        <>
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Veículo</TableHead>
+                  <TableHead>Evento</TableHead>
+                  <TableHead>Tipo</TableHead>
+                  <TableHead>Valor</TableHead>
+                  <TableHead>Método</TableHead>
+                  <TableHead>Data</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredPayments.map((payment) => {
+                  const reservation = reservationById.get(
+                    payment.reservationId,
+                  );
+
+                  return (
+                    <TableRow key={payment.id}>
+                      <TableCell>
+                        <Link
+                          to={`/payments/${payment.id}`}
+                          className="font-medium hover:underline"
+                        >
+                          {reservation?.customer.name ?? "—"}
+                        </Link>
+                      </TableCell>
+                      <TableCell>
+                        {reservation
+                          ? vehicleLabel(
+                              reservation.vehicleBooking.vehicleType,
+                              reservation.vehicleBooking.plate,
+                            )
+                          : "—"}
+                      </TableCell>
+                      <TableCell>
+                        {reservation
+                          ? eventNameByVehicleBookingId.get(
+                              reservation.vehicleBookingId,
+                            ) ?? "—"
+                          : "—"}
+                      </TableCell>
+                      <TableCell>{PAYMENT_TYPE_LABELS[payment.type]}</TableCell>
+                      <TableCell>{formatCurrency(payment.value)}</TableCell>
+                      <TableCell>
+                        {PAYMENT_METHOD_LABELS[payment.method]}
+                      </TableCell>
+                      <TableCell>{formatDate(payment.createdAt)}</TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="grid gap-3 md:hidden">
             {filteredPayments.map((payment) => {
               const reservation = reservationById.get(payment.reservationId);
 
               return (
-                <TableRow key={payment.id}>
-                  <TableCell>
-                    <Link
-                      to={`/payments/${payment.id}`}
-                      className="font-medium hover:underline"
-                    >
-                      {reservation?.customer.name ?? "—"}
-                    </Link>
-                  </TableCell>
-                  <TableCell>
-                    {reservation
-                      ? vehicleLabel(
-                          reservation.vehicleBooking.vehicleType,
-                          reservation.vehicleBooking.plate,
-                        )
-                      : "—"}
-                  </TableCell>
-                  <TableCell>
-                    {reservation
-                      ? eventNameByVehicleBookingId.get(
-                          reservation.vehicleBookingId,
-                        ) ?? "—"
-                      : "—"}
-                  </TableCell>
-                  <TableCell>{PAYMENT_TYPE_LABELS[payment.type]}</TableCell>
-                  <TableCell>{formatCurrency(payment.value)}</TableCell>
-                  <TableCell>{PAYMENT_METHOD_LABELS[payment.method]}</TableCell>
-                  <TableCell>{formatDate(payment.createdAt)}</TableCell>
-                </TableRow>
+                <Link key={payment.id} to={`/payments/${payment.id}`}>
+                  <Card className="transition-colors hover:bg-muted/50">
+                    <CardContent className="space-y-3 pt-6">
+                      <span className="font-medium">
+                        {reservation?.customer.name ?? "—"}
+                      </span>
+
+                      <div className="grid grid-cols-2 gap-3">
+                        <CardField
+                          label="Veículo"
+                          value={
+                            reservation
+                              ? vehicleLabel(
+                                  reservation.vehicleBooking.vehicleType,
+                                  reservation.vehicleBooking.plate,
+                                )
+                              : "—"
+                          }
+                        />
+                        <CardField
+                          label="Evento"
+                          value={
+                            reservation
+                              ? eventNameByVehicleBookingId.get(
+                                  reservation.vehicleBookingId,
+                                ) ?? "—"
+                              : "—"
+                          }
+                        />
+                        <CardField
+                          label="Tipo"
+                          value={PAYMENT_TYPE_LABELS[payment.type]}
+                        />
+                        <CardField
+                          label="Valor"
+                          value={formatCurrency(payment.value)}
+                        />
+                        <CardField
+                          label="Método"
+                          value={PAYMENT_METHOD_LABELS[payment.method]}
+                        />
+                        <CardField
+                          label="Data"
+                          value={formatDate(payment.createdAt)}
+                        />
+                      </div>
+                    </CardContent>
+                  </Card>
+                </Link>
               );
             })}
-          </TableBody>
-        </Table>
+          </div>
+        </>
       )}
+    </div>
+  );
+}
+
+function CardField({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs font-medium uppercase text-muted-foreground">
+        {label}
+      </p>
+      <p className="text-sm">{value}</p>
     </div>
   );
 }

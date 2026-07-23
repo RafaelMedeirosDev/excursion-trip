@@ -1,6 +1,7 @@
 import { Building2, Plus } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { PageTitle } from "@/components/layout/PageTitle";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -57,32 +58,64 @@ export function SuppliersPage() {
       )}
 
       {!isLoading && suppliers && suppliers.length > 0 && (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>CNPJ</TableHead>
-              <TableHead>Telefone</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+        <>
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>CNPJ</TableHead>
+                  <TableHead>Telefone</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {suppliers.map((supplier) => (
+                  <TableRow key={supplier.id}>
+                    <TableCell>
+                      <Link
+                        to={`/suppliers/${supplier.id}`}
+                        className="font-medium hover:underline"
+                      >
+                        {supplier.name}
+                      </Link>
+                    </TableCell>
+                    <TableCell>{supplier.cnpj}</TableCell>
+                    <TableCell>{supplier.phone}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="grid gap-3 md:hidden">
             {suppliers.map((supplier) => (
-              <TableRow key={supplier.id}>
-                <TableCell>
-                  <Link
-                    to={`/suppliers/${supplier.id}`}
-                    className="font-medium hover:underline"
-                  >
-                    {supplier.name}
-                  </Link>
-                </TableCell>
-                <TableCell>{supplier.cnpj}</TableCell>
-                <TableCell>{supplier.phone}</TableCell>
-              </TableRow>
+              <Link key={supplier.id} to={`/suppliers/${supplier.id}`}>
+                <Card className="transition-colors hover:bg-muted/50">
+                  <CardContent className="space-y-3 pt-6">
+                    <span className="font-medium">{supplier.name}</span>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <CardField label="CNPJ" value={supplier.cnpj} />
+                      <CardField label="Telefone" value={supplier.phone} />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
-          </TableBody>
-        </Table>
+          </div>
+        </>
       )}
+    </div>
+  );
+}
+
+function CardField({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs font-medium uppercase text-muted-foreground">
+        {label}
+      </p>
+      <p className="text-sm">{value}</p>
     </div>
   );
 }

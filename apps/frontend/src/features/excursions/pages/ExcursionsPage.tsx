@@ -1,6 +1,7 @@
 import { Plus, Route as RouteIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { PageTitle } from "@/components/layout/PageTitle";
 import {
@@ -112,38 +113,80 @@ export function ExcursionsPage() {
       )}
 
       {!isLoading && excursions && excursions.length > 0 && (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Nome</TableHead>
-              <TableHead>Evento</TableHead>
-              <TableHead>Saída</TableHead>
-              <TableHead>Volta</TableHead>
-              <TableHead>Status</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+        <>
+          <div className="hidden md:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Nome</TableHead>
+                  <TableHead>Evento</TableHead>
+                  <TableHead>Saída</TableHead>
+                  <TableHead>Volta</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {excursions.map((excursion) => (
+                  <TableRow key={excursion.id}>
+                    <TableCell>
+                      <Link
+                        to={`/excursions/${excursion.id}`}
+                        className="font-medium hover:underline"
+                      >
+                        {excursion.name}
+                      </Link>
+                    </TableCell>
+                    <TableCell>{excursion.event.name}</TableCell>
+                    <TableCell>{formatDate(excursion.departureDate)}</TableCell>
+                    <TableCell>{formatDate(excursion.returnDate)}</TableCell>
+                    <TableCell>
+                      <ExcursionStatusBadge status={excursion.status} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+
+          <div className="grid gap-3 md:hidden">
             {excursions.map((excursion) => (
-              <TableRow key={excursion.id}>
-                <TableCell>
-                  <Link
-                    to={`/excursions/${excursion.id}`}
-                    className="font-medium hover:underline"
-                  >
-                    {excursion.name}
-                  </Link>
-                </TableCell>
-                <TableCell>{excursion.event.name}</TableCell>
-                <TableCell>{formatDate(excursion.departureDate)}</TableCell>
-                <TableCell>{formatDate(excursion.returnDate)}</TableCell>
-                <TableCell>
-                  <ExcursionStatusBadge status={excursion.status} />
-                </TableCell>
-              </TableRow>
+              <Link key={excursion.id} to={`/excursions/${excursion.id}`}>
+                <Card className="transition-colors hover:bg-muted/50">
+                  <CardContent className="space-y-3 pt-6">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-medium">{excursion.name}</span>
+                      <ExcursionStatusBadge status={excursion.status} />
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3">
+                      <CardField label="Evento" value={excursion.event.name} />
+                      <CardField
+                        label="Saída"
+                        value={formatDate(excursion.departureDate)}
+                      />
+                      <CardField
+                        label="Volta"
+                        value={formatDate(excursion.returnDate)}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              </Link>
             ))}
-          </TableBody>
-        </Table>
+          </div>
+        </>
       )}
+    </div>
+  );
+}
+
+function CardField({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs font-medium uppercase text-muted-foreground">
+        {label}
+      </p>
+      <p className="text-sm">{value}</p>
     </div>
   );
 }
