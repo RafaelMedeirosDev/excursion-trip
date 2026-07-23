@@ -45,6 +45,7 @@ export function ReservationsPage() {
   const [statusFilter, setStatusFilter] = useState<ReservationStatus | "ALL">(
     "ALL",
   );
+  const [eventFilter, setEventFilter] = useState<string>("ALL");
   const { data: reservations, isLoading } = useReservations(
     statusFilter === "ALL" ? undefined : statusFilter,
   );
@@ -58,6 +59,20 @@ export function ReservationsPage() {
       eventNameById.get(vehicleBooking.excursion.eventId) ?? "—",
     ]),
   );
+  const eventIdByVehicleBookingId = new Map(
+    vehicleBookings?.map((vehicleBooking) => [
+      vehicleBooking.id,
+      vehicleBooking.excursion.eventId,
+    ]),
+  );
+
+  const filteredReservations = reservations?.filter(
+    (reservation) =>
+      eventFilter === "ALL" ||
+      eventIdByVehicleBookingId.get(reservation.vehicleBookingId) ===
+        eventFilter,
+  );
+  const hasActiveFilter = statusFilter !== "ALL" || eventFilter !== "ALL";
 
   return (
     <div>
@@ -74,25 +89,43 @@ export function ReservationsPage() {
         }
       />
 
-      <div className="mb-4 w-48">
-        <Select
-          value={statusFilter}
-          onValueChange={(value) =>
-            setStatusFilter(value as ReservationStatus | "ALL")
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">Todos os status</SelectItem>
-            {STATUS_FILTERS.map((status) => (
-              <SelectItem key={status} value={status}>
-                {STATUS_LABELS[status]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="mb-4 flex flex-wrap gap-2">
+        <div className="w-48">
+          <Select
+            value={statusFilter}
+            onValueChange={(value) =>
+              setStatusFilter(value as ReservationStatus | "ALL")
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">Todos os status</SelectItem>
+              {STATUS_FILTERS.map((status) => (
+                <SelectItem key={status} value={status}>
+                  {STATUS_LABELS[status]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="w-64">
+          <Select value={eventFilter} onValueChange={setEventFilter}>
+            <SelectTrigger>
+              <SelectValue placeholder="Evento" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">Todos os eventos</SelectItem>
+              {events?.map((event) => (
+                <SelectItem key={event.id} value={event.id}>
+                  {event.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       {isLoading && (
@@ -103,29 +136,29 @@ export function ReservationsPage() {
         </div>
       )}
 
-      {!isLoading && reservations && reservations.length === 0 && (
+      {!isLoading && filteredReservations && filteredReservations.length === 0 && (
         <EmptyState
           icon={Ticket}
           title="Nenhuma reserva encontrada"
           description={
-            statusFilter === "ALL"
-              ? "Crie a primeira reserva da sua organização."
-              : "Nenhuma reserva nesse status."
+            hasActiveFilter
+              ? "Nenhuma reserva encontrada com esse filtro."
+              : "Crie a primeira reserva da sua organização."
           }
           action={
-            statusFilter === "ALL" ? (
+            hasActiveFilter ? undefined : (
               <Button asChild>
                 <Link to="/reservations/new">
                   <Plus className="mr-2 size-4" />
                   Nova Reserva
                 </Link>
               </Button>
-            ) : undefined
+            )
           }
         />
       )}
 
-      {!isLoading && reservations && reservations.length > 0 && (
+      {!isLoading && filteredReservations && filteredReservations.length > 0 && (
         <Table>
           <TableHeader>
             <TableRow>
@@ -138,7 +171,7 @@ export function ReservationsPage() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {reservations.map((reservation) => (
+            {filteredReservations.map((reservation) => (
               <TableRow key={reservation.id}>
                 <TableCell>
                   <Link
