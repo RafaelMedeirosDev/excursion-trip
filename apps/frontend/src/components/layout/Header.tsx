@@ -1,4 +1,3 @@
-import { ROLE_LABELS } from "@excursion-trip/shared";
 import { LogOut, Menu, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,13 +38,13 @@ export function Header({ onMenuClick }: HeaderProps) {
               <User className="size-4" />
             </span>
             <span className="hidden text-sm font-medium sm:inline">
-              {user ? ROLE_LABELS[user.role] : ""}
+              {user ? user.name : ""}
             </span>
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuLabel>
-            {user ? ROLE_LABELS[user.role] : "Minha conta"}
+            {user ? user.name : "Minha conta"}
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem onClick={() => logout()}>

@@ -1,6 +1,7 @@
 import { JwtService } from '@nestjs/jwt';
-import { RefreshToken, Role, User } from '@prisma/client';
+import { Organization, RefreshToken, Role, User } from '@prisma/client';
 import { createHash } from 'crypto';
+import { OrganizationRepository } from 'src/domain/OrganizationRepository';
 import { RefreshTokenRepository } from 'src/domain/RefreshTokenRepository';
 import { UserRepository } from 'src/domain/UserRepository';
 import { InvalidRefreshToken } from 'src/shared/erros/cases/InvalidRefreshToken';
@@ -9,6 +10,7 @@ import { RefreshTokenService } from './RefreshTokenService';
 describe('RefreshTokenService', () => {
   let refreshTokenRepository: jest.Mocked<RefreshTokenRepository>;
   let userRepository: jest.Mocked<UserRepository>;
+  let organizationRepository: jest.Mocked<OrganizationRepository>;
   let jwtService: jest.Mocked<JwtService>;
   let service: RefreshTokenService;
 
@@ -19,7 +21,10 @@ describe('RefreshTokenService', () => {
     id: 'user-1',
     organizationId: 'org-1',
     role: Role.ADM,
+    name: 'Ana',
   } as User;
+
+  const organization = { id: 'org-1', name: 'Organização Teste' } as Organization;
 
   const storedToken = {
     id: 'refresh-1',
@@ -42,15 +47,22 @@ describe('RefreshTokenService', () => {
       findById: jest.fn(),
       findAll: jest.fn(),
     };
+    organizationRepository = {
+      create: jest.fn(),
+      findByCnpj: jest.fn(),
+      findById: jest.fn(),
+    };
     jwtService = { sign: jest.fn() } as unknown as jest.Mocked<JwtService>;
     service = new RefreshTokenService(
       refreshTokenRepository,
       userRepository,
+      organizationRepository,
       jwtService,
     );
 
     refreshTokenRepository.findByTokenHash.mockResolvedValue(storedToken);
     userRepository.findById.mockResolvedValue(user);
+    organizationRepository.findById.mockResolvedValue(organization);
     jwtService.sign.mockReturnValue('novo-access-token');
   });
 
@@ -68,6 +80,8 @@ describe('RefreshTokenService', () => {
     expect(jwtService.sign).toHaveBeenCalledWith({
       sub: user.id,
       organizationId: user.organizationId,
+      organizationName: organization.name,
+      name: user.name,
       role: user.role,
     });
     expect(result.accessToken).toEqual('novo-access-token');

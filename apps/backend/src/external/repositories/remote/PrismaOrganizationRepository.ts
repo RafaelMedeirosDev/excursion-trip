@@ -3,6 +3,7 @@ import { Organization } from '@prisma/client';
 import {
   Create,
   FindByCnpj,
+  FindById,
   OrganizationRepository,
 } from 'src/domain/OrganizationRepository';
 import { PrismaRemoteRepository } from './PrismaRemoteRepository';
@@ -17,5 +18,9 @@ export class PrismaOrganizationRepository implements OrganizationRepository {
 
   findByCnpj({ cnpj }: FindByCnpj): Promise<Organization | null> {
     return this.repository.organization.findFirst({ where: { cnpj } });
+  }
+
+  findById({ id }: FindById): Promise<Organization | null> {
+    return this.repository.organization.findFirst({ where: { id } });
   }
 }

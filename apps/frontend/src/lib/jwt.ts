@@ -3,6 +3,8 @@ import type { Role } from "@excursion-trip/shared";
 export interface JwtPayload {
   sub: string;
   organizationId: string;
+  organizationName: string;
+  name: string;
   role: Role;
   iat: number;
   exp: number;
