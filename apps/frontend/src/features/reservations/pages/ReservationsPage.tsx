@@ -5,6 +5,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/feedback/EmptyState";
+import { Input } from "@/components/ui/input";
 import { PageTitle } from "@/components/layout/PageTitle";
 import {
   Select,
@@ -46,7 +47,7 @@ export function ReservationsPage() {
   const [statusFilter, setStatusFilter] = useState<ReservationStatus | "ALL">(
     "ALL",
   );
-  const [eventFilter, setEventFilter] = useState<string>("ALL");
+  const [query, setQuery] = useState("");
   const { data: reservations, isLoading } = useReservations(
     statusFilter === "ALL" ? undefined : statusFilter,
   );
@@ -60,20 +61,15 @@ export function ReservationsPage() {
       eventNameById.get(vehicleBooking.excursion.eventId) ?? "—",
     ]),
   );
-  const eventIdByVehicleBookingId = new Map(
-    vehicleBookings?.map((vehicleBooking) => [
-      vehicleBooking.id,
-      vehicleBooking.excursion.eventId,
-    ]),
-  );
 
-  const filteredReservations = reservations?.filter(
-    (reservation) =>
-      eventFilter === "ALL" ||
-      eventIdByVehicleBookingId.get(reservation.vehicleBookingId) ===
-        eventFilter,
-  );
-  const hasActiveFilter = statusFilter !== "ALL" || eventFilter !== "ALL";
+  const filteredReservations = reservations?.filter((reservation) => {
+    if (!query) return true;
+    const eventName = (
+      eventNameByVehicleBookingId.get(reservation.vehicleBookingId) ?? ""
+    ).toLowerCase();
+    return eventName.includes(query.toLowerCase());
+  });
+  const hasActiveFilter = statusFilter !== "ALL" || query !== "";
 
   return (
     <div>
@@ -112,20 +108,12 @@ export function ReservationsPage() {
           </Select>
         </div>
 
-        <div className="w-64">
-          <Select value={eventFilter} onValueChange={setEventFilter}>
-            <SelectTrigger>
-              <SelectValue placeholder="Evento" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="ALL">Todos os eventos</SelectItem>
-              {events?.map((event) => (
-                <SelectItem key={event.id} value={event.id}>
-                  {event.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <div className="w-full sm:w-64">
+          <Input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Buscar por evento"
+          />
         </div>
       </div>
 

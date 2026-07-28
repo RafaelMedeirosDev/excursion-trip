@@ -5,14 +5,8 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/feedback/EmptyState";
+import { Input } from "@/components/ui/input";
 import { PageTitle } from "@/components/layout/PageTitle";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
@@ -43,7 +37,7 @@ function vehicleLabel(vehicleType: string, plate: string | null) {
 }
 
 export function PaymentsPage() {
-  const [eventFilter, setEventFilter] = useState<string>("ALL");
+  const [query, setQuery] = useState("");
   const { data: payments, isLoading } = usePayments();
   const { data: reservations } = useReservations();
   const { data: vehicleBookings } = useVehicleBookings();
@@ -60,21 +54,17 @@ export function PaymentsPage() {
       eventNameById.get(vehicleBooking.excursion.eventId) ?? "—",
     ]),
   );
-  const eventIdByVehicleBookingId = new Map(
-    vehicleBookings?.map((vehicleBooking) => [
-      vehicleBooking.id,
-      vehicleBooking.excursion.eventId,
-    ]),
-  );
 
   const filteredPayments = payments?.filter((payment) => {
-    if (eventFilter === "ALL") return true;
+    if (!query) return true;
 
     const reservation = reservationById.get(payment.reservationId);
-    return reservation
-      ? eventIdByVehicleBookingId.get(reservation.vehicleBookingId) ===
-          eventFilter
-      : false;
+    const q = query.toLowerCase();
+    const customerName = reservation?.customer.name.toLowerCase() ?? "";
+    const eventName = reservation
+      ? (eventNameByVehicleBookingId.get(reservation.vehicleBookingId) ?? "").toLowerCase()
+      : "";
+    return customerName.includes(q) || eventName.includes(q);
   });
 
   return (
@@ -92,20 +82,12 @@ export function PaymentsPage() {
         }
       />
 
-      <div className="mb-4 w-64">
-        <Select value={eventFilter} onValueChange={setEventFilter}>
-          <SelectTrigger>
-            <SelectValue placeholder="Evento" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">Todos os eventos</SelectItem>
-            {events?.map((event) => (
-              <SelectItem key={event.id} value={event.id}>
-                {event.name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="mb-4 w-full sm:w-80">
+        <Input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Buscar por cliente ou evento"
+        />
       </div>
 
       {isLoading && (
@@ -121,12 +103,12 @@ export function PaymentsPage() {
           icon={CreditCard}
           title="Nenhum pagamento registrado"
           description={
-            eventFilter === "ALL"
+            query === ""
               ? "Registre o primeiro pagamento da sua organização."
-              : "Nenhum pagamento pra esse evento."
+              : "Nenhum pagamento encontrado com esse filtro."
           }
           action={
-            eventFilter === "ALL" ? (
+            query === "" ? (
               <Button asChild>
                 <Link to="/payments/new">
                   <Plus className="mr-2 size-4" />

@@ -1,8 +1,10 @@
 import { CalendarDays, Plus } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/feedback/EmptyState";
+import { Input } from "@/components/ui/input";
 import { PageTitle } from "@/components/layout/PageTitle";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -20,7 +22,12 @@ function formatDate(value: string) {
 }
 
 export function EventsPage() {
+  const [query, setQuery] = useState("");
   const { data: events, isLoading } = useEvents();
+
+  const filteredEvents = events?.filter(
+    (event) => !query || event.name.toLowerCase().includes(query.toLowerCase()),
+  );
 
   return (
     <div>
@@ -37,6 +44,14 @@ export function EventsPage() {
         }
       />
 
+      <div className="mb-4 w-full sm:w-80">
+        <Input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Buscar por nome do evento"
+        />
+      </div>
+
       {isLoading && (
         <div className="space-y-2">
           <Skeleton className="h-10 w-full" />
@@ -45,23 +60,29 @@ export function EventsPage() {
         </div>
       )}
 
-      {!isLoading && events && events.length === 0 && (
+      {!isLoading && filteredEvents && filteredEvents.length === 0 && (
         <EmptyState
           icon={CalendarDays}
           title="Nenhum evento cadastrado"
-          description="Crie o primeiro evento pra poder cadastrar excursões."
+          description={
+            query === ""
+              ? "Crie o primeiro evento pra poder cadastrar excursões."
+              : "Nenhum evento encontrado com esse filtro."
+          }
           action={
-            <Button asChild>
-              <Link to="/events/new">
-                <Plus className="mr-2 size-4" />
-                Novo Evento
-              </Link>
-            </Button>
+            query === "" ? (
+              <Button asChild>
+                <Link to="/events/new">
+                  <Plus className="mr-2 size-4" />
+                  Novo Evento
+                </Link>
+              </Button>
+            ) : undefined
           }
         />
       )}
 
-      {!isLoading && events && events.length > 0 && (
+      {!isLoading && filteredEvents && filteredEvents.length > 0 && (
         <>
           <div className="hidden md:block">
             <Table>
@@ -75,7 +96,7 @@ export function EventsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {events.map((event) => (
+                {filteredEvents.map((event) => (
                   <TableRow key={event.id}>
                     <TableCell>
                       <Link
@@ -96,7 +117,7 @@ export function EventsPage() {
           </div>
 
           <div className="grid gap-3 md:hidden">
-            {events.map((event) => (
+            {filteredEvents.map((event) => (
               <Link key={event.id} to={`/events/${event.id}`}>
                 <Card className="transition-colors hover:bg-muted/50">
                   <CardContent className="space-y-3 pt-6">

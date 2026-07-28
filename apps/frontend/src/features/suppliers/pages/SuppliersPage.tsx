@@ -1,8 +1,10 @@
 import { Building2, Plus } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/feedback/EmptyState";
+import { Input } from "@/components/ui/input";
 import { PageTitle } from "@/components/layout/PageTitle";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -16,7 +18,18 @@ import {
 import { useSuppliers } from "@/features/suppliers/hooks/useSuppliers";
 
 export function SuppliersPage() {
+  const [query, setQuery] = useState("");
   const { data: suppliers, isLoading } = useSuppliers();
+
+  const filteredSuppliers = suppliers?.filter((supplier) => {
+    if (!query) return true;
+    const q = query.toLowerCase();
+    return (
+      supplier.name.toLowerCase().includes(q) ||
+      supplier.cnpj.includes(q) ||
+      supplier.phone.includes(q)
+    );
+  });
 
   return (
     <div>
@@ -33,6 +46,14 @@ export function SuppliersPage() {
         }
       />
 
+      <div className="mb-4 w-full sm:w-80">
+        <Input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Buscar por nome, CNPJ ou telefone"
+        />
+      </div>
+
       {isLoading && (
         <div className="space-y-2">
           <Skeleton className="h-10 w-full" />
@@ -41,23 +62,29 @@ export function SuppliersPage() {
         </div>
       )}
 
-      {!isLoading && suppliers && suppliers.length === 0 && (
+      {!isLoading && filteredSuppliers && filteredSuppliers.length === 0 && (
         <EmptyState
           icon={Building2}
           title="Nenhum fornecedor cadastrado"
-          description="Crie o primeiro fornecedor pra poder cadastrar veículos."
+          description={
+            query === ""
+              ? "Crie o primeiro fornecedor pra poder cadastrar veículos."
+              : "Nenhum fornecedor encontrado com esse filtro."
+          }
           action={
-            <Button asChild>
-              <Link to="/suppliers/new">
-                <Plus className="mr-2 size-4" />
-                Novo Fornecedor
-              </Link>
-            </Button>
+            query === "" ? (
+              <Button asChild>
+                <Link to="/suppliers/new">
+                  <Plus className="mr-2 size-4" />
+                  Novo Fornecedor
+                </Link>
+              </Button>
+            ) : undefined
           }
         />
       )}
 
-      {!isLoading && suppliers && suppliers.length > 0 && (
+      {!isLoading && filteredSuppliers && filteredSuppliers.length > 0 && (
         <>
           <div className="hidden md:block">
             <Table>
@@ -69,7 +96,7 @@ export function SuppliersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {suppliers.map((supplier) => (
+                {filteredSuppliers.map((supplier) => (
                   <TableRow key={supplier.id}>
                     <TableCell>
                       <Link
@@ -88,7 +115,7 @@ export function SuppliersPage() {
           </div>
 
           <div className="grid gap-3 md:hidden">
-            {suppliers.map((supplier) => (
+            {filteredSuppliers.map((supplier) => (
               <Link key={supplier.id} to={`/suppliers/${supplier.id}`}>
                 <Card className="transition-colors hover:bg-muted/50">
                   <CardContent className="space-y-3 pt-6">
