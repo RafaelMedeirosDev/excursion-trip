@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { createHash, randomBytes } from 'crypto';
+import { OrganizationRepository } from 'src/domain/OrganizationRepository';
 import { RefreshTokenRepository } from 'src/domain/RefreshTokenRepository';
 import { UserRepository } from 'src/domain/UserRepository';
 import { InvalidRefreshToken } from 'src/shared/erros/cases/InvalidRefreshToken';
@@ -19,6 +20,7 @@ export class RefreshTokenService {
   constructor(
     private readonly refreshTokenRepository: RefreshTokenRepository,
     private readonly userRepository: UserRepository,
+    private readonly organizationRepository: OrganizationRepository,
     private readonly jwtService: JwtService,
   ) {}
 
@@ -40,9 +42,15 @@ export class RefreshTokenService {
       throw new InvalidRefreshToken();
     }
 
+    const organization = await this.organizationRepository.findById({
+      id: user.organizationId,
+    });
+
     const accessToken = this.jwtService.sign({
       sub: user.id,
       organizationId: user.organizationId,
+      organizationName: organization?.name ?? '',
+      name: user.name,
       role: user.role,
     });
 

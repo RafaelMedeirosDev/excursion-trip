@@ -1,6 +1,7 @@
 import { JwtService } from '@nestjs/jwt';
-import { Role, User } from '@prisma/client';
+import { Organization, Role, User } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { OrganizationRepository } from 'src/domain/OrganizationRepository';
 import { RefreshTokenRepository } from 'src/domain/RefreshTokenRepository';
 import { UserRepository } from 'src/domain/UserRepository';
 import { InvalidCredentials } from 'src/shared/erros/cases/InvalidCredentials';
@@ -11,6 +12,7 @@ jest.mock('bcrypt');
 describe('LoginService', () => {
   let userRepository: jest.Mocked<UserRepository>;
   let refreshTokenRepository: jest.Mocked<RefreshTokenRepository>;
+  let organizationRepository: jest.Mocked<OrganizationRepository>;
   let jwtService: jest.Mocked<JwtService>;
   let service: LoginService;
 
@@ -18,8 +20,11 @@ describe('LoginService', () => {
     id: 'user-1',
     organizationId: 'org-1',
     role: Role.ADM,
+    name: 'Ana',
     password: 'senha-hasheada',
   } as User;
+
+  const organization = { id: 'org-1', name: 'Organização Teste' } as Organization;
 
   beforeEach(() => {
     userRepository = {
@@ -34,8 +39,20 @@ describe('LoginService', () => {
       findByTokenHash: jest.fn(),
       revoke: jest.fn(),
     };
+    organizationRepository = {
+      create: jest.fn(),
+      findByCnpj: jest.fn(),
+      findById: jest.fn(),
+    };
     jwtService = { sign: jest.fn() } as unknown as jest.Mocked<JwtService>;
-    service = new LoginService(userRepository, refreshTokenRepository, jwtService);
+    service = new LoginService(
+      userRepository,
+      refreshTokenRepository,
+      organizationRepository,
+      jwtService,
+    );
+
+    organizationRepository.findById.mockResolvedValue(organization);
   });
 
   it('gera o accessToken e o refreshToken quando as credenciais são válidas', async () => {
@@ -51,6 +68,8 @@ describe('LoginService', () => {
     expect(jwtService.sign).toHaveBeenCalledWith({
       sub: user.id,
       organizationId: user.organizationId,
+      organizationName: organization.name,
+      name: user.name,
       role: user.role,
     });
     expect(refreshTokenRepository.create).toHaveBeenCalledWith({

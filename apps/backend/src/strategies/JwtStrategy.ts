@@ -6,6 +6,8 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 export interface JwtPayload {
   sub: string;
   organizationId: string;
+  organizationName: string;
+  name: string;
   role: Role;
 }
 

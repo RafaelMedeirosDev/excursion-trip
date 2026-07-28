@@ -1,4 +1,11 @@
-import { Bus, CreditCard, Route as RouteIcon, Ticket } from "lucide-react";
+import {
+  Bus,
+  CalendarDays,
+  CreditCard,
+  Route as RouteIcon,
+  Ticket,
+} from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import {
   Card,
@@ -6,6 +13,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectLabel,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { PageTitle } from "@/components/layout/PageTitle";
 import { useAuth } from "@/features/auth/hooks/useAuth";
@@ -26,9 +42,14 @@ function formatCurrency(cents: number) {
   });
 }
 
+function formatDate(value: string) {
+  return new Date(value).toLocaleDateString("pt-BR");
+}
+
 export function DashboardPage() {
   const { user, hasRole } = useAuth();
   const isEmployee = !hasRole("ADM");
+  const [selectedEventId, setSelectedEventId] = useState<string | null>(null);
   const { data: vehicleBookings, isLoading } = useVehicleBookings();
   const { data: events } = useEvents();
   const { data: reservations } = useReservations();
@@ -36,6 +57,59 @@ export function DashboardPage() {
   const { data: payments } = usePayments();
 
   const eventNameById = new Map(events?.map((event) => [event.id, event.name]));
+  const eventIdByVehicleBookingId = new Map(
+    vehicleBookings?.map((vehicleBooking) => [
+      vehicleBooking.id,
+      vehicleBooking.excursion.eventId,
+    ]),
+  );
+
+  const now = new Date();
+  const upcomingEvents = [...(events ?? [])]
+    .filter((event) => new Date(event.endDate) >= now)
+    .sort(
+      (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
+    );
+  const pastEvents = [...(events ?? [])]
+    .filter((event) => new Date(event.endDate) < now)
+    .sort(
+      (a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime(),
+    );
+
+  const vehiclesForSelectedEvent =
+    vehicleBookings?.filter(
+      (vehicleBooking) => vehicleBooking.excursion.eventId === selectedEventId,
+    ) ?? [];
+  const excursionCountForSelectedEvent = new Set(
+    vehiclesForSelectedEvent.map((vehicleBooking) => vehicleBooking.excursionId),
+  ).size;
+  const capacityForSelectedEvent = vehiclesForSelectedEvent.reduce(
+    (sum, vehicleBooking) => sum + vehicleBooking.capacity,
+    0,
+  );
+  const reservationsForSelectedEvent =
+    reservations?.filter(
+      (reservation) =>
+        eventIdByVehicleBookingId.get(reservation.vehicleBookingId) ===
+        selectedEventId,
+    ) ?? [];
+  const occupiedSeatsForSelectedEvent = reservationsForSelectedEvent.filter(
+    (reservation) =>
+      reservation.status === "PENDING" || reservation.status === "CONFIRMED",
+  ).length;
+  const reservationIdsForSelectedEvent = new Set(
+    reservationsForSelectedEvent.map((reservation) => reservation.id),
+  );
+  const revenueForSelectedEvent =
+    payments
+      ?.filter((payment) =>
+        reservationIdsForSelectedEvent.has(payment.reservationId),
+      )
+      .reduce(
+        (sum, payment) =>
+          sum + (payment.type === "REVERSAL" ? -payment.value : payment.value),
+        0,
+      ) ?? 0;
 
   const totalRevenue =
     payments?.reduce(
@@ -79,16 +153,32 @@ export function DashboardPage() {
     <div className="space-y-4">
       <PageTitle
         title="Dashboard"
-        description="Visão geral da sua organização."
+        description={
+          user ? `Visão geral de ${user.organizationName}.` : undefined
+        }
       />
-      <p className="text-sm text-muted-foreground">
-        Login funcionando — organização{" "}
-        <span className="font-medium">{user?.organizationId}</span>, role{" "}
-        <span className="font-medium">{user?.role}</span>.
-      </p>
 
       {!isEmployee && (
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium text-muted-foreground">
+                Eventos
+              </CardTitle>
+              <CalendarDays className="size-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent className="space-y-1 text-sm">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Próximos</span>
+                <span className="font-medium">{upcomingEvents.length}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Concluídos</span>
+                <span className="font-medium">{pastEvents.length}</span>
+              </div>
+            </CardContent>
+          </Card>
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -158,6 +248,106 @@ export function DashboardPage() {
             </CardContent>
           </Card>
         </div>
+      )}
+
+      {!isEmployee && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">Eventos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {events && events.length === 0 && (
+              <p className="text-sm text-muted-foreground">
+                Nenhum evento cadastrado ainda.
+              </p>
+            )}
+
+            {events && events.length > 0 && (
+              <div className="w-full sm:w-80">
+                <Select
+                  value={selectedEventId ?? undefined}
+                  onValueChange={setSelectedEventId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um evento" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {upcomingEvents.length > 0 && (
+                      <SelectGroup>
+                        <SelectLabel>Próximos</SelectLabel>
+                        {upcomingEvents.map((event) => (
+                          <SelectItem key={event.id} value={event.id}>
+                            {event.name} ({formatDate(event.startDate)})
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    )}
+                    {pastEvents.length > 0 && (
+                      <SelectGroup>
+                        <SelectLabel>Realizados</SelectLabel>
+                        {pastEvents.map((event) => (
+                          <SelectItem key={event.id} value={event.id}>
+                            {event.name} ({formatDate(event.startDate)})
+                          </SelectItem>
+                        ))}
+                      </SelectGroup>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {!isEmployee && selectedEventId && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-base">
+              Detalhes do evento — {eventNameById.get(selectedEventId) ?? "—"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div>
+              <p className="text-xs font-medium uppercase text-muted-foreground">
+                Excursões
+              </p>
+              <p className="text-2xl font-bold">
+                {excursionCountForSelectedEvent}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium uppercase text-muted-foreground">
+                Veículos
+              </p>
+              <p className="text-2xl font-bold">
+                {vehiclesForSelectedEvent.length}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium uppercase text-muted-foreground">
+                Vagas abertas
+              </p>
+              <p className="text-2xl font-bold">
+                {Math.max(
+                  capacityForSelectedEvent - occupiedSeatsForSelectedEvent,
+                  0,
+                )}{" "}
+                <span className="text-sm font-normal text-muted-foreground">
+                  de {capacityForSelectedEvent}
+                </span>
+              </p>
+            </div>
+            <div>
+              <p className="text-xs font-medium uppercase text-muted-foreground">
+                Total arrecadado
+              </p>
+              <p className="text-2xl font-bold">
+                {formatCurrency(revenueForSelectedEvent)}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       {isEmployee && (

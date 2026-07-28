@@ -11,6 +11,7 @@ describe('CreateOrganizationService', () => {
     organizationRepository = {
       create: jest.fn(),
       findByCnpj: jest.fn(),
+      findById: jest.fn(),
     };
     service = new CreateOrganizationService(organizationRepository);
   });
