@@ -1,8 +1,10 @@
 import { Plus, UserRound } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/feedback/EmptyState";
+import { Input } from "@/components/ui/input";
 import { PageTitle } from "@/components/layout/PageTitle";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -16,7 +18,16 @@ import {
 import { useCustomers } from "@/features/customers/hooks/useCustomers";
 
 export function CustomersPage() {
+  const [query, setQuery] = useState("");
   const { data: customers, isLoading } = useCustomers();
+
+  const filteredCustomers = customers?.filter((customer) => {
+    if (!query) return true;
+    const q = query.toLowerCase();
+    return (
+      customer.name.toLowerCase().includes(q) || customer.cpf.includes(q)
+    );
+  });
 
   return (
     <div>
@@ -33,6 +44,14 @@ export function CustomersPage() {
         }
       />
 
+      <div className="mb-4 w-full sm:w-80">
+        <Input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Buscar por nome ou CPF"
+        />
+      </div>
+
       {isLoading && (
         <div className="space-y-2">
           <Skeleton className="h-10 w-full" />
@@ -41,23 +60,29 @@ export function CustomersPage() {
         </div>
       )}
 
-      {!isLoading && customers && customers.length === 0 && (
+      {!isLoading && filteredCustomers && filteredCustomers.length === 0 && (
         <EmptyState
           icon={UserRound}
           title="Nenhum passageiro cadastrado"
-          description="Crie o primeiro passageiro da sua organização."
+          description={
+            query === ""
+              ? "Crie o primeiro passageiro da sua organização."
+              : "Nenhum passageiro encontrado com esse filtro."
+          }
           action={
-            <Button asChild>
-              <Link to="/passengers/new">
-                <Plus className="mr-2 size-4" />
-                Novo Passageiro
-              </Link>
-            </Button>
+            query === "" ? (
+              <Button asChild>
+                <Link to="/passengers/new">
+                  <Plus className="mr-2 size-4" />
+                  Novo Passageiro
+                </Link>
+              </Button>
+            ) : undefined
           }
         />
       )}
 
-      {!isLoading && customers && customers.length > 0 && (
+      {!isLoading && filteredCustomers && filteredCustomers.length > 0 && (
         <>
           <div className="hidden md:block">
             <Table>
@@ -70,7 +95,7 @@ export function CustomersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {customers.map((customer) => (
+                {filteredCustomers.map((customer) => (
                   <TableRow key={customer.id}>
                     <TableCell>
                       <Link
@@ -90,7 +115,7 @@ export function CustomersPage() {
           </div>
 
           <div className="grid gap-3 md:hidden">
-            {customers.map((customer) => (
+            {filteredCustomers.map((customer) => (
               <Link key={customer.id} to={`/passengers/${customer.id}`}>
                 <Card className="transition-colors hover:bg-muted/50">
                   <CardContent className="space-y-3 pt-6">

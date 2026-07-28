@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/feedback/EmptyState";
+import { Input } from "@/components/ui/input";
 import { PageTitle } from "@/components/layout/PageTitle";
 import {
   Select,
@@ -42,9 +43,16 @@ export function ExcursionsPage() {
   const [statusFilter, setStatusFilter] = useState<ExcursionStatus | "ALL">(
     "ALL",
   );
+  const [query, setQuery] = useState("");
   const { data: excursions, isLoading } = useExcursions(
     statusFilter === "ALL" ? undefined : statusFilter,
   );
+
+  const filteredExcursions = excursions?.filter(
+    (excursion) =>
+      !query || excursion.event.name.toLowerCase().includes(query.toLowerCase()),
+  );
+  const hasActiveFilter = statusFilter !== "ALL" || query !== "";
 
   return (
     <div>
@@ -61,25 +69,35 @@ export function ExcursionsPage() {
         }
       />
 
-      <div className="mb-4 w-48">
-        <Select
-          value={statusFilter}
-          onValueChange={(value) =>
-            setStatusFilter(value as ExcursionStatus | "ALL")
-          }
-        >
-          <SelectTrigger>
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="ALL">Todos os status</SelectItem>
-            {STATUS_FILTERS.map((status) => (
-              <SelectItem key={status} value={status}>
-                {STATUS_LABELS[status]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <div className="mb-4 flex flex-wrap gap-2">
+        <div className="w-48">
+          <Select
+            value={statusFilter}
+            onValueChange={(value) =>
+              setStatusFilter(value as ExcursionStatus | "ALL")
+            }
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="ALL">Todos os status</SelectItem>
+              {STATUS_FILTERS.map((status) => (
+                <SelectItem key={status} value={status}>
+                  {STATUS_LABELS[status]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="w-full sm:w-64">
+          <Input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Buscar por evento"
+          />
+        </div>
       </div>
 
       {isLoading && (
@@ -90,29 +108,29 @@ export function ExcursionsPage() {
         </div>
       )}
 
-      {!isLoading && excursions && excursions.length === 0 && (
+      {!isLoading && filteredExcursions && filteredExcursions.length === 0 && (
         <EmptyState
           icon={RouteIcon}
           title="Nenhuma excursão encontrada"
           description={
-            statusFilter === "ALL"
-              ? "Crie a primeira excursão da sua organização."
-              : "Nenhuma excursão nesse status."
+            hasActiveFilter
+              ? "Nenhuma excursão encontrada com esse filtro."
+              : "Crie a primeira excursão da sua organização."
           }
           action={
-            statusFilter === "ALL" ? (
+            hasActiveFilter ? undefined : (
               <Button asChild>
                 <Link to="/excursions/new">
                   <Plus className="mr-2 size-4" />
                   Nova Excursão
                 </Link>
               </Button>
-            ) : undefined
+            )
           }
         />
       )}
 
-      {!isLoading && excursions && excursions.length > 0 && (
+      {!isLoading && filteredExcursions && filteredExcursions.length > 0 && (
         <>
           <div className="hidden md:block">
             <Table>
@@ -126,7 +144,7 @@ export function ExcursionsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {excursions.map((excursion) => (
+                {filteredExcursions.map((excursion) => (
                   <TableRow key={excursion.id}>
                     <TableCell>
                       <Link
@@ -149,7 +167,7 @@ export function ExcursionsPage() {
           </div>
 
           <div className="grid gap-3 md:hidden">
-            {excursions.map((excursion) => (
+            {filteredExcursions.map((excursion) => (
               <Link key={excursion.id} to={`/excursions/${excursion.id}`}>
                 <Card className="transition-colors hover:bg-muted/50">
                   <CardContent className="space-y-3 pt-6">

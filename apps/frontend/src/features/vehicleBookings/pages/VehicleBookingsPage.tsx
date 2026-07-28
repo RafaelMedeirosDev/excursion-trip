@@ -1,8 +1,10 @@
 import { Bus, Plus } from "lucide-react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/feedback/EmptyState";
+import { Input } from "@/components/ui/input";
 import { PageTitle } from "@/components/layout/PageTitle";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -25,12 +27,26 @@ function formatCurrency(cents: number) {
 }
 
 export function VehicleBookingsPage() {
+  const [query, setQuery] = useState("");
   const { data: vehicleBookings, isLoading } = useVehicleBookings();
   const { data: events } = useEvents();
   const { hasRole } = useAuth();
   const canCreate = hasRole("ADM");
 
   const eventNameById = new Map(events?.map((event) => [event.id, event.name]));
+
+  const filteredVehicleBookings = vehicleBookings?.filter((vehicleBooking) => {
+    if (!query) return true;
+    const q = query.toLowerCase();
+    const eventName = (
+      eventNameById.get(vehicleBooking.excursion.eventId) ?? ""
+    ).toLowerCase();
+    return (
+      eventName.includes(q) ||
+      vehicleBooking.user.name.toLowerCase().includes(q)
+    );
+  });
+  const hasActiveFilter = query !== "";
 
   return (
     <div>
@@ -49,6 +65,14 @@ export function VehicleBookingsPage() {
         }
       />
 
+      <div className="mb-4 w-full sm:w-80">
+        <Input
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          placeholder="Buscar por evento ou responsável"
+        />
+      </div>
+
       {isLoading && (
         <div className="space-y-2">
           <Skeleton className="h-10 w-full" />
@@ -57,25 +81,33 @@ export function VehicleBookingsPage() {
         </div>
       )}
 
-      {!isLoading && vehicleBookings && vehicleBookings.length === 0 && (
-        <EmptyState
-          icon={Bus}
-          title="Nenhum veículo cadastrado"
-          description="Reserve o primeiro veículo pra uma excursão."
-          action={
-            canCreate ? (
-              <Button asChild>
-                <Link to="/vehicles/new">
-                  <Plus className="mr-2 size-4" />
-                  Novo Veículo
-                </Link>
-              </Button>
-            ) : undefined
-          }
-        />
-      )}
+      {!isLoading &&
+        filteredVehicleBookings &&
+        filteredVehicleBookings.length === 0 && (
+          <EmptyState
+            icon={Bus}
+            title="Nenhum veículo cadastrado"
+            description={
+              hasActiveFilter
+                ? "Nenhum veículo encontrado com esse filtro."
+                : "Reserve o primeiro veículo pra uma excursão."
+            }
+            action={
+              canCreate && !hasActiveFilter ? (
+                <Button asChild>
+                  <Link to="/vehicles/new">
+                    <Plus className="mr-2 size-4" />
+                    Novo Veículo
+                  </Link>
+                </Button>
+              ) : undefined
+            }
+          />
+        )}
 
-      {!isLoading && vehicleBookings && vehicleBookings.length > 0 && (
+      {!isLoading &&
+        filteredVehicleBookings &&
+        filteredVehicleBookings.length > 0 && (
         <>
           <div className="hidden md:block">
             <Table>
@@ -92,7 +124,7 @@ export function VehicleBookingsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {vehicleBookings.map((vehicleBooking) => (
+                {filteredVehicleBookings.map((vehicleBooking) => (
                   <TableRow key={vehicleBooking.id}>
                     <TableCell>
                       <Link
@@ -121,7 +153,7 @@ export function VehicleBookingsPage() {
           </div>
 
           <div className="grid gap-3 md:hidden">
-            {vehicleBookings.map((vehicleBooking) => (
+            {filteredVehicleBookings.map((vehicleBooking) => (
               <Link
                 key={vehicleBooking.id}
                 to={`/vehicles/${vehicleBooking.id}`}
