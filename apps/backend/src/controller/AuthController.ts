@@ -7,9 +7,9 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Throttle, ThrottlerGuard } from '@nestjs/throttler';
-import { LoginService } from 'src/service/LoginService';
-import { LogoutService } from 'src/service/LogoutService';
-import { RefreshTokenService } from 'src/service/RefreshTokenService';
+import { LoginService } from 'src/service/auth/LoginService';
+import { LogoutService } from 'src/service/auth/LogoutService';
+import { RefreshTokenService } from 'src/service/auth/RefreshTokenService';
 import { LoginDTO } from 'src/shared/dtos/LoginDTO';
 import { LogoutDTO } from 'src/shared/dtos/LogoutDTO';
 import { RefreshTokenDTO } from 'src/shared/dtos/RefreshTokenDTO';

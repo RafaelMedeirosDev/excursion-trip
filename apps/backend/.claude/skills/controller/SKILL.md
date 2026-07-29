@@ -48,8 +48,8 @@ import { {Entity}s } from 'src/domain/{Entity}Repository';
 import { CurrentUser } from 'src/decorators/CurrentUser';
 import { JwtAuthGuard } from 'src/guards/JwtAuthGuard';
 import { RolesGuard } from 'src/guards/RolesGuard';
-import { Create{Entity}Service } from 'src/service/Create{Entity}Service';
-import { List{Entity}Service } from 'src/service/List{Entity}Service';
+import { Create{Entity}Service } from 'src/service/{entity-kebab}/Create{Entity}Service';
+import { List{Entity}Service } from 'src/service/{entity-kebab}/List{Entity}Service';
 import { Create{Entity}DTO } from 'src/shared/dtos/Create{Entity}DTO';
 import { JwtPayload } from 'src/strategies/JwtStrategy';
 

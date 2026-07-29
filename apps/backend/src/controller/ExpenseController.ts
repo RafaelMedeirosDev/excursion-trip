@@ -12,9 +12,9 @@ import { Expenses } from 'src/domain/ExpenseRepository';
 import { CurrentUser } from 'src/decorators/CurrentUser';
 import { JwtAuthGuard } from 'src/guards/JwtAuthGuard';
 import { RolesGuard } from 'src/guards/RolesGuard';
-import { CreateExpenseService } from 'src/service/CreateExpenseService';
-import { GetExpenseService } from 'src/service/GetExpenseService';
-import { ListExpenseService } from 'src/service/ListExpenseService';
+import { CreateExpenseService } from 'src/service/expense/CreateExpenseService';
+import { GetExpenseService } from 'src/service/expense/GetExpenseService';
+import { ListExpenseService } from 'src/service/expense/ListExpenseService';
 import { CreateExpenseDTO } from 'src/shared/dtos/CreateExpenseDTO';
 import { JwtPayload } from 'src/strategies/JwtStrategy';
 

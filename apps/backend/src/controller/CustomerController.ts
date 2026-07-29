@@ -12,9 +12,9 @@ import { Customers } from 'src/domain/CustomerRepository';
 import { CurrentUser } from 'src/decorators/CurrentUser';
 import { JwtAuthGuard } from 'src/guards/JwtAuthGuard';
 import { RolesGuard } from 'src/guards/RolesGuard';
-import { CreateCustomerService } from 'src/service/CreateCustomerService';
-import { GetCustomerService } from 'src/service/GetCustomerService';
-import { ListCustomerService } from 'src/service/ListCustomerService';
+import { CreateCustomerService } from 'src/service/customer/CreateCustomerService';
+import { GetCustomerService } from 'src/service/customer/GetCustomerService';
+import { ListCustomerService } from 'src/service/customer/ListCustomerService';
 import { CreateCustomerDTO } from 'src/shared/dtos/CreateCustomerDTO';
 import { JwtPayload } from 'src/strategies/JwtStrategy';
 
