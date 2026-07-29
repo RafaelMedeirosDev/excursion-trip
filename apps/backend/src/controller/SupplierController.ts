@@ -13,9 +13,9 @@ import { CurrentUser } from 'src/decorators/CurrentUser';
 import { Roles } from 'src/decorators/Roles';
 import { JwtAuthGuard } from 'src/guards/JwtAuthGuard';
 import { RolesGuard } from 'src/guards/RolesGuard';
-import { CreateSupplierService } from 'src/service/CreateSupplierService';
-import { GetSupplierService } from 'src/service/GetSupplierService';
-import { ListSupplierService } from 'src/service/ListSupplierService';
+import { CreateSupplierService } from 'src/service/supplier/CreateSupplierService';
+import { GetSupplierService } from 'src/service/supplier/GetSupplierService';
+import { ListSupplierService } from 'src/service/supplier/ListSupplierService';
 import { CreateSupplierDTO } from 'src/shared/dtos/CreateSupplierDTO';
 import { JwtPayload } from 'src/strategies/JwtStrategy';
 

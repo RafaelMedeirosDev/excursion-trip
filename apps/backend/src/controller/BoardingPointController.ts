@@ -13,9 +13,9 @@ import { CurrentUser } from 'src/decorators/CurrentUser';
 import { Roles } from 'src/decorators/Roles';
 import { JwtAuthGuard } from 'src/guards/JwtAuthGuard';
 import { RolesGuard } from 'src/guards/RolesGuard';
-import { CreateBoardingPointService } from 'src/service/CreateBoardingPointService';
-import { GetBoardingPointService } from 'src/service/GetBoardingPointService';
-import { ListBoardingPointService } from 'src/service/ListBoardingPointService';
+import { CreateBoardingPointService } from 'src/service/boarding-point/CreateBoardingPointService';
+import { GetBoardingPointService } from 'src/service/boarding-point/GetBoardingPointService';
+import { ListBoardingPointService } from 'src/service/boarding-point/ListBoardingPointService';
 import { CreateBoardingPointDTO } from 'src/shared/dtos/CreateBoardingPointDTO';
 import { JwtPayload } from 'src/strategies/JwtStrategy';
 

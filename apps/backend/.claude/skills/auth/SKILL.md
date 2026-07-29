@@ -158,7 +158,7 @@ export class InvalidCredentials extends UnauthorizedError {
 Service — segue a skill `service` (um metodo `execute`, injeta Repository abstrato de `domain`):
 
 ```ts
-// src/service/LoginService.ts
+// src/service/auth/LoginService.ts
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
@@ -204,7 +204,7 @@ Controller — segue a skill `controller` (fino, so delega):
 ```ts
 // src/controller/AuthController.ts
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
-import { LoginService } from 'src/service/LoginService';
+import { LoginService } from 'src/service/auth/LoginService';
 import { LoginDTO } from 'src/shared/dtos/LoginDTO';
 
 @Controller('/auth')

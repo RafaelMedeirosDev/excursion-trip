@@ -60,7 +60,7 @@ Toda Tool nova precisa ser adicionada nesse `useFactory` (tanto no `inject` quan
 ```ts
 import { Injectable } from '@nestjs/common';
 import { {Entity} } from '@prisma/client';
-import { Create{Entity}Service } from 'src/service/Create{Entity}Service';
+import { Create{Entity}Service } from 'src/service/{entity-kebab}/Create{Entity}Service';
 import { Tool } from 'src/tools/Tool';
 
 interface Input {
@@ -94,7 +94,7 @@ export class Create{Entity}Tool implements Tool<Input, {Entity}> {
 ```ts
 import { Injectable } from '@nestjs/common';
 import { {Entity} } from '@prisma/client';
-import { List{Entity}Service } from 'src/service/List{Entity}Service';
+import { List{Entity}Service } from 'src/service/{entity-kebab}/List{Entity}Service';
 import { Tool } from 'src/tools/Tool';
 
 @Injectable()

@@ -12,9 +12,9 @@ import { Payments } from 'src/domain/PaymentRepository';
 import { CurrentUser } from 'src/decorators/CurrentUser';
 import { JwtAuthGuard } from 'src/guards/JwtAuthGuard';
 import { RolesGuard } from 'src/guards/RolesGuard';
-import { CreatePaymentService } from 'src/service/CreatePaymentService';
-import { GetPaymentService } from 'src/service/GetPaymentService';
-import { ListPaymentService } from 'src/service/ListPaymentService';
+import { CreatePaymentService } from 'src/service/payment/CreatePaymentService';
+import { GetPaymentService } from 'src/service/payment/GetPaymentService';
+import { ListPaymentService } from 'src/service/payment/ListPaymentService';
 import { CreatePaymentDTO } from 'src/shared/dtos/CreatePaymentDTO';
 import { JwtPayload } from 'src/strategies/JwtStrategy';
 

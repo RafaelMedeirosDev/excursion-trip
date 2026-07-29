@@ -13,9 +13,9 @@ import { CurrentUser } from 'src/decorators/CurrentUser';
 import { Roles } from 'src/decorators/Roles';
 import { JwtAuthGuard } from 'src/guards/JwtAuthGuard';
 import { RolesGuard } from 'src/guards/RolesGuard';
-import { CreateVehicleBookingService } from 'src/service/CreateVehicleBookingService';
-import { GetVehicleBookingService } from 'src/service/GetVehicleBookingService';
-import { ListVehicleBookingService } from 'src/service/ListVehicleBookingService';
+import { CreateVehicleBookingService } from 'src/service/vehicle-booking/CreateVehicleBookingService';
+import { GetVehicleBookingService } from 'src/service/vehicle-booking/GetVehicleBookingService';
+import { ListVehicleBookingService } from 'src/service/vehicle-booking/ListVehicleBookingService';
 import { CreateVehicleBookingDTO } from 'src/shared/dtos/CreateVehicleBookingDTO';
 import { JwtPayload } from 'src/strategies/JwtStrategy';
 

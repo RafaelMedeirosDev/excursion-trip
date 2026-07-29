@@ -9,7 +9,7 @@ E aqui que mora a regra de negocio. Um Service e uma classe com **uma unica resp
 
 ## Convencoes
 
-- Arquivo: `src/service/{Operation}{Entity}Service.ts` — PascalCase, sem kebab-case, sem sufixo com ponto
+- Arquivo: `src/service/{dominio}/{Operation}{Entity}Service.ts` — PascalCase pro arquivo, `{dominio}` em kebab-case singular (ex.: `vehicle-booking`, `boarding-point`) igual ao nome da entidade que o Service opera; sem sufixo com ponto. Services de sessão sem entidade 1:1 (`LoginService`/`LogoutService`/`RefreshTokenService`) vão em `src/service/auth/`
 - Classe: `{Operation}{Entity}Service` (ex.: `CreateContactService`, `ListContactService`, `FindContactService`)
 - `@Injectable()` na classe
 - **Um metodo publico so**: `execute(...)`. Se a operacao precisa de entrada estruturada, declare uma `interface Request { ... }` no proprio arquivo (sem `export` — e privada ao caso de uso, namespaced pelo arquivo)
@@ -106,7 +106,7 @@ Esta skill cuida **apenas da camada Service**. Ela assume que o(s) Repository de
 1. Confirmar a operacao (create/list/findById/update/delete), a entidade e se ha alguma regra de negocio envolvida
 2. Confirmar quais Repository(s) de `domain` a operacao precisa injetar
 3. Se houver regra de validacao, confirmar (ou sinalizar a necessidade de) a classe de erro em `shared/erros/cases`
-4. Criar `src/service/{Operation}{Entity}Service.ts` seguindo o template adequado — `list` sempre recebe `{ organizationId }`
-5. Escrever `{Operation}{Entity}Service.spec.ts` ao lado (mock manual do(s) Repository, sem `Test.createTestingModule()`)
+4. Criar `src/service/{dominio}/{Operation}{Entity}Service.ts` seguindo o template adequado — `list` sempre recebe `{ organizationId }`. Se já existir um Service dessa entidade, a pasta `{dominio}` já existe — reaproveite
+5. Escrever `{Operation}{Entity}Service.spec.ts` ao lado, na mesma pasta (mock manual do(s) Repository, sem `Test.createTestingModule()`)
 6. Registrar o Service em `providers` de `src/app.module.ts` — nao existe module por entidade nesse projeto
 7. Rodar o build e os testes para validar

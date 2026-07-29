@@ -13,9 +13,9 @@ import { CurrentUser } from 'src/decorators/CurrentUser';
 import { Roles } from 'src/decorators/Roles';
 import { JwtAuthGuard } from 'src/guards/JwtAuthGuard';
 import { RolesGuard } from 'src/guards/RolesGuard';
-import { CreateEventService } from 'src/service/CreateEventService';
-import { GetEventService } from 'src/service/GetEventService';
-import { ListEventService } from 'src/service/ListEventService';
+import { CreateEventService } from 'src/service/event/CreateEventService';
+import { GetEventService } from 'src/service/event/GetEventService';
+import { ListEventService } from 'src/service/event/ListEventService';
 import { CreateEventDTO } from 'src/shared/dtos/CreateEventDTO';
 import { JwtPayload } from 'src/strategies/JwtStrategy';
 
