@@ -8,6 +8,7 @@ export function useCreatePayment() {
     mutationFn: paymentsApi.createPayment,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["payments"] });
+      queryClient.invalidateQueries({ queryKey: ["reservations"] });
     },
   });
 }

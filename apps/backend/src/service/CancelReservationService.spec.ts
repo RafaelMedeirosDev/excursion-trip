@@ -55,6 +55,7 @@ describe('CancelReservationService', () => {
       create: jest.fn(),
       findActiveByEventAndCustomer: jest.fn(),
       findById: jest.fn(),
+      countActiveByVehicleBookingId: jest.fn(),
       findAll: jest.fn(),
       updateStatus: jest.fn(),
     };

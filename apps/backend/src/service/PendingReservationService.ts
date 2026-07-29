@@ -14,6 +14,7 @@ import { InvalidReservationStatusTransition } from 'src/shared/erros/cases/Inval
 import { ReservationExcursionNotAvailableForStatusChange } from 'src/shared/erros/cases/ReservationExcursionNotAvailableForStatusChange';
 import { ReservationInsufficientPaymentForPending } from 'src/shared/erros/cases/ReservationInsufficientPaymentForPending';
 import { ReservationNotFound } from 'src/shared/erros/cases/ReservationNotFound';
+import { VehicleBookingCapacityExceeded } from 'src/shared/erros/cases/VehicleBookingCapacityExceeded';
 
 interface Request {
   organizationId: string;
@@ -88,6 +89,14 @@ export class PendingReservationService {
 
     if (paid < reservation.agreedValue * MINIMUM_PAYMENT_PERCENTAGE) {
       throw new ReservationInsufficientPaymentForPending();
+    }
+
+    const occupied = await this.reservationRepository.countActiveByVehicleBookingId({
+      vehicleBookingId: reservation.vehicleBookingId,
+    });
+
+    if (occupied >= (vehicleBooking?.capacity ?? 0)) {
+      throw new VehicleBookingCapacityExceeded();
     }
 
     return await this.reservationRepository.updateStatus({

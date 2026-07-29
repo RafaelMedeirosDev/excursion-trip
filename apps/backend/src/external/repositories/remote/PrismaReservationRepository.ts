@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { Reservation, ReservationStatus } from '@prisma/client';
 import {
   Create,
+  CountActiveByVehicleBookingId,
   FindActiveByEventAndCustomer,
   FindAll,
   FindById,
@@ -50,6 +51,19 @@ export class PrismaReservationRepository implements ReservationRepository {
 
   findById({ id }: FindById): Promise<Reservation | null> {
     return this.repository.reservation.findUnique({ where: { id } });
+  }
+
+  countActiveByVehicleBookingId({
+    vehicleBookingId,
+  }: CountActiveByVehicleBookingId): Promise<number> {
+    return this.repository.reservation.count({
+      where: {
+        vehicleBookingId,
+        status: {
+          in: [ReservationStatus.PENDING, ReservationStatus.CONFIRMED],
+        },
+      },
+    });
   }
 
   findAll({

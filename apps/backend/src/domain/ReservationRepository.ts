@@ -25,6 +25,10 @@ export interface FindById {
   id: string;
 }
 
+export interface CountActiveByVehicleBookingId {
+  vehicleBookingId: string;
+}
+
 export interface FindAll {
   organizationId: string;
   userId?: string;
@@ -62,6 +66,10 @@ export abstract class ReservationRepository {
   }: FindActiveByEventAndCustomer): Promise<Reservation | null>;
 
   abstract findById({ id }: FindById): Promise<Reservation | null>;
+
+  abstract countActiveByVehicleBookingId({
+    vehicleBookingId,
+  }: CountActiveByVehicleBookingId): Promise<number>;
 
   abstract findAll({
     organizationId,

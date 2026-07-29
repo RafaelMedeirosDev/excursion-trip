@@ -39,6 +39,12 @@ export function VehicleBookingDetailsPage() {
     enabled: Boolean(vehicleBooking),
   });
 
+  const occupiedSeats =
+    reservations?.filter(
+      (reservation) =>
+        reservation.status === "PENDING" || reservation.status === "CONFIRMED",
+    ).length ?? 0;
+
   if (isLoading) {
     return (
       <div className="space-y-2">
@@ -75,6 +81,10 @@ export function VehicleBookingDetailsPage() {
         <CardContent className="grid grid-cols-1 gap-4 pt-6 sm:grid-cols-2">
           <Field label="Placa" value={vehicleBooking.plate ?? "—"} />
           <Field label="Capacidade" value={String(vehicleBooking.capacity)} />
+          <Field
+            label="Vagas disponíveis"
+            value={`${Math.max(vehicleBooking.capacity - occupiedSeats, 0)} de ${vehicleBooking.capacity}`}
+          />
           {hasRole("ADM") && (
             <Field label="Custo" value={formatCurrency(vehicleBooking.value)} />
           )}
