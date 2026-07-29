@@ -16,6 +16,7 @@ import { InvalidReservationStatusTransition } from 'src/shared/erros/cases/Inval
 import { ReservationExcursionNotAvailableForStatusChange } from 'src/shared/erros/cases/ReservationExcursionNotAvailableForStatusChange';
 import { ReservationInsufficientPaymentForConfirm } from 'src/shared/erros/cases/ReservationInsufficientPaymentForConfirm';
 import { ReservationNotFound } from 'src/shared/erros/cases/ReservationNotFound';
+import { VehicleBookingCapacityExceeded } from 'src/shared/erros/cases/VehicleBookingCapacityExceeded';
 import { ConfirmReservationService } from './ConfirmReservationService';
 
 describe('ConfirmReservationService', () => {
@@ -47,6 +48,7 @@ describe('ConfirmReservationService', () => {
     id: 'vb-1',
     organizationId,
     excursionId: 'excursion-1',
+    capacity: 10,
   } as VehicleBooking;
 
   const excursion = {
@@ -60,6 +62,7 @@ describe('ConfirmReservationService', () => {
       create: jest.fn(),
       findActiveByEventAndCustomer: jest.fn(),
       findById: jest.fn(),
+      countActiveByVehicleBookingId: jest.fn(),
       findAll: jest.fn(),
       updateStatus: jest.fn(),
     };
@@ -94,6 +97,7 @@ describe('ConfirmReservationService', () => {
     paymentRepository.findByReservationId.mockResolvedValue([
       { type: PaymentType.PAYMENT, value: 10000 } as Payment,
     ]);
+    reservationRepository.countActiveByVehicleBookingId.mockResolvedValue(0);
   });
 
   it('move a reservation pra CONFIRMED a partir de PENDING quando pago 100%', async () => {
@@ -196,5 +200,36 @@ describe('ConfirmReservationService', () => {
       ReservationInsufficientPaymentForConfirm,
     );
     expect(reservationRepository.updateStatus).not.toHaveBeenCalled();
+  });
+
+  it('lança VehicleBookingCapacityExceeded ao confirmar direto de WAITLIST num veículo lotado', async () => {
+    reservationRepository.findById.mockResolvedValue({
+      ...reservation,
+      status: ReservationStatus.WAITLIST,
+    });
+    reservationRepository.countActiveByVehicleBookingId.mockResolvedValue(10);
+
+    await expect(service.execute(request)).rejects.toBeInstanceOf(
+      VehicleBookingCapacityExceeded,
+    );
+    expect(reservationRepository.updateStatus).not.toHaveBeenCalled();
+  });
+
+  it('confirma normalmente a partir de PENDING mesmo com o veículo "lotado" (já ocupava vaga)', async () => {
+    reservationRepository.countActiveByVehicleBookingId.mockResolvedValue(10);
+    reservationRepository.updateStatus.mockResolvedValue({
+      ...reservation,
+      status: ReservationStatus.CONFIRMED,
+    });
+
+    await service.execute(request);
+
+    expect(
+      reservationRepository.countActiveByVehicleBookingId,
+    ).not.toHaveBeenCalled();
+    expect(reservationRepository.updateStatus).toHaveBeenCalledWith({
+      id: 'reservation-1',
+      status: ReservationStatus.CONFIRMED,
+    });
   });
 });

@@ -9,6 +9,7 @@ import { BoardingPointNotFound } from 'src/shared/erros/cases/BoardingPointNotFo
 import { CustomerNotFound } from 'src/shared/erros/cases/CustomerNotFound';
 import { ReservationAlreadyExists } from 'src/shared/erros/cases/ReservationAlreadyExists';
 import { ReservationExcursionNotAvailable } from 'src/shared/erros/cases/ReservationExcursionNotAvailable';
+import { VehicleBookingCapacityExceeded } from 'src/shared/erros/cases/VehicleBookingCapacityExceeded';
 import { VehicleBookingNotFound } from 'src/shared/erros/cases/VehicleBookingNotFound';
 
 const ALLOWED_STATUSES: ExcursionStatus[] = [
@@ -65,6 +66,14 @@ export class CreateReservationService {
 
     if (!excursion || !ALLOWED_STATUSES.includes(excursion.status)) {
       throw new ReservationExcursionNotAvailable();
+    }
+
+    const occupied = await this.reservationRepository.countActiveByVehicleBookingId({
+      vehicleBookingId,
+    });
+
+    if (occupied >= vehicleBooking.capacity) {
+      throw new VehicleBookingCapacityExceeded();
     }
 
     if (boardingPointId) {

@@ -14,6 +14,7 @@ import { InvalidReservationStatusTransition } from 'src/shared/erros/cases/Inval
 import { ReservationExcursionNotAvailableForStatusChange } from 'src/shared/erros/cases/ReservationExcursionNotAvailableForStatusChange';
 import { ReservationInsufficientPaymentForConfirm } from 'src/shared/erros/cases/ReservationInsufficientPaymentForConfirm';
 import { ReservationNotFound } from 'src/shared/erros/cases/ReservationNotFound';
+import { VehicleBookingCapacityExceeded } from 'src/shared/erros/cases/VehicleBookingCapacityExceeded';
 
 interface Request {
   organizationId: string;
@@ -91,6 +92,16 @@ export class ConfirmReservationService {
 
     if (paid < reservation.agreedValue) {
       throw new ReservationInsufficientPaymentForConfirm();
+    }
+
+    if (reservation.status === ReservationStatus.WAITLIST) {
+      const occupied = await this.reservationRepository.countActiveByVehicleBookingId({
+        vehicleBookingId: reservation.vehicleBookingId,
+      });
+
+      if (occupied >= (vehicleBooking?.capacity ?? 0)) {
+        throw new VehicleBookingCapacityExceeded();
+      }
     }
 
     return await this.reservationRepository.updateStatus({

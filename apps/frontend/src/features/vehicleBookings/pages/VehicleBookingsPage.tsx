@@ -17,6 +17,7 @@ import {
 } from "@/components/ui/table";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useEvents } from "@/features/events/hooks/useEvents";
+import { useReservations } from "@/features/reservations/hooks/useReservations";
 import { useVehicleBookings } from "@/features/vehicleBookings/hooks/useVehicleBookings";
 
 function formatCurrency(cents: number) {
@@ -30,10 +31,27 @@ export function VehicleBookingsPage() {
   const [query, setQuery] = useState("");
   const { data: vehicleBookings, isLoading } = useVehicleBookings();
   const { data: events } = useEvents();
+  const { data: reservations } = useReservations();
   const { hasRole } = useAuth();
   const canCreate = hasRole("ADM");
 
   const eventNameById = new Map(events?.map((event) => [event.id, event.name]));
+
+  const occupiedSeatsByVehicleId = new Map<string, number>();
+  reservations?.forEach((reservation) => {
+    if (reservation.status !== "PENDING" && reservation.status !== "CONFIRMED") {
+      return;
+    }
+    occupiedSeatsByVehicleId.set(
+      reservation.vehicleBookingId,
+      (occupiedSeatsByVehicleId.get(reservation.vehicleBookingId) ?? 0) + 1,
+    );
+  });
+
+  function availableSeats(vehicleBookingId: string, capacity: number) {
+    const occupied = occupiedSeatsByVehicleId.get(vehicleBookingId) ?? 0;
+    return Math.max(capacity - occupied, 0);
+  }
 
   const filteredVehicleBookings = vehicleBookings?.filter((vehicleBooking) => {
     if (!query) return true;
@@ -120,6 +138,7 @@ export function VehicleBookingsPage() {
                   <TableHead>Fornecedor</TableHead>
                   <TableHead>Responsável</TableHead>
                   <TableHead>Capacidade</TableHead>
+                  <TableHead>Vagas disponíveis</TableHead>
                   <TableHead>Preço</TableHead>
                 </TableRow>
               </TableHeader>
@@ -143,6 +162,10 @@ export function VehicleBookingsPage() {
                     <TableCell>{vehicleBooking.supplier.name}</TableCell>
                     <TableCell>{vehicleBooking.user.name}</TableCell>
                     <TableCell>{vehicleBooking.capacity}</TableCell>
+                    <TableCell>
+                      {availableSeats(vehicleBooking.id, vehicleBooking.capacity)}{" "}
+                      de {vehicleBooking.capacity}
+                    </TableCell>
                     <TableCell>
                       {formatCurrency(vehicleBooking.price)}
                     </TableCell>
@@ -190,6 +213,10 @@ export function VehicleBookingsPage() {
                       <CardField
                         label="Capacidade"
                         value={String(vehicleBooking.capacity)}
+                      />
+                      <CardField
+                        label="Vagas disponíveis"
+                        value={`${availableSeats(vehicleBooking.id, vehicleBooking.capacity)} de ${vehicleBooking.capacity}`}
                       />
                       <CardField
                         label="Preço"

@@ -16,6 +16,7 @@ import { InvalidReservationStatusTransition } from 'src/shared/erros/cases/Inval
 import { ReservationExcursionNotAvailableForStatusChange } from 'src/shared/erros/cases/ReservationExcursionNotAvailableForStatusChange';
 import { ReservationInsufficientPaymentForPending } from 'src/shared/erros/cases/ReservationInsufficientPaymentForPending';
 import { ReservationNotFound } from 'src/shared/erros/cases/ReservationNotFound';
+import { VehicleBookingCapacityExceeded } from 'src/shared/erros/cases/VehicleBookingCapacityExceeded';
 import { PendingReservationService } from './PendingReservationService';
 
 describe('PendingReservationService', () => {
@@ -47,6 +48,7 @@ describe('PendingReservationService', () => {
     id: 'vb-1',
     organizationId,
     excursionId: 'excursion-1',
+    capacity: 10,
   } as VehicleBooking;
 
   const excursion = {
@@ -60,6 +62,7 @@ describe('PendingReservationService', () => {
       create: jest.fn(),
       findActiveByEventAndCustomer: jest.fn(),
       findById: jest.fn(),
+      countActiveByVehicleBookingId: jest.fn(),
       findAll: jest.fn(),
       updateStatus: jest.fn(),
     };
@@ -94,6 +97,7 @@ describe('PendingReservationService', () => {
     paymentRepository.findByReservationId.mockResolvedValue([
       { type: PaymentType.PAYMENT, value: 5000 } as Payment,
     ]);
+    reservationRepository.countActiveByVehicleBookingId.mockResolvedValue(0);
   });
 
   it('move a reservation pra PENDING quando pago >= 50% do agreedValue', async () => {
@@ -199,6 +203,15 @@ describe('PendingReservationService', () => {
 
     await expect(service.execute(request)).rejects.toBeInstanceOf(
       ReservationInsufficientPaymentForPending,
+    );
+    expect(reservationRepository.updateStatus).not.toHaveBeenCalled();
+  });
+
+  it('lança VehicleBookingCapacityExceeded quando o veículo já está lotado, mesmo com pagamento suficiente', async () => {
+    reservationRepository.countActiveByVehicleBookingId.mockResolvedValue(10);
+
+    await expect(service.execute(request)).rejects.toBeInstanceOf(
+      VehicleBookingCapacityExceeded,
     );
     expect(reservationRepository.updateStatus).not.toHaveBeenCalled();
   });

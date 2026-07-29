@@ -15,6 +15,7 @@ import { BoardingPointNotFound } from 'src/shared/erros/cases/BoardingPointNotFo
 import { CustomerNotFound } from 'src/shared/erros/cases/CustomerNotFound';
 import { ReservationAlreadyExists } from 'src/shared/erros/cases/ReservationAlreadyExists';
 import { ReservationExcursionNotAvailable } from 'src/shared/erros/cases/ReservationExcursionNotAvailable';
+import { VehicleBookingCapacityExceeded } from 'src/shared/erros/cases/VehicleBookingCapacityExceeded';
 import { VehicleBookingNotFound } from 'src/shared/erros/cases/VehicleBookingNotFound';
 import { CreateReservationService } from './CreateReservationService';
 
@@ -41,6 +42,7 @@ describe('CreateReservationService', () => {
       create: jest.fn(),
       findActiveByEventAndCustomer: jest.fn(),
       findById: jest.fn(),
+      countActiveByVehicleBookingId: jest.fn(),
       findAll: jest.fn(),
       updateStatus: jest.fn(),
     };
@@ -83,6 +85,7 @@ describe('CreateReservationService', () => {
       id: 'vb-1',
       organizationId,
       excursionId: 'excursion-1',
+      capacity: 10,
     } as VehicleBooking);
     excursionRepository.findById.mockResolvedValue({
       id: 'excursion-1',
@@ -93,6 +96,7 @@ describe('CreateReservationService', () => {
     reservationRepository.findActiveByEventAndCustomer.mockResolvedValue(
       null,
     );
+    reservationRepository.countActiveByVehicleBookingId.mockResolvedValue(0);
   });
 
   it('cria a reserva sem boardingPointId', async () => {
@@ -199,5 +203,27 @@ describe('CreateReservationService', () => {
       ReservationExcursionNotAvailable,
     );
     expect(reservationRepository.create).not.toHaveBeenCalled();
+  });
+
+  it('lança VehicleBookingCapacityExceeded quando o veículo já está lotado (PENDING+CONFIRMED = capacity)', async () => {
+    reservationRepository.countActiveByVehicleBookingId.mockResolvedValue(10);
+
+    await expect(service.execute(request)).rejects.toBeInstanceOf(
+      VehicleBookingCapacityExceeded,
+    );
+    expect(
+      reservationRepository.countActiveByVehicleBookingId,
+    ).toHaveBeenCalledWith({ vehicleBookingId: 'vb-1' });
+    expect(reservationRepository.create).not.toHaveBeenCalled();
+  });
+
+  it('cria a reserva quando ainda há vaga abaixo da capacity', async () => {
+    reservationRepository.countActiveByVehicleBookingId.mockResolvedValue(9);
+    reservationRepository.create.mockResolvedValue({
+      id: 'reservation-1',
+    } as Reservation);
+
+    await expect(service.execute(request)).resolves.toBeDefined();
+    expect(reservationRepository.create).toHaveBeenCalled();
   });
 });
