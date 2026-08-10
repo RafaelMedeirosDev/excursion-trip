@@ -21,7 +21,21 @@ export interface FindAll {
   organizationId: string;
 }
 
+export interface FindAllPaginated {
+  organizationId: string;
+  query?: string;
+  page: number;
+  limit: number;
+}
+
 export type Suppliers = Omit<Supplier, 'deletedAt'>;
+
+export interface PaginatedSuppliers {
+  data: Suppliers[];
+  total: number;
+  page: number;
+  limit: number;
+}
 
 export abstract class SupplierRepository {
   abstract create({
@@ -40,4 +54,11 @@ export abstract class SupplierRepository {
   abstract findById({ id }: FindById): Promise<Supplier | null>;
 
   abstract findAll({ organizationId }: FindAll): Promise<Suppliers[]>;
+
+  abstract findAllPaginated({
+    organizationId,
+    query,
+    page,
+    limit,
+  }: FindAllPaginated): Promise<PaginatedSuppliers>;
 }

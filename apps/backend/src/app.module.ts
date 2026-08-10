@@ -78,6 +78,7 @@ import { ListPaginatedPaymentService } from 'src/service/payment/ListPaginatedPa
 import { ListReservationService } from 'src/service/reservation/ListReservationService';
 import { ListPaginatedReservationService } from 'src/service/reservation/ListPaginatedReservationService';
 import { ListSupplierService } from 'src/service/supplier/ListSupplierService';
+import { ListPaginatedSupplierService } from 'src/service/supplier/ListPaginatedSupplierService';
 import { ListUserService } from 'src/service/user/ListUserService';
 import { ListVehicleBookingService } from 'src/service/vehicle-booking/ListVehicleBookingService';
 import { LoginService } from 'src/service/auth/LoginService';
@@ -139,6 +140,7 @@ import { AppService } from './app.service';
     UpdateExcursionStatusService,
     CreateSupplierService,
     ListSupplierService,
+    ListPaginatedSupplierService,
     GetSupplierService,
     CreateVehicleBookingService,
     ListVehicleBookingService,
