@@ -21,7 +21,21 @@ export interface FindAll {
   organizationId: string;
 }
 
+export interface FindAllPaginated {
+  organizationId: string;
+  query?: string;
+  page: number;
+  limit: number;
+}
+
 export type Customers = Omit<Customer, 'deletedAt'>;
+
+export interface PaginatedCustomers {
+  data: Customers[];
+  total: number;
+  page: number;
+  limit: number;
+}
 
 export abstract class CustomerRepository {
   abstract create({
@@ -40,4 +54,11 @@ export abstract class CustomerRepository {
   abstract findById({ id }: FindById): Promise<Customer | null>;
 
   abstract findAll({ organizationId }: FindAll): Promise<Customers[]>;
+
+  abstract findAllPaginated({
+    organizationId,
+    query,
+    page,
+    limit,
+  }: FindAllPaginated): Promise<PaginatedCustomers>;
 }
