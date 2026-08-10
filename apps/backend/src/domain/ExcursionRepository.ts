@@ -18,7 +18,22 @@ export interface FindAll {
   status?: ExcursionStatus;
 }
 
+export interface FindAllPaginated {
+  organizationId: string;
+  status?: ExcursionStatus;
+  eventName?: string;
+  page: number;
+  limit: number;
+}
+
 export type Excursions = Excursion & { event: Event };
+
+export interface PaginatedExcursions {
+  data: Excursions[];
+  total: number;
+  page: number;
+  limit: number;
+}
 
 export interface UpdateStatus {
   id: string;
@@ -40,6 +55,14 @@ export abstract class ExcursionRepository {
   abstract findById({ id }: FindById): Promise<Excursion | null>;
 
   abstract findAll({ organizationId, status }: FindAll): Promise<Excursions[]>;
+
+  abstract findAllPaginated({
+    organizationId,
+    status,
+    eventName,
+    page,
+    limit,
+  }: FindAllPaginated): Promise<PaginatedExcursions>;
 
   abstract updateStatus({
     id,
