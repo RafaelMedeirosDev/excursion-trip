@@ -1,6 +1,6 @@
 import type { ReservationStatus } from "@excursion-trip/shared";
 import { Plus, Ticket } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -27,7 +27,7 @@ import { useEvents } from "@/features/events/hooks/useEvents";
 import { useVehicleBookings } from "@/features/vehicleBookings/hooks/useVehicleBookings";
 import { ReservationStatusBadge } from "@/features/reservations/components/ReservationStatusBadge";
 import { STATUS_LABELS } from "@/features/reservations/constants";
-import { useReservations } from "@/features/reservations/hooks/useReservations";
+import { usePaginatedReservations } from "@/features/reservations/hooks/usePaginatedReservations";
 
 const STATUS_FILTERS: ReservationStatus[] = [
   "WAITLIST",
@@ -35,6 +35,9 @@ const STATUS_FILTERS: ReservationStatus[] = [
   "CONFIRMED",
   "CANCELED",
 ];
+
+const PAGE_SIZE = 10;
+const SEARCH_DEBOUNCE_MS = 300;
 
 function formatCurrency(cents: number) {
   return (cents / 100).toLocaleString("pt-BR", {
@@ -48,9 +51,29 @@ export function ReservationsPage() {
     "ALL",
   );
   const [query, setQuery] = useState("");
-  const { data: reservations, isLoading } = useReservations(
-    statusFilter === "ALL" ? undefined : statusFilter,
-  );
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebouncedQuery(query), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timeout);
+  }, [query]);
+
+  const [lastFilters, setLastFilters] = useState({ statusFilter, debouncedQuery });
+  if (
+    lastFilters.statusFilter !== statusFilter ||
+    lastFilters.debouncedQuery !== debouncedQuery
+  ) {
+    setLastFilters({ statusFilter, debouncedQuery });
+    setPage(1);
+  }
+
+  const { data: result, isLoading } = usePaginatedReservations({
+    status: statusFilter === "ALL" ? undefined : statusFilter,
+    eventName: debouncedQuery || undefined,
+    page,
+    limit: PAGE_SIZE,
+  });
   const { data: vehicleBookings } = useVehicleBookings();
   const { data: events } = useEvents();
 
@@ -62,13 +85,8 @@ export function ReservationsPage() {
     ]),
   );
 
-  const filteredReservations = reservations?.filter((reservation) => {
-    if (!query) return true;
-    const eventName = (
-      eventNameByVehicleBookingId.get(reservation.vehicleBookingId) ?? ""
-    ).toLowerCase();
-    return eventName.includes(query.toLowerCase());
-  });
+  const reservations = result?.data;
+  const totalPages = result ? Math.max(Math.ceil(result.total / result.limit), 1) : 1;
   const hasActiveFilter = statusFilter !== "ALL" || query !== "";
 
   return (
@@ -125,7 +143,7 @@ export function ReservationsPage() {
         </div>
       )}
 
-      {!isLoading && filteredReservations && filteredReservations.length === 0 && (
+      {!isLoading && reservations && reservations.length === 0 && (
         <EmptyState
           icon={Ticket}
           title="Nenhuma reserva encontrada"
@@ -147,7 +165,7 @@ export function ReservationsPage() {
         />
       )}
 
-      {!isLoading && filteredReservations && filteredReservations.length > 0 && (
+      {!isLoading && reservations && reservations.length > 0 && (
         <>
           <div className="hidden md:block">
             <Table>
@@ -162,7 +180,7 @@ export function ReservationsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredReservations.map((reservation) => (
+                {reservations.map((reservation) => (
                   <TableRow key={reservation.id}>
                     <TableCell>
                       <Link
@@ -199,7 +217,7 @@ export function ReservationsPage() {
           </div>
 
           <div className="grid gap-3 md:hidden">
-            {filteredReservations.map((reservation) => (
+            {reservations.map((reservation) => (
               <Link key={reservation.id} to={`/reservations/${reservation.id}`}>
                 <Card className="transition-colors hover:bg-muted/50">
                   <CardContent className="space-y-3 pt-6">
@@ -241,6 +259,30 @@ export function ReservationsPage() {
               </Link>
             ))}
           </div>
+
+          {result && result.total > result.limit && (
+            <div className="mt-4 flex items-center justify-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page <= 1}
+                onClick={() => setPage((current) => current - 1)}
+              >
+                Anterior
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                Página {page} de {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page >= totalPages}
+                onClick={() => setPage((current) => current + 1)}
+              >
+                Próxima
+              </Button>
+            </div>
+          )}
         </>
       )}
     </div>

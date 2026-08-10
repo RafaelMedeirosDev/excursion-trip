@@ -36,12 +36,28 @@ export interface FindAll {
   vehicleBookingId?: string;
 }
 
+export interface FindAllPaginated {
+  organizationId: string;
+  userId?: string;
+  status?: ReservationStatus;
+  eventName?: string;
+  page: number;
+  limit: number;
+}
+
 export type Reservations = Omit<Reservation, 'deletedAt'> & {
   customer: Omit<Customer, 'deletedAt'>;
   vehicleBooking: Omit<VehicleBooking, 'deletedAt'>;
   boardingPoint: Omit<BoardingPoint, 'deletedAt'> | null;
   user: Omit<User, 'password' | 'deletedAt'>;
 };
+
+export interface PaginatedReservations {
+  data: Reservations[];
+  total: number;
+  page: number;
+  limit: number;
+}
 
 export interface UpdateStatus {
   id: string;
@@ -77,6 +93,15 @@ export abstract class ReservationRepository {
     status,
     vehicleBookingId,
   }: FindAll): Promise<Reservations[]>;
+
+  abstract findAllPaginated({
+    organizationId,
+    userId,
+    status,
+    eventName,
+    page,
+    limit,
+  }: FindAllPaginated): Promise<PaginatedReservations>;
 
   abstract updateStatus({
     id,
