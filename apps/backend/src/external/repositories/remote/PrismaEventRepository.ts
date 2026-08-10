@@ -5,7 +5,9 @@ import {
   EventRepository,
   Events,
   FindAll,
+  FindAllPaginated,
   FindById,
+  PaginatedEvents,
 } from 'src/domain/EventRepository';
 import { PrismaRemoteRepository } from './PrismaRemoteRepository';
 
@@ -61,5 +63,41 @@ export class PrismaEventRepository implements EventRepository {
         updatedAt: true,
       },
     });
+  }
+
+  findAllPaginated({
+    organizationId,
+    name,
+    page,
+    limit,
+  }: FindAllPaginated): Promise<PaginatedEvents> {
+    const where = {
+      organizationId,
+      deletedAt: null,
+      ...(name ? { name: { contains: name, mode: 'insensitive' as const } } : {}),
+    };
+
+    return Promise.all([
+      this.repository.event.findMany({
+        where,
+        select: {
+          id: true,
+          organizationId: true,
+          name: true,
+          address: true,
+          city: true,
+          state: true,
+          startDate: true,
+          endDate: true,
+          startTime: true,
+          endTime: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.repository.event.count({ where }),
+    ]).then(([data, total]) => ({ data, total, page, limit }));
   }
 }

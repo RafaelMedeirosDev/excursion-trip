@@ -67,4 +67,23 @@ describe('ListPaginatedExcursionService', () => {
       limit: 5,
     });
   });
+
+  it('usa page=1/limit=10 por padrão quando não informados', async () => {
+    excursionRepository.findAllPaginated.mockResolvedValue({
+      data: [],
+      total: 0,
+      page: 1,
+      limit: 10,
+    });
+
+    await service.execute({ organizationId });
+
+    expect(excursionRepository.findAllPaginated).toHaveBeenCalledWith({
+      organizationId,
+      status: undefined,
+      eventName: undefined,
+      page: 1,
+      limit: 10,
+    });
+  });
 });

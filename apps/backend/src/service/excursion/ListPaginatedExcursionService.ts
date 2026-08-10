@@ -9,9 +9,12 @@ interface Request {
   organizationId: string;
   status?: ExcursionStatus;
   eventName?: string;
-  page: number;
-  limit: number;
+  page?: number;
+  limit?: number;
 }
+
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 10;
 
 @Injectable()
 export class ListPaginatedExcursionService {
@@ -28,8 +31,8 @@ export class ListPaginatedExcursionService {
       organizationId,
       status,
       eventName,
-      page,
-      limit,
+      page: page ?? DEFAULT_PAGE,
+      limit: limit ?? DEFAULT_LIMIT,
     });
   }
 }
