@@ -1,6 +1,6 @@
 import { PAYMENT_METHOD_LABELS, PAYMENT_TYPE_LABELS } from "@excursion-trip/shared";
 import { CreditCard, Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -19,7 +19,10 @@ import {
 import { useEvents } from "@/features/events/hooks/useEvents";
 import { useReservations } from "@/features/reservations/hooks/useReservations";
 import { useVehicleBookings } from "@/features/vehicleBookings/hooks/useVehicleBookings";
-import { usePayments } from "@/features/payments/hooks/usePayments";
+import { usePaginatedPayments } from "@/features/payments/hooks/usePaginatedPayments";
+
+const PAGE_SIZE = 10;
+const SEARCH_DEBOUNCE_MS = 300;
 
 function formatCurrency(cents: number) {
   return (cents / 100).toLocaleString("pt-BR", {
@@ -38,7 +41,25 @@ function vehicleLabel(vehicleType: string, plate: string | null) {
 
 export function PaymentsPage() {
   const [query, setQuery] = useState("");
-  const { data: payments, isLoading } = usePayments();
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebouncedQuery(query), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timeout);
+  }, [query]);
+
+  const [lastQuery, setLastQuery] = useState(debouncedQuery);
+  if (lastQuery !== debouncedQuery) {
+    setLastQuery(debouncedQuery);
+    setPage(1);
+  }
+
+  const { data: result, isLoading } = usePaginatedPayments({
+    query: debouncedQuery || undefined,
+    page,
+    limit: PAGE_SIZE,
+  });
   const { data: reservations } = useReservations();
   const { data: vehicleBookings } = useVehicleBookings();
   const { data: events } = useEvents();
@@ -55,17 +76,8 @@ export function PaymentsPage() {
     ]),
   );
 
-  const filteredPayments = payments?.filter((payment) => {
-    if (!query) return true;
-
-    const reservation = reservationById.get(payment.reservationId);
-    const q = query.toLowerCase();
-    const customerName = reservation?.customer.name.toLowerCase() ?? "";
-    const eventName = reservation
-      ? (eventNameByVehicleBookingId.get(reservation.vehicleBookingId) ?? "").toLowerCase()
-      : "";
-    return customerName.includes(q) || eventName.includes(q);
-  });
+  const filteredPayments = result?.data;
+  const totalPages = result ? Math.max(Math.ceil(result.total / result.limit), 1) : 1;
 
   return (
     <div>
@@ -236,6 +248,30 @@ export function PaymentsPage() {
               );
             })}
           </div>
+
+          {result && result.total > result.limit && (
+            <div className="mt-4 flex items-center justify-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page <= 1}
+                onClick={() => setPage((current) => current - 1)}
+              >
+                Anterior
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                Página {page} de {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page >= totalPages}
+                onClick={() => setPage((current) => current + 1)}
+              >
+                Próxima
+              </Button>
+            </div>
+          )}
         </>
       )}
     </div>

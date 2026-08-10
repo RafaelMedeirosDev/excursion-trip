@@ -14,6 +14,7 @@ describe('ListPaymentService', () => {
       create: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
+      findAllPaginated: jest.fn(),
       findByReservationId: jest.fn(),
     };
     service = new ListPaymentService(paymentRepository);

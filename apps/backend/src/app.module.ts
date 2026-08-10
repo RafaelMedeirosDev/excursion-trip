@@ -72,6 +72,7 @@ import { ListExcursionService } from 'src/service/excursion/ListExcursionService
 import { ListPaginatedExcursionService } from 'src/service/excursion/ListPaginatedExcursionService';
 import { ListExpenseService } from 'src/service/expense/ListExpenseService';
 import { ListPaymentService } from 'src/service/payment/ListPaymentService';
+import { ListPaginatedPaymentService } from 'src/service/payment/ListPaginatedPaymentService';
 import { ListReservationService } from 'src/service/reservation/ListReservationService';
 import { ListPaginatedReservationService } from 'src/service/reservation/ListPaginatedReservationService';
 import { ListSupplierService } from 'src/service/supplier/ListSupplierService';
@@ -153,6 +154,7 @@ import { AppService } from './app.service';
     CancelReservationService,
     CreatePaymentService,
     ListPaymentService,
+    ListPaginatedPaymentService,
     GetPaymentService,
     JwtStrategy,
     JwtAuthGuard,

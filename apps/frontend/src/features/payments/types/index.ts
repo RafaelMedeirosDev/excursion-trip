@@ -18,6 +18,13 @@ export interface PaymentWithRelations extends Payment {
   user: User;
 }
 
+export interface PaginatedPayments {
+  data: PaymentWithRelations[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export interface CreatePaymentPayload {
   reservationId: string;
   type: PaymentType;

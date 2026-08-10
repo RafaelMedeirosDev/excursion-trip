@@ -58,6 +58,7 @@ describe('CreatePaymentService', () => {
       create: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
+      findAllPaginated: jest.fn(),
       findByReservationId: jest.fn(),
     };
     reservationRepository = {
