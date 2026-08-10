@@ -15,6 +15,7 @@ describe('GetExcursionService', () => {
       create: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
+      findAllPaginated: jest.fn(),
       updateStatus: jest.fn(),
     };
     service = new GetExcursionService(excursionRepository);

@@ -26,6 +26,13 @@ export interface ExcursionWithEvent extends Excursion {
   event: Event;
 }
 
+export interface PaginatedExcursions {
+  data: ExcursionWithEvent[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export interface CreateExcursionPayload {
   eventId: string;
   name: string;

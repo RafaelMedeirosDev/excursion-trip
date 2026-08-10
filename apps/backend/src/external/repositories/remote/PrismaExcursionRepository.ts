@@ -5,7 +5,9 @@ import {
   ExcursionRepository,
   Excursions,
   FindAll,
+  FindAllPaginated,
   FindById,
+  PaginatedExcursions,
   UpdateStatus,
 } from 'src/domain/ExcursionRepository';
 import { PrismaRemoteRepository } from './PrismaRemoteRepository';
@@ -36,6 +38,32 @@ export class PrismaExcursionRepository implements ExcursionRepository {
       where: { organizationId, ...(status ? { status } : {}) },
       include: { event: true },
     });
+  }
+
+  findAllPaginated({
+    organizationId,
+    status,
+    eventName,
+    page,
+    limit,
+  }: FindAllPaginated): Promise<PaginatedExcursions> {
+    const where = {
+      organizationId,
+      ...(status ? { status } : {}),
+      ...(eventName
+        ? { event: { name: { contains: eventName, mode: 'insensitive' as const } } }
+        : {}),
+    };
+
+    return Promise.all([
+      this.repository.excursion.findMany({
+        where,
+        include: { event: true },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.repository.excursion.count({ where }),
+    ]).then(([data, total]) => ({ data, total, page, limit }));
   }
 
   updateStatus({

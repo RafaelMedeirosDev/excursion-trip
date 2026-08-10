@@ -23,9 +23,12 @@ import {
 } from "@/components/ui/table";
 import { ExcursionStatusBadge } from "@/features/excursions/components/ExcursionStatusBadge";
 import { STATUS_LABELS } from "@/features/excursions/constants";
-import { useExcursions } from "@/features/excursions/hooks/useExcursions";
+import { usePaginatedExcursions } from "@/features/excursions/hooks/usePaginatedExcursions";
 import type { ExcursionStatus } from "@/features/excursions/types";
-import { useState } from "react";
+import { useEffect, useState } from "react";
+
+const PAGE_SIZE = 10;
+const SEARCH_DEBOUNCE_MS = 300;
 
 const STATUS_FILTERS: ExcursionStatus[] = [
   "PLANNING",
@@ -44,14 +47,32 @@ export function ExcursionsPage() {
     "ALL",
   );
   const [query, setQuery] = useState("");
-  const { data: excursions, isLoading } = useExcursions(
-    statusFilter === "ALL" ? undefined : statusFilter,
-  );
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [page, setPage] = useState(1);
 
-  const filteredExcursions = excursions?.filter(
-    (excursion) =>
-      !query || excursion.event.name.toLowerCase().includes(query.toLowerCase()),
-  );
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebouncedQuery(query), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timeout);
+  }, [query]);
+
+  const [lastFilters, setLastFilters] = useState({ statusFilter, debouncedQuery });
+  if (
+    lastFilters.statusFilter !== statusFilter ||
+    lastFilters.debouncedQuery !== debouncedQuery
+  ) {
+    setLastFilters({ statusFilter, debouncedQuery });
+    setPage(1);
+  }
+
+  const { data: result, isLoading } = usePaginatedExcursions({
+    status: statusFilter === "ALL" ? undefined : statusFilter,
+    eventName: debouncedQuery || undefined,
+    page,
+    limit: PAGE_SIZE,
+  });
+
+  const excursions = result?.data;
+  const totalPages = result ? Math.max(Math.ceil(result.total / result.limit), 1) : 1;
   const hasActiveFilter = statusFilter !== "ALL" || query !== "";
 
   return (
@@ -108,7 +129,7 @@ export function ExcursionsPage() {
         </div>
       )}
 
-      {!isLoading && filteredExcursions && filteredExcursions.length === 0 && (
+      {!isLoading && excursions && excursions.length === 0 && (
         <EmptyState
           icon={RouteIcon}
           title="Nenhuma excursão encontrada"
@@ -130,7 +151,7 @@ export function ExcursionsPage() {
         />
       )}
 
-      {!isLoading && filteredExcursions && filteredExcursions.length > 0 && (
+      {!isLoading && excursions && excursions.length > 0 && (
         <>
           <div className="hidden md:block">
             <Table>
@@ -144,7 +165,7 @@ export function ExcursionsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredExcursions.map((excursion) => (
+                {excursions.map((excursion) => (
                   <TableRow key={excursion.id}>
                     <TableCell>
                       <Link
@@ -167,7 +188,7 @@ export function ExcursionsPage() {
           </div>
 
           <div className="grid gap-3 md:hidden">
-            {filteredExcursions.map((excursion) => (
+            {excursions.map((excursion) => (
               <Link key={excursion.id} to={`/excursions/${excursion.id}`}>
                 <Card className="transition-colors hover:bg-muted/50">
                   <CardContent className="space-y-3 pt-6">
@@ -192,6 +213,30 @@ export function ExcursionsPage() {
               </Link>
             ))}
           </div>
+
+          {result && result.total > result.limit && (
+            <div className="mt-4 flex items-center justify-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page <= 1}
+                onClick={() => setPage((current) => current - 1)}
+              >
+                Anterior
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                Página {page} de {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page >= totalPages}
+                onClick={() => setPage((current) => current + 1)}
+              >
+                Próxima
+              </Button>
+            </div>
+          )}
         </>
       )}
     </div>

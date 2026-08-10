@@ -4,6 +4,7 @@ import type {
   Excursion,
   ExcursionStatus,
   ExcursionWithEvent,
+  PaginatedExcursions,
   UpdateExcursionStatusPayload,
 } from "@/features/excursions/types";
 
@@ -16,6 +17,19 @@ export const excursionsApi = {
       {
         params: status ? { status } : undefined,
       },
+    );
+    return data;
+  },
+
+  getExcursionsPaginated: async (params: {
+    status?: ExcursionStatus;
+    eventName?: string;
+    page: number;
+    limit: number;
+  }): Promise<PaginatedExcursions> => {
+    const { data } = await httpClient.get<PaginatedExcursions>(
+      "/excursions/paginated",
+      { params },
     );
     return data;
   },
