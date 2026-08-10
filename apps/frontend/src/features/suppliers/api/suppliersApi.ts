@@ -1,9 +1,25 @@
 import { httpClient } from "@/services/http/client";
-import type { CreateSupplierPayload, Supplier } from "@/features/suppliers/types";
+import type {
+  CreateSupplierPayload,
+  PaginatedSuppliers,
+  Supplier,
+} from "@/features/suppliers/types";
 
 export const suppliersApi = {
   getSuppliers: async (): Promise<Supplier[]> => {
     const { data } = await httpClient.get<Supplier[]>("/suppliers");
+    return data;
+  },
+
+  getSuppliersPaginated: async (params: {
+    query?: string;
+    page: number;
+    limit: number;
+  }): Promise<PaginatedSuppliers> => {
+    const { data } = await httpClient.get<PaginatedSuppliers>(
+      "/suppliers/paginated",
+      { params },
+    );
     return data;
   },
 

@@ -3,8 +3,10 @@ import { Supplier } from '@prisma/client';
 import {
   Create,
   FindAll,
+  FindAllPaginated,
   FindByCnpj,
   FindById,
+  PaginatedSuppliers,
   SupplierRepository,
   Suppliers,
 } from 'src/domain/SupplierRepository';
@@ -44,5 +46,45 @@ export class PrismaSupplierRepository implements SupplierRepository {
         updatedAt: true,
       },
     });
+  }
+
+  findAllPaginated({
+    organizationId,
+    query,
+    page,
+    limit,
+  }: FindAllPaginated): Promise<PaginatedSuppliers> {
+    const where = {
+      organizationId,
+      deletedAt: null,
+      ...(query
+        ? {
+            OR: [
+              { name: { contains: query, mode: 'insensitive' as const } },
+              { cnpj: { contains: query } },
+              { phone: { contains: query } },
+            ],
+          }
+        : {}),
+    };
+
+    return Promise.all([
+      this.repository.supplier.findMany({
+        where,
+        select: {
+          id: true,
+          organizationId: true,
+          name: true,
+          cnpj: true,
+          address: true,
+          phone: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.repository.supplier.count({ where }),
+    ]).then(([data, total]) => ({ data, total, page, limit }));
   }
 }

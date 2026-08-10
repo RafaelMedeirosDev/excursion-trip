@@ -16,3 +16,10 @@ export interface CreateSupplierPayload {
   address?: string;
   phone: string;
 }
+
+export interface PaginatedSuppliers {
+  data: Supplier[];
+  total: number;
+  page: number;
+  limit: number;
+}

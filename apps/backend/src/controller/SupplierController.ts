@@ -5,10 +5,11 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { Role, Supplier } from '@prisma/client';
-import { Suppliers } from 'src/domain/SupplierRepository';
+import { PaginatedSuppliers, Suppliers } from 'src/domain/SupplierRepository';
 import { CurrentUser } from 'src/decorators/CurrentUser';
 import { Roles } from 'src/decorators/Roles';
 import { JwtAuthGuard } from 'src/guards/JwtAuthGuard';
@@ -16,7 +17,9 @@ import { RolesGuard } from 'src/guards/RolesGuard';
 import { CreateSupplierService } from 'src/service/supplier/CreateSupplierService';
 import { GetSupplierService } from 'src/service/supplier/GetSupplierService';
 import { ListSupplierService } from 'src/service/supplier/ListSupplierService';
+import { ListPaginatedSupplierService } from 'src/service/supplier/ListPaginatedSupplierService';
 import { CreateSupplierDTO } from 'src/shared/dtos/CreateSupplierDTO';
+import { ListPaginatedSupplierDTO } from 'src/shared/dtos/ListPaginatedSupplierDTO';
 import { JwtPayload } from 'src/strategies/JwtStrategy';
 
 @Controller('/suppliers')
@@ -25,6 +28,7 @@ export class SupplierController {
   constructor(
     private readonly createSupplierService: CreateSupplierService,
     private readonly listSupplierService: ListSupplierService,
+    private readonly listPaginatedSupplierService: ListPaginatedSupplierService,
     private readonly getSupplierService: GetSupplierService,
   ) {}
 
@@ -48,6 +52,20 @@ export class SupplierController {
   list(@CurrentUser() currentUser: JwtPayload): Promise<Suppliers[]> {
     return this.listSupplierService.execute({
       organizationId: currentUser.organizationId,
+    });
+  }
+
+  @Get('paginated')
+  @Roles(Role.ADM)
+  listPaginated(
+    @Query() { query, page, limit }: ListPaginatedSupplierDTO,
+    @CurrentUser() currentUser: JwtPayload,
+  ): Promise<PaginatedSuppliers> {
+    return this.listPaginatedSupplierService.execute({
+      organizationId: currentUser.organizationId,
+      query,
+      page,
+      limit,
     });
   }
 
