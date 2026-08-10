@@ -18,6 +18,7 @@ describe('ListVehicleBookingService', () => {
       findByExcursionAndPlate: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
+      findAllPaginated: jest.fn(),
     };
     service = new ListVehicleBookingService(vehicleBookingRepository);
   });
