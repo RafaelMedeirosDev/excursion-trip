@@ -1,5 +1,5 @@
 import { CalendarDays, Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,7 +15,10 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useEvents } from "@/features/events/hooks/useEvents";
+import { usePaginatedEvents } from "@/features/events/hooks/usePaginatedEvents";
+
+const PAGE_SIZE = 10;
+const SEARCH_DEBOUNCE_MS = 300;
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString("pt-BR");
@@ -23,11 +26,28 @@ function formatDate(value: string) {
 
 export function EventsPage() {
   const [query, setQuery] = useState("");
-  const { data: events, isLoading } = useEvents();
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [page, setPage] = useState(1);
 
-  const filteredEvents = events?.filter(
-    (event) => !query || event.name.toLowerCase().includes(query.toLowerCase()),
-  );
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebouncedQuery(query), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timeout);
+  }, [query]);
+
+  const [lastQuery, setLastQuery] = useState(debouncedQuery);
+  if (lastQuery !== debouncedQuery) {
+    setLastQuery(debouncedQuery);
+    setPage(1);
+  }
+
+  const { data: result, isLoading } = usePaginatedEvents({
+    name: debouncedQuery || undefined,
+    page,
+    limit: PAGE_SIZE,
+  });
+
+  const filteredEvents = result?.data;
+  const totalPages = result ? Math.max(Math.ceil(result.total / result.limit), 1) : 1;
 
   return (
     <div>
@@ -140,6 +160,30 @@ export function EventsPage() {
               </Link>
             ))}
           </div>
+
+          {result && result.total > result.limit && (
+            <div className="mt-4 flex items-center justify-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page <= 1}
+                onClick={() => setPage((current) => current - 1)}
+              >
+                Anterior
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                Página {page} de {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page >= totalPages}
+                onClick={() => setPage((current) => current + 1)}
+              >
+                Próxima
+              </Button>
+            </div>
+          )}
         </>
       )}
     </div>

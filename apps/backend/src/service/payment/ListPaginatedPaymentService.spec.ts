@@ -92,4 +92,23 @@ describe('ListPaginatedPaymentService', () => {
       limit: 5,
     });
   });
+
+  it('usa page=1/limit=10 por padrão quando não informados', async () => {
+    paymentRepository.findAllPaginated.mockResolvedValue({
+      data: [],
+      total: 0,
+      page: 1,
+      limit: 10,
+    });
+
+    await service.execute({ organizationId, userId, role: Role.ADM });
+
+    expect(paymentRepository.findAllPaginated).toHaveBeenCalledWith({
+      organizationId,
+      userId: undefined,
+      query: undefined,
+      page: 1,
+      limit: 10,
+    });
+  });
 });

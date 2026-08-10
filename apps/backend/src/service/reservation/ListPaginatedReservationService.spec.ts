@@ -106,4 +106,24 @@ describe('ListPaginatedReservationService', () => {
       limit: 5,
     });
   });
+
+  it('usa page=1/limit=10 por padrão quando não informados', async () => {
+    reservationRepository.findAllPaginated.mockResolvedValue({
+      data: [],
+      total: 0,
+      page: 1,
+      limit: 10,
+    });
+
+    await service.execute({ organizationId, userId, role: Role.ADM });
+
+    expect(reservationRepository.findAllPaginated).toHaveBeenCalledWith({
+      organizationId,
+      userId: undefined,
+      status: undefined,
+      eventName: undefined,
+      page: 1,
+      limit: 10,
+    });
+  });
 });

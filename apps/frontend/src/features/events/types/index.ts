@@ -25,3 +25,10 @@ export interface CreateEventPayload {
   startTime: string;
   endTime: string;
 }
+
+export interface PaginatedEvents {
+  data: Event[];
+  total: number;
+  page: number;
+  limit: number;
+}

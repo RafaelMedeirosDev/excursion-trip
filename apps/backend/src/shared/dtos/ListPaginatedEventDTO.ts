@@ -1,10 +1,10 @@
 import { Type } from 'class-transformer';
 import { IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
-export class ListPaginatedCustomerDTO {
+export class ListPaginatedEventDTO {
   @IsOptional()
   @IsString()
-  query?: string;
+  name?: string;
 
   @IsOptional()
   @Type(() => Number)

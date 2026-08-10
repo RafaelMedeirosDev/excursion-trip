@@ -11,9 +11,12 @@ interface Request {
   role: Role;
   status?: ReservationStatus;
   eventName?: string;
-  page: number;
-  limit: number;
+  page?: number;
+  limit?: number;
 }
+
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 10;
 
 @Injectable()
 export class ListPaginatedReservationService {
@@ -33,8 +36,8 @@ export class ListPaginatedReservationService {
       userId: role === Role.ADM ? undefined : userId,
       status,
       eventName,
-      page,
-      limit,
+      page: page ?? DEFAULT_PAGE,
+      limit: limit ?? DEFAULT_LIMIT,
     });
   }
 }

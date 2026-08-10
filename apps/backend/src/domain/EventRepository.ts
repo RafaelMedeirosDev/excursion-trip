@@ -20,7 +20,21 @@ export interface FindAll {
   organizationId: string;
 }
 
+export interface FindAllPaginated {
+  organizationId: string;
+  name?: string;
+  page: number;
+  limit: number;
+}
+
 export type Events = Omit<Event, 'deletedAt'>;
+
+export interface PaginatedEvents {
+  data: Events[];
+  total: number;
+  page: number;
+  limit: number;
+}
 
 export abstract class EventRepository {
   abstract create({
@@ -38,4 +52,11 @@ export abstract class EventRepository {
   abstract findById({ id }: FindById): Promise<Event | null>;
 
   abstract findAll({ organizationId }: FindAll): Promise<Events[]>;
+
+  abstract findAllPaginated({
+    organizationId,
+    name,
+    page,
+    limit,
+  }: FindAllPaginated): Promise<PaginatedEvents>;
 }

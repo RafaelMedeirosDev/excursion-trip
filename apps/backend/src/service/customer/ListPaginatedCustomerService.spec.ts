@@ -58,4 +58,22 @@ describe('ListPaginatedCustomerService', () => {
       limit: 5,
     });
   });
+
+  it('usa page=1/limit=10 por padrão quando não informados', async () => {
+    customerRepository.findAllPaginated.mockResolvedValue({
+      data: [],
+      total: 0,
+      page: 1,
+      limit: 10,
+    });
+
+    await service.execute({ organizationId });
+
+    expect(customerRepository.findAllPaginated).toHaveBeenCalledWith({
+      organizationId,
+      query: undefined,
+      page: 1,
+      limit: 10,
+    });
+  });
 });

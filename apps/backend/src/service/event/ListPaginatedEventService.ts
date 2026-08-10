@@ -1,12 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import {
-  CustomerRepository,
-  PaginatedCustomers,
-} from 'src/domain/CustomerRepository';
+import { EventRepository, PaginatedEvents } from 'src/domain/EventRepository';
 
 interface Request {
   organizationId: string;
-  query?: string;
+  name?: string;
   page?: number;
   limit?: number;
 }
@@ -15,18 +12,18 @@ const DEFAULT_PAGE = 1;
 const DEFAULT_LIMIT = 10;
 
 @Injectable()
-export class ListPaginatedCustomerService {
-  constructor(private readonly customerRepository: CustomerRepository) {}
+export class ListPaginatedEventService {
+  constructor(private readonly eventRepository: EventRepository) {}
 
   async execute({
     organizationId,
-    query,
+    name,
     page,
     limit,
-  }: Request): Promise<PaginatedCustomers> {
-    return await this.customerRepository.findAllPaginated({
+  }: Request): Promise<PaginatedEvents> {
+    return await this.eventRepository.findAllPaginated({
       organizationId,
-      query,
+      name,
       page: page ?? DEFAULT_PAGE,
       limit: limit ?? DEFAULT_LIMIT,
     });

@@ -7,9 +7,12 @@ interface Request {
   userId: string;
   role: Role;
   query?: string;
-  page: number;
-  limit: number;
+  page?: number;
+  limit?: number;
 }
+
+const DEFAULT_PAGE = 1;
+const DEFAULT_LIMIT = 10;
 
 @Injectable()
 export class ListPaginatedPaymentService {
@@ -27,8 +30,8 @@ export class ListPaginatedPaymentService {
       organizationId,
       userId: role === Role.ADM ? undefined : userId,
       query,
-      page,
-      limit,
+      page: page ?? DEFAULT_PAGE,
+      limit: limit ?? DEFAULT_LIMIT,
     });
   }
 }
