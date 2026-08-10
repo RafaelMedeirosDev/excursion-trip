@@ -27,6 +27,13 @@ export interface ReservationWithRelations extends Reservation {
   user: User;
 }
 
+export interface PaginatedReservations {
+  data: ReservationWithRelations[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
 export interface CreateReservationPayload {
   customerId: string;
   vehicleBookingId: string;

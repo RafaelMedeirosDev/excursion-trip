@@ -9,7 +9,10 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Reservation } from '@prisma/client';
-import { Reservations } from 'src/domain/ReservationRepository';
+import {
+  PaginatedReservations,
+  Reservations,
+} from 'src/domain/ReservationRepository';
 import { CurrentUser } from 'src/decorators/CurrentUser';
 import { JwtAuthGuard } from 'src/guards/JwtAuthGuard';
 import { RolesGuard } from 'src/guards/RolesGuard';
@@ -18,10 +21,12 @@ import { ConfirmReservationService } from 'src/service/reservation/ConfirmReserv
 import { CreateReservationService } from 'src/service/reservation/CreateReservationService';
 import { GetReservationService } from 'src/service/reservation/GetReservationService';
 import { ListReservationService } from 'src/service/reservation/ListReservationService';
+import { ListPaginatedReservationService } from 'src/service/reservation/ListPaginatedReservationService';
 import { PendingReservationService } from 'src/service/reservation/PendingReservationService';
 import { CancelReservationDTO } from 'src/shared/dtos/CancelReservationDTO';
 import { CreateReservationDTO } from 'src/shared/dtos/CreateReservationDTO';
 import { ListReservationDTO } from 'src/shared/dtos/ListReservationDTO';
+import { ListPaginatedReservationDTO } from 'src/shared/dtos/ListPaginatedReservationDTO';
 import { JwtPayload } from 'src/strategies/JwtStrategy';
 
 @Controller('/reservations')
@@ -30,6 +35,7 @@ export class ReservationController {
   constructor(
     private readonly createReservationService: CreateReservationService,
     private readonly listReservationService: ListReservationService,
+    private readonly listPaginatedReservationService: ListPaginatedReservationService,
     private readonly pendingReservationService: PendingReservationService,
     private readonly confirmReservationService: ConfirmReservationService,
     private readonly cancelReservationService: CancelReservationService,
@@ -63,6 +69,22 @@ export class ReservationController {
       role: currentUser.role,
       status,
       vehicleBookingId,
+    });
+  }
+
+  @Get('paginated')
+  listPaginated(
+    @Query() { status, eventName, page, limit }: ListPaginatedReservationDTO,
+    @CurrentUser() currentUser: JwtPayload,
+  ): Promise<PaginatedReservations> {
+    return this.listPaginatedReservationService.execute({
+      organizationId: currentUser.organizationId,
+      userId: currentUser.sub,
+      role: currentUser.role,
+      status,
+      eventName,
+      page,
+      limit,
     });
   }
 

@@ -3,6 +3,7 @@ import { httpClient } from "@/services/http/client";
 import type {
   CancelReservationPayload,
   CreateReservationPayload,
+  PaginatedReservations,
   Reservation,
   ReservationWithRelations,
 } from "@/features/reservations/types";
@@ -18,6 +19,19 @@ export const reservationsApi = {
         params:
           status || vehicleBookingId ? { status, vehicleBookingId } : undefined,
       },
+    );
+    return data;
+  },
+
+  getReservationsPaginated: async (params: {
+    status?: ReservationStatus;
+    eventName?: string;
+    page: number;
+    limit: number;
+  }): Promise<PaginatedReservations> => {
+    const { data } = await httpClient.get<PaginatedReservations>(
+      "/reservations/paginated",
+      { params },
     );
     return data;
   },
