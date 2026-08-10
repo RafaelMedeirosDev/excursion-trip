@@ -20,3 +20,10 @@ export interface CreateBoardingPointPayload {
   address: string;
   time?: string;
 }
+
+export interface PaginatedBoardingPoints {
+  data: BoardingPointWithRelations[];
+  total: number;
+  page: number;
+  limit: number;
+}

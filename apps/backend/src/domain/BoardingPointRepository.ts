@@ -15,9 +15,23 @@ export interface FindAll {
   organizationId: string;
 }
 
+export interface FindAllPaginated {
+  organizationId: string;
+  address?: string;
+  page: number;
+  limit: number;
+}
+
 export type BoardingPoints = Omit<BoardingPoint, 'deletedAt'> & {
   vehicleBooking: Omit<VehicleBooking, 'deletedAt'>;
 };
+
+export interface PaginatedBoardingPoints {
+  data: BoardingPoints[];
+  total: number;
+  page: number;
+  limit: number;
+}
 
 export abstract class BoardingPointRepository {
   abstract create({
@@ -30,4 +44,11 @@ export abstract class BoardingPointRepository {
   abstract findById({ id }: FindById): Promise<BoardingPoint | null>;
 
   abstract findAll({ organizationId }: FindAll): Promise<BoardingPoints[]>;
+
+  abstract findAllPaginated({
+    organizationId,
+    address,
+    page,
+    limit,
+  }: FindAllPaginated): Promise<PaginatedBoardingPoints>;
 }
