@@ -1,8 +1,10 @@
 import { MapPin, Plus } from "lucide-react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { EmptyState } from "@/components/feedback/EmptyState";
+import { Input } from "@/components/ui/input";
 import { PageTitle } from "@/components/layout/PageTitle";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -15,14 +17,39 @@ import {
 } from "@/components/ui/table";
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useVehicleBookings } from "@/features/vehicleBookings/hooks/useVehicleBookings";
-import { useBoardingPoints } from "@/features/boardingPoints/hooks/useBoardingPoints";
+import { usePaginatedBoardingPoints } from "@/features/boardingPoints/hooks/usePaginatedBoardingPoints";
+
+const PAGE_SIZE = 10;
+const SEARCH_DEBOUNCE_MS = 300;
 
 function vehicleLabel(vehicleType: string, plate: string | null) {
   return plate ? `${vehicleType} — ${plate}` : vehicleType;
 }
 
 export function BoardingPointsPage() {
-  const { data: boardingPoints, isLoading } = useBoardingPoints();
+  const [address, setAddress] = useState("");
+  const [debouncedAddress, setDebouncedAddress] = useState("");
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    const timeout = setTimeout(
+      () => setDebouncedAddress(address),
+      SEARCH_DEBOUNCE_MS,
+    );
+    return () => clearTimeout(timeout);
+  }, [address]);
+
+  const [lastAddress, setLastAddress] = useState(debouncedAddress);
+  if (lastAddress !== debouncedAddress) {
+    setLastAddress(debouncedAddress);
+    setPage(1);
+  }
+
+  const { data: result, isLoading } = usePaginatedBoardingPoints({
+    address: debouncedAddress || undefined,
+    page,
+    limit: PAGE_SIZE,
+  });
   const { data: vehicleBookings } = useVehicleBookings();
   const { hasRole } = useAuth();
   const canCreate = hasRole("ADM");
@@ -33,6 +60,10 @@ export function BoardingPointsPage() {
       `${vehicleLabel(vehicleBooking.vehicleType, vehicleBooking.plate)} (${vehicleBooking.excursion.name})`,
     ]),
   );
+
+  const boardingPoints = result?.data;
+  const totalPages = result ? Math.max(Math.ceil(result.total / result.limit), 1) : 1;
+  const hasActiveFilter = address !== "";
 
   return (
     <div>
@@ -51,6 +82,14 @@ export function BoardingPointsPage() {
         }
       />
 
+      <div className="mb-4 w-full sm:w-80">
+        <Input
+          value={address}
+          onChange={(event) => setAddress(event.target.value)}
+          placeholder="Buscar por endereço"
+        />
+      </div>
+
       {isLoading && (
         <div className="space-y-2">
           <Skeleton className="h-10 w-full" />
@@ -63,9 +102,13 @@ export function BoardingPointsPage() {
         <EmptyState
           icon={MapPin}
           title="Nenhum ponto de embarque cadastrado"
-          description="Crie o primeiro ponto de embarque pra um veículo."
+          description={
+            hasActiveFilter
+              ? "Nenhum ponto de embarque encontrado com esse filtro."
+              : "Crie o primeiro ponto de embarque pra um veículo."
+          }
           action={
-            canCreate ? (
+            canCreate && !hasActiveFilter ? (
               <Button asChild>
                 <Link to="/boarding-points/new">
                   <Plus className="mr-2 size-4" />
@@ -148,6 +191,30 @@ export function BoardingPointsPage() {
               </Link>
             ))}
           </div>
+
+          {result && result.total > result.limit && (
+            <div className="mt-4 flex items-center justify-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page <= 1}
+                onClick={() => setPage((current) => current - 1)}
+              >
+                Anterior
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                Página {page} de {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page >= totalPages}
+                onClick={() => setPage((current) => current + 1)}
+              >
+                Próxima
+              </Button>
+            </div>
+          )}
         </>
       )}
     </div>

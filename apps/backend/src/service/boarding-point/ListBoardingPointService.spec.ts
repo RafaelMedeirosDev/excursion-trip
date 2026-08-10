@@ -15,6 +15,7 @@ describe('ListBoardingPointService', () => {
       create: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
+      findAllPaginated: jest.fn(),
     };
     service = new ListBoardingPointService(boardingPointRepository);
   });

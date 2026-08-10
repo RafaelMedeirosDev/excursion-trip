@@ -65,6 +65,7 @@ describe('CreateReservationService', () => {
       create: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
+      findAllPaginated: jest.fn(),
     };
     excursionRepository = {
       create: jest.fn(),
