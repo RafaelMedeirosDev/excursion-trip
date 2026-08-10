@@ -1,5 +1,5 @@
 import { Bus, Plus } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,7 +18,10 @@ import {
 import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useEvents } from "@/features/events/hooks/useEvents";
 import { useReservations } from "@/features/reservations/hooks/useReservations";
-import { useVehicleBookings } from "@/features/vehicleBookings/hooks/useVehicleBookings";
+import { usePaginatedVehicleBookings } from "@/features/vehicleBookings/hooks/usePaginatedVehicleBookings";
+
+const PAGE_SIZE = 10;
+const SEARCH_DEBOUNCE_MS = 300;
 
 function formatCurrency(cents: number) {
   return (cents / 100).toLocaleString("pt-BR", {
@@ -29,7 +32,25 @@ function formatCurrency(cents: number) {
 
 export function VehicleBookingsPage() {
   const [query, setQuery] = useState("");
-  const { data: vehicleBookings, isLoading } = useVehicleBookings();
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [page, setPage] = useState(1);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebouncedQuery(query), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timeout);
+  }, [query]);
+
+  const [lastQuery, setLastQuery] = useState(debouncedQuery);
+  if (lastQuery !== debouncedQuery) {
+    setLastQuery(debouncedQuery);
+    setPage(1);
+  }
+
+  const { data: result, isLoading } = usePaginatedVehicleBookings({
+    query: debouncedQuery || undefined,
+    page,
+    limit: PAGE_SIZE,
+  });
   const { data: events } = useEvents();
   const { data: reservations } = useReservations();
   const { hasRole } = useAuth();
@@ -53,17 +74,8 @@ export function VehicleBookingsPage() {
     return Math.max(capacity - occupied, 0);
   }
 
-  const filteredVehicleBookings = vehicleBookings?.filter((vehicleBooking) => {
-    if (!query) return true;
-    const q = query.toLowerCase();
-    const eventName = (
-      eventNameById.get(vehicleBooking.excursion.eventId) ?? ""
-    ).toLowerCase();
-    return (
-      eventName.includes(q) ||
-      vehicleBooking.user.name.toLowerCase().includes(q)
-    );
-  });
+  const filteredVehicleBookings = result?.data;
+  const totalPages = result ? Math.max(Math.ceil(result.total / result.limit), 1) : 1;
   const hasActiveFilter = query !== "";
 
   return (
@@ -228,6 +240,30 @@ export function VehicleBookingsPage() {
               </Link>
             ))}
           </div>
+
+          {result && result.total > result.limit && (
+            <div className="mt-4 flex items-center justify-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page <= 1}
+                onClick={() => setPage((current) => current - 1)}
+              >
+                Anterior
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                Página {page} de {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page >= totalPages}
+                onClick={() => setPage((current) => current + 1)}
+              >
+                Próxima
+              </Button>
+            </div>
+          )}
         </>
       )}
     </div>

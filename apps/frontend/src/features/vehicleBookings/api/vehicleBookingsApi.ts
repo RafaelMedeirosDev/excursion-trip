@@ -1,6 +1,7 @@
 import { httpClient } from "@/services/http/client";
 import type {
   CreateVehicleBookingPayload,
+  PaginatedVehicleBookings,
   VehicleBooking,
   VehicleBookingWithRelations,
 } from "@/features/vehicleBookings/types";
@@ -9,6 +10,18 @@ export const vehicleBookingsApi = {
   getVehicleBookings: async (): Promise<VehicleBookingWithRelations[]> => {
     const { data } = await httpClient.get<VehicleBookingWithRelations[]>(
       "/vehicle-bookings",
+    );
+    return data;
+  },
+
+  getVehicleBookingsPaginated: async (params: {
+    query?: string;
+    page: number;
+    limit: number;
+  }): Promise<PaginatedVehicleBookings> => {
+    const { data } = await httpClient.get<PaginatedVehicleBookings>(
+      "/vehicle-bookings/paginated",
+      { params },
     );
     return data;
   },

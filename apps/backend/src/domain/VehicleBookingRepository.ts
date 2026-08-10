@@ -28,11 +28,26 @@ export interface FindAll {
   userId?: string;
 }
 
+export interface FindAllPaginated {
+  organizationId: string;
+  userId?: string;
+  query?: string;
+  page: number;
+  limit: number;
+}
+
 export type VehicleBookings = Omit<VehicleBooking, 'deletedAt'> & {
   excursion: Excursion;
   supplier: Omit<Supplier, 'deletedAt'>;
   user: Omit<User, 'password' | 'deletedAt'>;
 };
+
+export interface PaginatedVehicleBookings {
+  data: VehicleBookings[];
+  total: number;
+  page: number;
+  limit: number;
+}
 
 export abstract class VehicleBookingRepository {
   abstract create({
@@ -57,4 +72,12 @@ export abstract class VehicleBookingRepository {
   abstract findById({ id }: FindById): Promise<VehicleBooking | null>;
 
   abstract findAll({ organizationId, userId }: FindAll): Promise<VehicleBookings[]>;
+
+  abstract findAllPaginated({
+    organizationId,
+    userId,
+    query,
+    page,
+    limit,
+  }: FindAllPaginated): Promise<PaginatedVehicleBookings>;
 }

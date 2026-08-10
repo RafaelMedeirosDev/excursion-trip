@@ -5,10 +5,14 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { Role, VehicleBooking } from '@prisma/client';
-import { VehicleBookings } from 'src/domain/VehicleBookingRepository';
+import {
+  PaginatedVehicleBookings,
+  VehicleBookings,
+} from 'src/domain/VehicleBookingRepository';
 import { CurrentUser } from 'src/decorators/CurrentUser';
 import { Roles } from 'src/decorators/Roles';
 import { JwtAuthGuard } from 'src/guards/JwtAuthGuard';
@@ -16,7 +20,9 @@ import { RolesGuard } from 'src/guards/RolesGuard';
 import { CreateVehicleBookingService } from 'src/service/vehicle-booking/CreateVehicleBookingService';
 import { GetVehicleBookingService } from 'src/service/vehicle-booking/GetVehicleBookingService';
 import { ListVehicleBookingService } from 'src/service/vehicle-booking/ListVehicleBookingService';
+import { ListPaginatedVehicleBookingService } from 'src/service/vehicle-booking/ListPaginatedVehicleBookingService';
 import { CreateVehicleBookingDTO } from 'src/shared/dtos/CreateVehicleBookingDTO';
+import { ListPaginatedVehicleBookingDTO } from 'src/shared/dtos/ListPaginatedVehicleBookingDTO';
 import { JwtPayload } from 'src/strategies/JwtStrategy';
 
 @Controller('/vehicle-bookings')
@@ -25,6 +31,7 @@ export class VehicleBookingController {
   constructor(
     private readonly createVehicleBookingService: CreateVehicleBookingService,
     private readonly listVehicleBookingService: ListVehicleBookingService,
+    private readonly listPaginatedVehicleBookingService: ListPaginatedVehicleBookingService,
     private readonly getVehicleBookingService: GetVehicleBookingService,
   ) {}
 
@@ -67,6 +74,21 @@ export class VehicleBookingController {
       organizationId: currentUser.organizationId,
       userId: currentUser.sub,
       role: currentUser.role,
+    });
+  }
+
+  @Get('paginated')
+  listPaginated(
+    @Query() { query, page, limit }: ListPaginatedVehicleBookingDTO,
+    @CurrentUser() currentUser: JwtPayload,
+  ): Promise<PaginatedVehicleBookings> {
+    return this.listPaginatedVehicleBookingService.execute({
+      organizationId: currentUser.organizationId,
+      userId: currentUser.sub,
+      role: currentUser.role,
+      query,
+      page,
+      limit,
     });
   }
 

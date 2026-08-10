@@ -38,3 +38,10 @@ export interface CreateVehicleBookingPayload {
   returnTime?: string;
   price: number;
 }
+
+export interface PaginatedVehicleBookings {
+  data: VehicleBookingWithRelations[];
+  total: number;
+  page: number;
+  limit: number;
+}
