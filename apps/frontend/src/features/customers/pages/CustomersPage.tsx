@@ -1,5 +1,5 @@
 import { Plus, UserRound } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,19 +15,35 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useCustomers } from "@/features/customers/hooks/useCustomers";
+import { usePaginatedCustomers } from "@/features/customers/hooks/usePaginatedCustomers";
+
+const PAGE_SIZE = 10;
+const SEARCH_DEBOUNCE_MS = 300;
 
 export function CustomersPage() {
   const [query, setQuery] = useState("");
-  const { data: customers, isLoading } = useCustomers();
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [page, setPage] = useState(1);
 
-  const filteredCustomers = customers?.filter((customer) => {
-    if (!query) return true;
-    const q = query.toLowerCase();
-    return (
-      customer.name.toLowerCase().includes(q) || customer.cpf.includes(q)
-    );
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebouncedQuery(query), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timeout);
+  }, [query]);
+
+  const [lastQuery, setLastQuery] = useState(debouncedQuery);
+  if (lastQuery !== debouncedQuery) {
+    setLastQuery(debouncedQuery);
+    setPage(1);
+  }
+
+  const { data: result, isLoading } = usePaginatedCustomers({
+    query: debouncedQuery || undefined,
+    page,
+    limit: PAGE_SIZE,
   });
+
+  const filteredCustomers = result?.data;
+  const totalPages = result ? Math.max(Math.ceil(result.total / result.limit), 1) : 1;
 
   return (
     <div>
@@ -134,6 +150,30 @@ export function CustomersPage() {
               </Link>
             ))}
           </div>
+
+          {result && result.total > result.limit && (
+            <div className="mt-4 flex items-center justify-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page <= 1}
+                onClick={() => setPage((current) => current - 1)}
+              >
+                Anterior
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                Página {page} de {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page >= totalPages}
+                onClick={() => setPage((current) => current + 1)}
+              >
+                Próxima
+              </Button>
+            </div>
+          )}
         </>
       )}
     </div>

@@ -16,3 +16,10 @@ export interface CreateCustomerPayload {
   phone: string;
   cpf: string;
 }
+
+export interface PaginatedCustomers {
+  data: Customer[];
+  total: number;
+  page: number;
+  limit: number;
+}

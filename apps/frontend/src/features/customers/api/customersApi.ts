@@ -1,9 +1,25 @@
 import { httpClient } from "@/services/http/client";
-import type { CreateCustomerPayload, Customer } from "@/features/customers/types";
+import type {
+  CreateCustomerPayload,
+  Customer,
+  PaginatedCustomers,
+} from "@/features/customers/types";
 
 export const customersApi = {
   getCustomers: async (): Promise<Customer[]> => {
     const { data } = await httpClient.get<Customer[]>("/customers");
+    return data;
+  },
+
+  getCustomersPaginated: async (params: {
+    query?: string;
+    page: number;
+    limit: number;
+  }): Promise<PaginatedCustomers> => {
+    const { data } = await httpClient.get<PaginatedCustomers>(
+      "/customers/paginated",
+      { params },
+    );
     return data;
   },
 

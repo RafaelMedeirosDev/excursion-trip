@@ -5,8 +5,10 @@ import {
   CustomerRepository,
   Customers,
   FindAll,
+  FindAllPaginated,
   FindByCpf,
   FindById,
+  PaginatedCustomers,
 } from 'src/domain/CustomerRepository';
 import { PrismaRemoteRepository } from './PrismaRemoteRepository';
 
@@ -44,5 +46,44 @@ export class PrismaCustomerRepository implements CustomerRepository {
         updatedAt: true,
       },
     });
+  }
+
+  findAllPaginated({
+    organizationId,
+    query,
+    page,
+    limit,
+  }: FindAllPaginated): Promise<PaginatedCustomers> {
+    const where = {
+      organizationId,
+      deletedAt: null,
+      ...(query
+        ? {
+            OR: [
+              { name: { contains: query, mode: 'insensitive' as const } },
+              { cpf: { contains: query } },
+            ],
+          }
+        : {}),
+    };
+
+    return Promise.all([
+      this.repository.customer.findMany({
+        where,
+        select: {
+          id: true,
+          organizationId: true,
+          name: true,
+          email: true,
+          phone: true,
+          cpf: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.repository.customer.count({ where }),
+    ]).then(([data, total]) => ({ data, total, page, limit }));
   }
 }
