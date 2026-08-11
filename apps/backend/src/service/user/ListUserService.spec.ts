@@ -15,6 +15,7 @@ describe('ListUserService', () => {
       findByCpf: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
+      findAllPaginated: jest.fn(),
     };
     service = new ListUserService(userRepository);
   });

@@ -27,7 +27,21 @@ export interface FindAll {
   organizationId: string;
 }
 
+export interface FindAllPaginated {
+  organizationId: string;
+  query?: string;
+  page: number;
+  limit: number;
+}
+
 export type Users = Omit<User, 'password' | 'deletedAt'>;
+
+export interface PaginatedUsers {
+  data: Users[];
+  total: number;
+  page: number;
+  limit: number;
+}
 
 export abstract class UserRepository {
   abstract create({
@@ -47,4 +61,11 @@ export abstract class UserRepository {
   abstract findById({ id }: FindById): Promise<Users | null>;
 
   abstract findAll({ organizationId }: FindAll): Promise<Users[]>;
+
+  abstract findAllPaginated({
+    organizationId,
+    query,
+    page,
+    limit,
+  }: FindAllPaginated): Promise<PaginatedUsers>;
 }

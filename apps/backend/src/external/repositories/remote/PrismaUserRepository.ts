@@ -3,9 +3,11 @@ import { User } from '@prisma/client';
 import {
   Create,
   FindAll,
+  FindAllPaginated,
   FindByCpf,
   FindByEmail,
   FindById,
+  PaginatedUsers,
   UserRepository,
   Users,
 } from 'src/domain/UserRepository';
@@ -80,5 +82,46 @@ export class PrismaUserRepository implements UserRepository {
         updatedAt: true
       },
     });
+  }
+
+  findAllPaginated({
+    organizationId,
+    query,
+    page,
+    limit,
+  }: FindAllPaginated): Promise<PaginatedUsers> {
+    const where = {
+      organizationId,
+      deletedAt: null,
+      ...(query
+        ? {
+            OR: [
+              { name: { contains: query, mode: 'insensitive' as const } },
+              { email: { contains: query, mode: 'insensitive' as const } },
+              { cpf: { contains: query } },
+            ],
+          }
+        : {}),
+    };
+
+    return Promise.all([
+      this.repository.user.findMany({
+        where,
+        select: {
+          id: true,
+          organizationId: true,
+          name: true,
+          email: true,
+          phone: true,
+          cpf: true,
+          role: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.repository.user.count({ where }),
+    ]).then(([data, total]) => ({ data, total, page, limit }));
   }
 }
