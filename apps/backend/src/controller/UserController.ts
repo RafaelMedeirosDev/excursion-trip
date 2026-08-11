@@ -5,10 +5,11 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { Role } from '@prisma/client';
-import { Users } from 'src/domain/UserRepository';
+import { PaginatedUsers, Users } from 'src/domain/UserRepository';
 import { CurrentUser } from 'src/decorators/CurrentUser';
 import { Roles } from 'src/decorators/Roles';
 import { JwtAuthGuard } from 'src/guards/JwtAuthGuard';
@@ -16,7 +17,9 @@ import { RolesGuard } from 'src/guards/RolesGuard';
 import { CreateUserService } from 'src/service/user/CreateUserService';
 import { GetUserService } from 'src/service/user/GetUserService';
 import { ListUserService } from 'src/service/user/ListUserService';
+import { ListPaginatedUserService } from 'src/service/user/ListPaginatedUserService';
 import { CreateUserDTO } from 'src/shared/dtos/CreateUserDTO';
+import { ListPaginatedUserDTO } from 'src/shared/dtos/ListPaginatedUserDTO';
 import { JwtPayload } from 'src/strategies/JwtStrategy';
 
 @Controller('/users')
@@ -25,6 +28,7 @@ export class UserController {
   constructor(
     private readonly createUserService: CreateUserService,
     private readonly listUserService: ListUserService,
+    private readonly listPaginatedUserService: ListPaginatedUserService,
     private readonly getUserService: GetUserService,
   ) {}
 
@@ -50,6 +54,20 @@ export class UserController {
   list(@CurrentUser() currentUser: JwtPayload): Promise<Users[]> {
     return this.listUserService.execute({
       organizationId: currentUser.organizationId,
+    });
+  }
+
+  @Get('paginated')
+  @Roles(Role.ADM)
+  listPaginated(
+    @Query() { query, page, limit }: ListPaginatedUserDTO,
+    @CurrentUser() currentUser: JwtPayload,
+  ): Promise<PaginatedUsers> {
+    return this.listPaginatedUserService.execute({
+      organizationId: currentUser.organizationId,
+      query,
+      page,
+      limit,
     });
   }
 

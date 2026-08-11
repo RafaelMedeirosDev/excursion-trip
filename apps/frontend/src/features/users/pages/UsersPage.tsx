@@ -1,5 +1,5 @@
 import { Plus, UserCog } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,21 +16,36 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ROLE_LABELS } from "@excursion-trip/shared";
-import { useUsers } from "@/features/users/hooks/useUsers";
+import { usePaginatedUsers } from "@/features/users/hooks/usePaginatedUsers";
+
+const PAGE_SIZE = 10;
+const SEARCH_DEBOUNCE_MS = 300;
 
 export function UsersPage() {
   const [query, setQuery] = useState("");
-  const { data: users, isLoading } = useUsers();
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [page, setPage] = useState(1);
 
-  const filteredUsers = users?.filter((user) => {
-    if (!query) return true;
-    const q = query.toLowerCase();
-    return (
-      user.name.toLowerCase().includes(q) ||
-      user.cpf.includes(q) ||
-      user.email.toLowerCase().includes(q)
-    );
+  useEffect(() => {
+    const timeout = setTimeout(() => setDebouncedQuery(query), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timeout);
+  }, [query]);
+
+  const [lastQuery, setLastQuery] = useState(debouncedQuery);
+  if (lastQuery !== debouncedQuery) {
+    setLastQuery(debouncedQuery);
+    setPage(1);
+  }
+
+  const { data: result, isLoading } = usePaginatedUsers({
+    query: debouncedQuery || undefined,
+    page,
+    limit: PAGE_SIZE,
   });
+
+  const users = result?.data;
+  const totalPages = result ? Math.max(Math.ceil(result.total / result.limit), 1) : 1;
+  const hasActiveFilter = query !== "";
 
   return (
     <div>
@@ -63,17 +78,17 @@ export function UsersPage() {
         </div>
       )}
 
-      {!isLoading && filteredUsers && filteredUsers.length === 0 && (
+      {!isLoading && users && users.length === 0 && (
         <EmptyState
           icon={UserCog}
           title="Nenhum usuário cadastrado"
           description={
-            query === ""
-              ? "Crie o primeiro usuário da sua organização."
-              : "Nenhum usuário encontrado com esse filtro."
+            hasActiveFilter
+              ? "Nenhum usuário encontrado com esse filtro."
+              : "Crie o primeiro usuário da sua organização."
           }
           action={
-            query === "" ? (
+            !hasActiveFilter ? (
               <Button asChild>
                 <Link to="/users/new">
                   <Plus className="mr-2 size-4" />
@@ -85,7 +100,7 @@ export function UsersPage() {
         />
       )}
 
-      {!isLoading && filteredUsers && filteredUsers.length > 0 && (
+      {!isLoading && users && users.length > 0 && (
         <>
           <div className="hidden md:block">
             <Table>
@@ -99,7 +114,7 @@ export function UsersPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.map((user) => (
+                {users.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell>
                       <Link
@@ -120,7 +135,7 @@ export function UsersPage() {
           </div>
 
           <div className="grid gap-3 md:hidden">
-            {filteredUsers.map((user) => (
+            {users.map((user) => (
               <Link key={user.id} to={`/users/${user.id}`}>
                 <Card className="transition-colors hover:bg-muted/50">
                   <CardContent className="space-y-3 pt-6">
@@ -140,6 +155,30 @@ export function UsersPage() {
               </Link>
             ))}
           </div>
+
+          {result && result.total > result.limit && (
+            <div className="mt-4 flex items-center justify-center gap-3">
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page <= 1}
+                onClick={() => setPage((current) => current - 1)}
+              >
+                Anterior
+              </Button>
+              <span className="text-sm text-muted-foreground">
+                Página {page} de {totalPages}
+              </span>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={page >= totalPages}
+                onClick={() => setPage((current) => current + 1)}
+              >
+                Próxima
+              </Button>
+            </div>
+          )}
         </>
       )}
     </div>

@@ -20,3 +20,10 @@ export interface CreateUserPayload {
   cpf: string;
   role: Role;
 }
+
+export interface PaginatedUsers {
+  data: User[];
+  total: number;
+  page: number;
+  limit: number;
+}

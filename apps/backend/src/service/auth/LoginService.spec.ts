@@ -33,6 +33,7 @@ describe('LoginService', () => {
       findByCpf: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
+      findAllPaginated: jest.fn(),
     };
     refreshTokenRepository = {
       create: jest.fn(),

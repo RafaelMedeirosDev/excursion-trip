@@ -46,6 +46,7 @@ describe('RefreshTokenService', () => {
       findByCpf: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
+      findAllPaginated: jest.fn(),
     };
     organizationRepository = {
       create: jest.fn(),
