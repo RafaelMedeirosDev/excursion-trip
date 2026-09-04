@@ -12,9 +12,11 @@ import { EmptyState } from "@/components/feedback/EmptyState";
 import { PageTitle } from "@/components/layout/PageTitle";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useVehicleBooking } from "@/features/vehicleBookings/hooks/useVehicleBooking";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { useBoardingPoint } from "@/features/boardingPoints/hooks/useBoardingPoint";
 
 export function BoardingPointDetailsPage() {
+  const { hasRole } = useAuth();
   const { id } = useParams<{ id: string }>();
   const { data: boardingPoint, isLoading, error } = useBoardingPoint(id ?? "");
   const { data: vehicleBooking } = useVehicleBooking(
@@ -51,7 +53,18 @@ export function BoardingPointDetailsPage() {
 
   return (
     <div className="space-y-4">
-      <PageTitle title={boardingPoint.address} />
+      <PageTitle
+        title={boardingPoint.address}
+        action={
+          hasRole("ADM") ? (
+            <Button asChild>
+              <Link to={`/boarding-points/${boardingPoint.id}/edit`}>
+                Editar
+              </Link>
+            </Button>
+          ) : undefined
+        }
+      />
 
       <Card>
         <CardContent className="grid grid-cols-1 gap-4 pt-6 sm:grid-cols-2">

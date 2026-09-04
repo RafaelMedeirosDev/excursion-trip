@@ -21,6 +21,11 @@ export interface CreateBoardingPointPayload {
   time?: string;
 }
 
+export interface UpdateBoardingPointPayload {
+  address: string;
+  time: string | null;
+}
+
 export interface PaginatedBoardingPoints {
   data: BoardingPointWithRelations[];
   total: number;

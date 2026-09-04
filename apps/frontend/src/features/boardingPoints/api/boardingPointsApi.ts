@@ -3,6 +3,7 @@ import type {
   BoardingPoint,
   BoardingPointWithRelations,
   CreateBoardingPointPayload,
+  UpdateBoardingPointPayload,
   PaginatedBoardingPoints,
 } from "@/features/boardingPoints/types";
 
@@ -38,6 +39,17 @@ export const boardingPointsApi = {
   ): Promise<BoardingPoint> => {
     const { data } = await httpClient.post<BoardingPoint>(
       "/boarding-points",
+      payload,
+    );
+    return data;
+  },
+
+  updateBoardingPoint: async (
+    id: string,
+    payload: UpdateBoardingPointPayload,
+  ): Promise<BoardingPoint> => {
+    const { data } = await httpClient.patch<BoardingPoint>(
+      `/boarding-points/${id}`,
       payload,
     );
     return data;

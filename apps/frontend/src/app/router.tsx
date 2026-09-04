@@ -27,6 +27,7 @@ import { VehicleBookingsPage } from "@/features/vehicleBookings/pages/VehicleBoo
 import { BoardingPointDetailsPage } from "@/features/boardingPoints/pages/BoardingPointDetailsPage";
 import { BoardingPointsPage } from "@/features/boardingPoints/pages/BoardingPointsPage";
 import { CreateBoardingPointPage } from "@/features/boardingPoints/pages/CreateBoardingPointPage";
+import { EditBoardingPointPage } from "@/features/boardingPoints/pages/EditBoardingPointPage";
 import { CreateReservationPage } from "@/features/reservations/pages/CreateReservationPage";
 import { ReservationDetailsPage } from "@/features/reservations/pages/ReservationDetailsPage";
 import { ReservationsPage } from "@/features/reservations/pages/ReservationsPage";
@@ -83,6 +84,10 @@ export function AppRouter() {
             <Route
               path="/boarding-points/new"
               element={<CreateBoardingPointPage />}
+            />
+            <Route
+              path="/boarding-points/:id/edit"
+              element={<EditBoardingPointPage />}
             />
           </Route>
 

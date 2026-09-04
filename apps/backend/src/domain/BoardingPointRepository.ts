@@ -7,6 +7,14 @@ export interface Create {
   time?: string;
 }
 
+// vehicleBookingId de fora de propósito: mover o ponto para outro veículo
+// deixaria reservas apontando para embarque de outro ônibus
+export interface Update {
+  id: string;
+  address?: string;
+  time?: string | null;
+}
+
 export interface FindById {
   id: string;
 }
@@ -40,6 +48,8 @@ export abstract class BoardingPointRepository {
     address,
     time,
   }: Create): Promise<BoardingPoint>;
+
+  abstract update({ id, address, time }: Update): Promise<BoardingPoint>;
 
   abstract findById({ id }: FindById): Promise<BoardingPoint | null>;
 
