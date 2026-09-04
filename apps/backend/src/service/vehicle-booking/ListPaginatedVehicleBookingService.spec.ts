@@ -16,6 +16,7 @@ describe('ListPaginatedVehicleBookingService', () => {
     vehicleBookingRepository = {
       create: jest.fn(),
       findByExcursionAndPlate: jest.fn(),
+      countUpcomingBySupplierId: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
       findAllPaginated: jest.fn(),

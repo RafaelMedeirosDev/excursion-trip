@@ -83,6 +83,7 @@ import { ListReservationService } from 'src/service/reservation/ListReservationS
 import { ListPaginatedReservationService } from 'src/service/reservation/ListPaginatedReservationService';
 import { ListSupplierService } from 'src/service/supplier/ListSupplierService';
 import { ListPaginatedSupplierService } from 'src/service/supplier/ListPaginatedSupplierService';
+import { DeleteSupplierService } from 'src/service/supplier/DeleteSupplierService';
 import { UpdateSupplierService } from 'src/service/supplier/UpdateSupplierService';
 import { ListUserService } from 'src/service/user/ListUserService';
 import { ListPaginatedUserService } from 'src/service/user/ListPaginatedUserService';
@@ -156,6 +157,7 @@ import { AppService } from './app.service';
     ListPaginatedSupplierService,
     GetSupplierService,
     UpdateSupplierService,
+    DeleteSupplierService,
     CreateVehicleBookingService,
     ListVehicleBookingService,
     ListPaginatedVehicleBookingService,

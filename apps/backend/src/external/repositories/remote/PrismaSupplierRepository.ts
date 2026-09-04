@@ -7,6 +7,8 @@ import {
   FindByCnpj,
   FindById,
   PaginatedSuppliers,
+  Restore,
+  SoftDelete,
   Update,
   SupplierRepository,
   Suppliers,
@@ -30,6 +32,20 @@ export class PrismaSupplierRepository implements SupplierRepository {
     });
   }
 
+  async softDelete({ id }: SoftDelete): Promise<void> {
+    await this.repository.supplier.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+  }
+
+  restore({ id, name, address, phone }: Restore): Promise<Supplier> {
+    return this.repository.supplier.update({
+      where: { id },
+      data: { name, address, phone, deletedAt: null },
+    });
+  }
+
   findByCnpj({ organizationId, cnpj }: FindByCnpj): Promise<Supplier | null> {
     return this.repository.supplier.findFirst({
       where: { organizationId, cnpj },
@@ -37,7 +53,9 @@ export class PrismaSupplierRepository implements SupplierRepository {
   }
 
   findById({ id }: FindById): Promise<Supplier | null> {
-    return this.repository.supplier.findFirst({ where: { id } });
+    return this.repository.supplier.findFirst({
+      where: { id, deletedAt: null },
+    });
   }
 
   findAll({ organizationId }: FindAll): Promise<Suppliers[]> {

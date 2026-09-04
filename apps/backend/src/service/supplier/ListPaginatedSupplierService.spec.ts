@@ -14,6 +14,8 @@ describe('ListPaginatedSupplierService', () => {
     supplierRepository = {
       create: jest.fn(),
       update: jest.fn(),
+      softDelete: jest.fn(),
+      restore: jest.fn(),
       findByCnpj: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),

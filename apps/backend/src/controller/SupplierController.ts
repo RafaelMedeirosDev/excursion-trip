@@ -1,7 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -16,6 +19,7 @@ import { Roles } from 'src/decorators/Roles';
 import { JwtAuthGuard } from 'src/guards/JwtAuthGuard';
 import { RolesGuard } from 'src/guards/RolesGuard';
 import { CreateSupplierService } from 'src/service/supplier/CreateSupplierService';
+import { DeleteSupplierService } from 'src/service/supplier/DeleteSupplierService';
 import { GetSupplierService } from 'src/service/supplier/GetSupplierService';
 import { ListSupplierService } from 'src/service/supplier/ListSupplierService';
 import { ListPaginatedSupplierService } from 'src/service/supplier/ListPaginatedSupplierService';
@@ -34,6 +38,7 @@ export class SupplierController {
     private readonly listPaginatedSupplierService: ListPaginatedSupplierService,
     private readonly getSupplierService: GetSupplierService,
     private readonly updateSupplierService: UpdateSupplierService,
+    private readonly deleteSupplierService: DeleteSupplierService,
   ) {}
 
   @Post()
@@ -101,6 +106,19 @@ export class SupplierController {
       cnpj,
       address,
       phone,
+    });
+  }
+
+  @Delete(':id')
+  @Roles(Role.ADM)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  delete(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() currentUser: JwtPayload,
+  ): Promise<void> {
+    return this.deleteSupplierService.execute({
+      organizationId: currentUser.organizationId,
+      id,
     });
   }
 }
