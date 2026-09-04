@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -18,8 +19,10 @@ import { CreateSupplierService } from 'src/service/supplier/CreateSupplierServic
 import { GetSupplierService } from 'src/service/supplier/GetSupplierService';
 import { ListSupplierService } from 'src/service/supplier/ListSupplierService';
 import { ListPaginatedSupplierService } from 'src/service/supplier/ListPaginatedSupplierService';
+import { UpdateSupplierService } from 'src/service/supplier/UpdateSupplierService';
 import { CreateSupplierDTO } from 'src/shared/dtos/CreateSupplierDTO';
 import { ListPaginatedSupplierDTO } from 'src/shared/dtos/ListPaginatedSupplierDTO';
+import { UpdateSupplierDTO } from 'src/shared/dtos/UpdateSupplierDTO';
 import { JwtPayload } from 'src/strategies/JwtStrategy';
 
 @Controller('/suppliers')
@@ -30,6 +33,7 @@ export class SupplierController {
     private readonly listSupplierService: ListSupplierService,
     private readonly listPaginatedSupplierService: ListPaginatedSupplierService,
     private readonly getSupplierService: GetSupplierService,
+    private readonly updateSupplierService: UpdateSupplierService,
   ) {}
 
   @Post()
@@ -77,6 +81,26 @@ export class SupplierController {
     return this.getSupplierService.execute({
       organizationId: currentUser.organizationId,
       id,
+    });
+  }
+
+  // @Roles obrigatório aqui: o GET :id desse controller é aberto a qualquer
+  // autenticado (EMPLOYEE hidratando o detalhe do veículo), então a rota nova
+  // não herda restrição de lugar nenhum
+  @Patch(':id')
+  @Roles(Role.ADM)
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() { name, cnpj, address, phone }: UpdateSupplierDTO,
+    @CurrentUser() currentUser: JwtPayload,
+  ): Promise<Supplier> {
+    return this.updateSupplierService.execute({
+      organizationId: currentUser.organizationId,
+      id,
+      name,
+      cnpj,
+      address,
+      phone,
     });
   }
 }

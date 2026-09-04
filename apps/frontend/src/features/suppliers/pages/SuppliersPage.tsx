@@ -1,4 +1,4 @@
-import { Building2, Plus } from "lucide-react";
+import { Building2, Pencil, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -107,6 +107,7 @@ export function SuppliersPage() {
                   <TableHead>Nome</TableHead>
                   <TableHead>CNPJ</TableHead>
                   <TableHead>Telefone</TableHead>
+                  <TableHead className="w-0 text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -122,6 +123,24 @@ export function SuppliersPage() {
                     </TableCell>
                     <TableCell>{supplier.cnpj}</TableCell>
                     <TableCell>{supplier.phone}</TableCell>
+                    <TableCell>
+                      <div className="flex justify-end">
+                        <Button
+                          asChild
+                          variant="outline"
+                          size="icon"
+                          className="size-9"
+                        >
+                          <Link
+                            to={`/suppliers/${supplier.id}/edit`}
+                            aria-label="Editar fornecedor"
+                            title="Editar fornecedor"
+                          >
+                            <Pencil className="size-4" />
+                          </Link>
+                        </Button>
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -130,18 +149,37 @@ export function SuppliersPage() {
 
           <div className="grid gap-3 md:hidden">
             {filteredSuppliers.map((supplier) => (
-              <Link key={supplier.id} to={`/suppliers/${supplier.id}`}>
-                <Card className="transition-colors hover:bg-muted/50">
-                  <CardContent className="space-y-3 pt-6">
-                    <span className="font-medium">{supplier.name}</span>
+              <Card key={supplier.id}>
+                <CardContent className="space-y-3 pt-6">
+                  <div className="flex items-start justify-between gap-3">
+                    <Link
+                      to={`/suppliers/${supplier.id}`}
+                      className="font-medium hover:underline"
+                    >
+                      {supplier.name}
+                    </Link>
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="icon"
+                      className="size-9 shrink-0"
+                    >
+                      <Link
+                        to={`/suppliers/${supplier.id}/edit`}
+                        aria-label="Editar fornecedor"
+                        title="Editar fornecedor"
+                      >
+                        <Pencil className="size-4" />
+                      </Link>
+                    </Button>
+                  </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <CardField label="CNPJ" value={supplier.cnpj} />
-                      <CardField label="Telefone" value={supplier.phone} />
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
+                  <div className="grid grid-cols-2 gap-3">
+                    <CardField label="CNPJ" value={supplier.cnpj} />
+                    <CardField label="Telefone" value={supplier.phone} />
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
 

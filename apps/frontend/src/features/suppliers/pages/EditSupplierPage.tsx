@@ -1,48 +1,97 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { isAxiosError } from "axios";
+import { useEffect } from "react";
+import { Building2 } from "lucide-react";
 import { useForm } from "react-hook-form";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { EmptyState } from "@/components/feedback/EmptyState";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PageTitle } from "@/components/layout/PageTitle";
-import { useCreateSupplier } from "@/features/suppliers/hooks/useCreateSupplier";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useSupplier } from "@/features/suppliers/hooks/useSupplier";
+import { useUpdateSupplier } from "@/features/suppliers/hooks/useUpdateSupplier";
 import {
-  createSupplierSchema,
-  type CreateSupplierInput,
+  updateSupplierSchema,
+  type UpdateSupplierInput,
 } from "@/features/suppliers/validations/supplierSchema";
 
-export function CreateSupplierPage() {
+export function EditSupplierPage() {
+  const { id = "" } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const createSupplier = useCreateSupplier();
+  const { data: supplier, isLoading, error } = useSupplier(id);
+  const updateSupplier = useUpdateSupplier();
 
   const {
     register,
     handleSubmit,
+    reset,
     formState: { errors, isSubmitting },
-  } = useForm<CreateSupplierInput>({
-    resolver: zodResolver(createSupplierSchema),
+  } = useForm<UpdateSupplierInput>({
+    resolver: zodResolver(updateSupplierSchema),
   });
 
-  async function onSubmit(data: CreateSupplierInput) {
-    const supplier = await createSupplier.mutateAsync({
-      ...data,
-      // sem isso, endereço em branco gravaria "" em vez de null
-      address: data.address ? data.address : undefined,
+  // o fornecedor só chega depois do primeiro render (useQuery), então o form é
+  // preenchido aqui em vez de por defaultValues
+  useEffect(() => {
+    if (supplier) {
+      reset({
+        name: supplier.name,
+        cnpj: supplier.cnpj,
+        address: supplier.address ?? "",
+        phone: supplier.phone,
+      });
+    }
+  }, [supplier, reset]);
+
+  async function onSubmit(data: UpdateSupplierInput) {
+    await updateSupplier.mutateAsync({
+      id,
+      // null (e não undefined) é o que faz o backend limpar o endereço
+      payload: { ...data, address: data.address ? data.address : null },
     });
-    navigate(`/suppliers/${supplier.id}`, { replace: true });
+    navigate(`/suppliers/${id}`);
+  }
+
+  if (isLoading) {
+    return (
+      <div className="space-y-2">
+        <Skeleton className="h-8 w-64" />
+        <Skeleton className="h-40 w-full" />
+      </div>
+    );
+  }
+
+  if (isAxiosError(error) && error.response?.status === 404) {
+    return (
+      <EmptyState
+        icon={Building2}
+        title="Fornecedor não encontrado"
+        description="Esse fornecedor não existe ou foi removido."
+        action={
+          <Button asChild variant="outline">
+            <Link to="/suppliers">Voltar pra lista</Link>
+          </Button>
+        }
+      />
+    );
+  }
+
+  if (!supplier) {
+    return null;
   }
 
   const isDuplicateCnpj =
-    isAxiosError(createSupplier.error) &&
-    createSupplier.error.response?.status === 409;
+    isAxiosError(updateSupplier.error) &&
+    updateSupplier.error.response?.status === 409;
 
   return (
     <div>
       <PageTitle
-        title="Novo Fornecedor"
-        description="Fornecedores servem de base pros veículos das excursões."
+        title="Editar Fornecedor"
+        description="Atualize os dados de contato do fornecedor."
       />
 
       <Card className="max-w-2xl">
@@ -84,6 +133,9 @@ export function CreateSupplierPage() {
             <div className="space-y-2 sm:col-span-2">
               <Label htmlFor="address">Endereço</Label>
               <Input id="address" {...register("address")} />
+              <p className="text-xs text-muted-foreground">
+                Deixe em branco para remover o endereço.
+              </p>
               {errors.address && (
                 <p className="text-sm text-destructive">
                   {errors.address.message}
@@ -91,15 +143,18 @@ export function CreateSupplierPage() {
               )}
             </div>
 
-            {createSupplier.isError && (
+            {updateSupplier.isError && (
               <p className="text-sm text-destructive sm:col-span-2">
                 {isDuplicateCnpj
-                  ? "Já existe um fornecedor com esse CNPJ nessa organização."
-                  : "Não foi possível criar o fornecedor. Confira os dados e tente de novo."}
+                  ? "Já existe um fornecedor com esse CNPJ."
+                  : "Não foi possível salvar o fornecedor. Confira os dados e tente de novo."}
               </p>
             )}
 
             <div className="flex justify-end gap-2 sm:col-span-2">
+              <Button asChild variant="outline" type="button">
+                <Link to={`/suppliers/${id}`}>Cancelar</Link>
+              </Button>
               <Button type="submit" disabled={isSubmitting}>
                 {isSubmitting ? "Salvando..." : "Salvar"}
               </Button>

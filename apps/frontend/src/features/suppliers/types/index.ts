@@ -17,6 +17,13 @@ export interface CreateSupplierPayload {
   phone: string;
 }
 
+export interface UpdateSupplierPayload {
+  name: string;
+  cnpj: string;
+  address: string | null;
+  phone: string;
+}
+
 export interface PaginatedSuppliers {
   data: Supplier[];
   total: number;
