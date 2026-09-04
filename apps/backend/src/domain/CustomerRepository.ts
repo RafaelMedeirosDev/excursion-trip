@@ -16,6 +16,19 @@ export interface Update {
   cpf?: string;
 }
 
+export interface SoftDelete {
+  id: string;
+}
+
+// restaura um passageiro excluído com os dados do novo cadastro; separado do
+// Update de propósito, pra edição normal não conseguir ressuscitar ninguém
+export interface Restore {
+  id: string;
+  name: string;
+  email?: string | null;
+  phone: string;
+}
+
 export interface FindByCpf {
   organizationId: string;
   cpf: string;
@@ -55,6 +68,10 @@ export abstract class CustomerRepository {
   }: Create): Promise<Customer>;
 
   abstract update({ id, name, email, phone, cpf }: Update): Promise<Customer>;
+
+  abstract softDelete({ id }: SoftDelete): Promise<void>;
+
+  abstract restore({ id, name, email, phone }: Restore): Promise<Customer>;
 
   abstract findByCpf({
     organizationId,

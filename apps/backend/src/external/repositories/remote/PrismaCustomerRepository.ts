@@ -9,6 +9,8 @@ import {
   FindByCpf,
   FindById,
   PaginatedCustomers,
+  Restore,
+  SoftDelete,
   Update,
 } from 'src/domain/CustomerRepository';
 import { PrismaRemoteRepository } from './PrismaRemoteRepository';
@@ -30,6 +32,20 @@ export class PrismaCustomerRepository implements CustomerRepository {
     });
   }
 
+  async softDelete({ id }: SoftDelete): Promise<void> {
+    await this.repository.customer.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+  }
+
+  restore({ id, name, email, phone }: Restore): Promise<Customer> {
+    return this.repository.customer.update({
+      where: { id },
+      data: { name, email, phone, deletedAt: null },
+    });
+  }
+
   findByCpf({ organizationId, cpf }: FindByCpf): Promise<Customer | null> {
     return this.repository.customer.findFirst({
       where: { organizationId, cpf },
@@ -37,7 +53,9 @@ export class PrismaCustomerRepository implements CustomerRepository {
   }
 
   findById({ id }: FindById): Promise<Customer | null> {
-    return this.repository.customer.findUnique({ where: { id } });
+    return this.repository.customer.findFirst({
+      where: { id, deletedAt: null },
+    });
   }
 
   findAll({ organizationId }: FindAll): Promise<Customers[]> {

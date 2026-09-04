@@ -1,7 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
+  HttpStatus,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -16,6 +19,7 @@ import { Roles } from 'src/decorators/Roles';
 import { JwtAuthGuard } from 'src/guards/JwtAuthGuard';
 import { RolesGuard } from 'src/guards/RolesGuard';
 import { CreateCustomerService } from 'src/service/customer/CreateCustomerService';
+import { DeleteCustomerService } from 'src/service/customer/DeleteCustomerService';
 import { GetCustomerService } from 'src/service/customer/GetCustomerService';
 import { ListCustomerService } from 'src/service/customer/ListCustomerService';
 import { ListPaginatedCustomerService } from 'src/service/customer/ListPaginatedCustomerService';
@@ -34,6 +38,7 @@ export class CustomerController {
     private readonly listPaginatedCustomerService: ListPaginatedCustomerService,
     private readonly getCustomerService: GetCustomerService,
     private readonly updateCustomerService: UpdateCustomerService,
+    private readonly deleteCustomerService: DeleteCustomerService,
   ) {}
 
   @Post()
@@ -97,6 +102,19 @@ export class CustomerController {
       email,
       phone,
       cpf,
+    });
+  }
+
+  @Delete(':id')
+  @Roles(Role.ADM)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  delete(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentUser() currentUser: JwtPayload,
+  ): Promise<void> {
+    return this.deleteCustomerService.execute({
+      organizationId: currentUser.organizationId,
+      id,
     });
   }
 }
