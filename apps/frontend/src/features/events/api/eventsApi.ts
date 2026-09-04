@@ -1,6 +1,7 @@
 import { httpClient } from "@/services/http/client";
 import type {
   CreateEventPayload,
+  UpdateEventPayload,
   Event,
   PaginatedEvents,
 } from "@/features/events/types";
@@ -30,6 +31,14 @@ export const eventsApi = {
 
   createEvent: async (payload: CreateEventPayload): Promise<Event> => {
     const { data } = await httpClient.post<Event>("/events", payload);
+    return data;
+  },
+
+  updateEvent: async (
+    id: string,
+    payload: UpdateEventPayload,
+  ): Promise<Event> => {
+    const { data } = await httpClient.patch<Event>(`/events/${id}`, payload);
     return data;
   },
 };

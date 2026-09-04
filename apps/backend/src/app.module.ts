@@ -75,6 +75,7 @@ import { DeleteCustomerService } from 'src/service/customer/DeleteCustomerServic
 import { UpdateCustomerService } from 'src/service/customer/UpdateCustomerService';
 import { ListEventService } from 'src/service/event/ListEventService';
 import { ListPaginatedEventService } from 'src/service/event/ListPaginatedEventService';
+import { UpdateEventService } from 'src/service/event/UpdateEventService';
 import { ListExcursionService } from 'src/service/excursion/ListExcursionService';
 import { ListPaginatedExcursionService } from 'src/service/excursion/ListPaginatedExcursionService';
 import { ListExpenseService } from 'src/service/expense/ListExpenseService';
@@ -148,6 +149,7 @@ import { AppService } from './app.service';
     ListEventService,
     ListPaginatedEventService,
     GetEventService,
+    UpdateEventService,
     CreateExcursionService,
     ListExcursionService,
     ListPaginatedExcursionService,

@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -18,8 +19,10 @@ import { CreateEventService } from 'src/service/event/CreateEventService';
 import { GetEventService } from 'src/service/event/GetEventService';
 import { ListEventService } from 'src/service/event/ListEventService';
 import { ListPaginatedEventService } from 'src/service/event/ListPaginatedEventService';
+import { UpdateEventService } from 'src/service/event/UpdateEventService';
 import { CreateEventDTO } from 'src/shared/dtos/CreateEventDTO';
 import { ListPaginatedEventDTO } from 'src/shared/dtos/ListPaginatedEventDTO';
+import { UpdateEventDTO } from 'src/shared/dtos/UpdateEventDTO';
 import { JwtPayload } from 'src/strategies/JwtStrategy';
 
 @Controller('/events')
@@ -30,6 +33,7 @@ export class EventController {
     private readonly listEventService: ListEventService,
     private readonly listPaginatedEventService: ListPaginatedEventService,
     private readonly getEventService: GetEventService,
+    private readonly updateEventService: UpdateEventService,
   ) {}
 
   @Post()
@@ -89,6 +93,37 @@ export class EventController {
     return this.getEventService.execute({
       organizationId: currentUser.organizationId,
       id,
+    });
+  }
+
+  @Patch(':id')
+  @Roles(Role.ADM)
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body()
+    {
+      name,
+      address,
+      city,
+      state,
+      startDate,
+      endDate,
+      startTime,
+      endTime,
+    }: UpdateEventDTO,
+    @CurrentUser() currentUser: JwtPayload,
+  ): Promise<Event> {
+    return this.updateEventService.execute({
+      organizationId: currentUser.organizationId,
+      id,
+      name,
+      address,
+      city,
+      state,
+      startDate,
+      endDate,
+      startTime,
+      endTime,
     });
   }
 }

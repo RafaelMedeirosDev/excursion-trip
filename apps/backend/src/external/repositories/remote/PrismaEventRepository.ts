@@ -8,6 +8,7 @@ import {
   FindAllPaginated,
   FindById,
   PaginatedEvents,
+  Update,
 } from 'src/domain/EventRepository';
 import { PrismaRemoteRepository } from './PrismaRemoteRepository';
 
@@ -29,6 +30,32 @@ export class PrismaEventRepository implements EventRepository {
     return this.repository.event.create({
       data: {
         organizationId,
+        name,
+        address,
+        city,
+        state,
+        startDate,
+        endDate,
+        startTime,
+        endTime,
+      },
+    });
+  }
+
+  update({
+    id,
+    name,
+    address,
+    city,
+    state,
+    startDate,
+    endDate,
+    startTime,
+    endTime,
+  }: Update): Promise<Event> {
+    return this.repository.event.update({
+      where: { id },
+      data: {
         name,
         address,
         city,

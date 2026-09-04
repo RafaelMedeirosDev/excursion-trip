@@ -4,6 +4,7 @@ import { AuthLayout } from "@/components/layout/AuthLayout";
 import { LoginPage } from "@/features/auth/pages/LoginPage";
 import { DashboardPage } from "@/features/dashboard/pages/DashboardPage";
 import { CreateEventPage } from "@/features/events/pages/CreateEventPage";
+import { EditEventPage } from "@/features/events/pages/EditEventPage";
 import { EventDetailsPage } from "@/features/events/pages/EventDetailsPage";
 import { EventsPage } from "@/features/events/pages/EventsPage";
 import { CreateExcursionPage } from "@/features/excursions/pages/CreateExcursionPage";
@@ -56,6 +57,7 @@ export function AppRouter() {
             <Route path="/events" element={<EventsPage />} />
             <Route path="/events/new" element={<CreateEventPage />} />
             <Route path="/events/:id" element={<EventDetailsPage />} />
+            <Route path="/events/:id/edit" element={<EditEventPage />} />
 
             <Route path="/excursions" element={<ExcursionsPage />} />
             <Route path="/excursions/new" element={<CreateExcursionPage />} />

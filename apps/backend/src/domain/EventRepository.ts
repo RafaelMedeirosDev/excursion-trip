@@ -12,6 +12,18 @@ export interface Create {
   endTime: string;
 }
 
+export interface Update {
+  id: string;
+  name?: string;
+  address?: string;
+  city?: string;
+  state?: UF;
+  startDate?: Date;
+  endDate?: Date;
+  startTime?: string;
+  endTime?: string;
+}
+
 export interface FindById {
   id: string;
 }
@@ -48,6 +60,18 @@ export abstract class EventRepository {
     startTime,
     endTime,
   }: Create): Promise<Event>;
+
+  abstract update({
+    id,
+    name,
+    address,
+    city,
+    state,
+    startDate,
+    endDate,
+    startTime,
+    endTime,
+  }: Update): Promise<Event>;
 
   abstract findById({ id }: FindById): Promise<Event | null>;
 

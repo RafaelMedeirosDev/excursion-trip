@@ -26,6 +26,17 @@ export interface CreateEventPayload {
   endTime: string;
 }
 
+export interface UpdateEventPayload {
+  name: string;
+  address: string;
+  city: string;
+  state: UF;
+  startDate: string;
+  endDate: string;
+  startTime: string;
+  endTime: string;
+}
+
 export interface PaginatedEvents {
   data: Event[];
   total: number;

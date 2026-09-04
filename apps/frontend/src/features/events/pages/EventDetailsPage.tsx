@@ -47,7 +47,15 @@ export function EventDetailsPage() {
 
   return (
     <div>
-      <PageTitle title={event.name} description={event.city} />
+      <PageTitle
+        title={event.name}
+        description={event.city}
+        action={
+          <Button asChild>
+            <Link to={`/events/${event.id}/edit`}>Editar</Link>
+          </Button>
+        }
+      />
 
       <Card>
         <CardContent className="grid grid-cols-1 gap-4 pt-6 sm:grid-cols-2">
