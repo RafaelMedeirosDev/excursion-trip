@@ -11,6 +11,7 @@ describe('ListUserService', () => {
   beforeEach(() => {
     userRepository = {
       create: jest.fn(),
+      update: jest.fn(),
       findByEmail: jest.fn(),
       findByCpf: jest.fn(),
       findById: jest.fn(),

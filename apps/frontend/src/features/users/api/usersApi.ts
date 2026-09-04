@@ -2,6 +2,7 @@ import { httpClient } from "@/services/http/client";
 import type {
   CreateUserPayload,
   PaginatedUsers,
+  UpdateUserPayload,
   User,
 } from "@/features/users/types";
 
@@ -29,6 +30,11 @@ export const usersApi = {
 
   createUser: async (payload: CreateUserPayload): Promise<User> => {
     const { data } = await httpClient.post<User>("/users", payload);
+    return data;
+  },
+
+  updateUser: async (id: string, payload: UpdateUserPayload): Promise<User> => {
+    const { data } = await httpClient.patch<User>(`/users/${id}`, payload);
     return data;
   },
 };

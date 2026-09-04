@@ -82,6 +82,7 @@ import { ListSupplierService } from 'src/service/supplier/ListSupplierService';
 import { ListPaginatedSupplierService } from 'src/service/supplier/ListPaginatedSupplierService';
 import { ListUserService } from 'src/service/user/ListUserService';
 import { ListPaginatedUserService } from 'src/service/user/ListPaginatedUserService';
+import { UpdateUserService } from 'src/service/user/UpdateUserService';
 import { ListVehicleBookingService } from 'src/service/vehicle-booking/ListVehicleBookingService';
 import { ListPaginatedVehicleBookingService } from 'src/service/vehicle-booking/ListPaginatedVehicleBookingService';
 import { LoginService } from 'src/service/auth/LoginService';
@@ -126,6 +127,7 @@ import { AppService } from './app.service';
     ListUserService,
     ListPaginatedUserService,
     GetUserService,
+    UpdateUserService,
     LoginService,
     RefreshTokenService,
     LogoutService,

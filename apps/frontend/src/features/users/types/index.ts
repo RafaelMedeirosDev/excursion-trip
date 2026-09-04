@@ -21,6 +21,15 @@ export interface CreateUserPayload {
   role: Role;
 }
 
+export interface UpdateUserPayload {
+  name: string;
+  email: string;
+  phone: string;
+  cpf: string;
+  role: Role;
+  password?: string;
+}
+
 export interface PaginatedUsers {
   data: User[];
   total: number;

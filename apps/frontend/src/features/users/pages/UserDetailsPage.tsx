@@ -43,7 +43,14 @@ export function UserDetailsPage() {
 
   return (
     <div>
-      <PageTitle title={user.name} />
+      <PageTitle
+        title={user.name}
+        action={
+          <Button asChild>
+            <Link to={`/users/${user.id}/edit`}>Editar</Link>
+          </Button>
+        }
+      />
 
       <Card>
         <CardContent className="grid grid-cols-1 gap-4 pt-6 sm:grid-cols-2">
