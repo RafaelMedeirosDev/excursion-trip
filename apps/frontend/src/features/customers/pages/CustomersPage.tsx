@@ -1,4 +1,4 @@
-import { Plus, UserRound } from "lucide-react";
+import { Pencil, Plus, UserRound } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -15,12 +15,17 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useAuth } from "@/features/auth/hooks/useAuth";
 import { usePaginatedCustomers } from "@/features/customers/hooks/usePaginatedCustomers";
 
 const PAGE_SIZE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
 
 export function CustomersPage() {
+  const { hasRole } = useAuth();
+  // listagem aberta, edição restrita: mesmo gate por papel já usado pro botão
+  // "Novo X" em VehicleBookingsPage/BoardingPointsPage
+  const canEdit = hasRole("ADM");
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [page, setPage] = useState(1);
@@ -108,6 +113,9 @@ export function CustomersPage() {
                   <TableHead>Telefone</TableHead>
                   <TableHead>CPF</TableHead>
                   <TableHead>E-mail</TableHead>
+                  {canEdit && (
+                    <TableHead className="w-0 text-right">Ações</TableHead>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -124,6 +132,26 @@ export function CustomersPage() {
                     <TableCell>{customer.phone}</TableCell>
                     <TableCell>{customer.cpf}</TableCell>
                     <TableCell>{customer.email ?? "—"}</TableCell>
+                    {canEdit && (
+                      <TableCell>
+                        <div className="flex justify-end">
+                          <Button
+                            asChild
+                            variant="outline"
+                            size="icon"
+                            className="size-9"
+                          >
+                            <Link
+                              to={`/passengers/${customer.id}/edit`}
+                              aria-label="Editar passageiro"
+                              title="Editar passageiro"
+                            >
+                              <Pencil className="size-4" />
+                            </Link>
+                          </Button>
+                        </div>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
@@ -132,22 +160,40 @@ export function CustomersPage() {
 
           <div className="grid gap-3 md:hidden">
             {filteredCustomers.map((customer) => (
-              <Link key={customer.id} to={`/passengers/${customer.id}`}>
-                <Card className="transition-colors hover:bg-muted/50">
-                  <CardContent className="space-y-3 pt-6">
-                    <span className="font-medium">{customer.name}</span>
+              <Card key={customer.id}>
+                <CardContent className="space-y-3 pt-6">
+                  <div className="flex items-start justify-between gap-3">
+                    <Link
+                      to={`/passengers/${customer.id}`}
+                      className="font-medium hover:underline"
+                    >
+                      {customer.name}
+                    </Link>
+                    {canEdit && (
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="icon"
+                        className="size-9 shrink-0"
+                      >
+                        <Link
+                          to={`/passengers/${customer.id}/edit`}
+                          aria-label="Editar passageiro"
+                          title="Editar passageiro"
+                        >
+                          <Pencil className="size-4" />
+                        </Link>
+                      </Button>
+                    )}
+                  </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <CardField label="Telefone" value={customer.phone} />
-                      <CardField label="CPF" value={customer.cpf} />
-                      <CardField
-                        label="E-mail"
-                        value={customer.email ?? "—"}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
+                  <div className="grid grid-cols-2 gap-3">
+                    <CardField label="Telefone" value={customer.phone} />
+                    <CardField label="CPF" value={customer.cpf} />
+                    <CardField label="E-mail" value={customer.email ?? "—"} />
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
 

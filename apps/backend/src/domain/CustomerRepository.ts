@@ -8,6 +8,14 @@ export interface Create {
   cpf: string;
 }
 
+export interface Update {
+  id: string;
+  name?: string;
+  email?: string | null;
+  phone?: string;
+  cpf?: string;
+}
+
 export interface FindByCpf {
   organizationId: string;
   cpf: string;
@@ -45,6 +53,8 @@ export abstract class CustomerRepository {
     phone,
     cpf,
   }: Create): Promise<Customer>;
+
+  abstract update({ id, name, email, phone, cpf }: Update): Promise<Customer>;
 
   abstract findByCpf({
     organizationId,

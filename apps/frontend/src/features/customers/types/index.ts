@@ -17,6 +17,13 @@ export interface CreateCustomerPayload {
   cpf: string;
 }
 
+export interface UpdateCustomerPayload {
+  name: string;
+  email: string | null;
+  phone: string;
+  cpf: string;
+}
+
 export interface PaginatedCustomers {
   data: Customer[];
   total: number;

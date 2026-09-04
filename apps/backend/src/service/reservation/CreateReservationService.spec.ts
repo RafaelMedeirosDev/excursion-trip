@@ -49,6 +49,7 @@ describe('CreateReservationService', () => {
     };
     customerRepository = {
       create: jest.fn(),
+      update: jest.fn(),
       findByCpf: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
