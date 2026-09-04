@@ -2,6 +2,7 @@ import { httpClient } from "@/services/http/client";
 import type {
   CreateSupplierPayload,
   PaginatedSuppliers,
+  UpdateSupplierPayload,
   Supplier,
 } from "@/features/suppliers/types";
 
@@ -30,6 +31,17 @@ export const suppliersApi = {
 
   createSupplier: async (payload: CreateSupplierPayload): Promise<Supplier> => {
     const { data } = await httpClient.post<Supplier>("/suppliers", payload);
+    return data;
+  },
+
+  updateSupplier: async (
+    id: string,
+    payload: UpdateSupplierPayload,
+  ): Promise<Supplier> => {
+    const { data } = await httpClient.patch<Supplier>(
+      `/suppliers/${id}`,
+      payload,
+    );
     return data;
   },
 };

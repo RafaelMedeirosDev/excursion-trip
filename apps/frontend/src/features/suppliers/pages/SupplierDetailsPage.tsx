@@ -42,7 +42,14 @@ export function SupplierDetailsPage() {
 
   return (
     <div>
-      <PageTitle title={supplier.name} />
+      <PageTitle
+        title={supplier.name}
+        action={
+          <Button asChild>
+            <Link to={`/suppliers/${supplier.id}/edit`}>Editar</Link>
+          </Button>
+        }
+      />
 
       <Card>
         <CardContent className="grid grid-cols-1 gap-4 pt-6 sm:grid-cols-2">

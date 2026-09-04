@@ -14,6 +14,7 @@ import { EditCustomerPage } from "@/features/customers/pages/EditCustomerPage";
 import { CustomerDetailsPage } from "@/features/customers/pages/CustomerDetailsPage";
 import { CustomersPage } from "@/features/customers/pages/CustomersPage";
 import { CreateSupplierPage } from "@/features/suppliers/pages/CreateSupplierPage";
+import { EditSupplierPage } from "@/features/suppliers/pages/EditSupplierPage";
 import { SupplierDetailsPage } from "@/features/suppliers/pages/SupplierDetailsPage";
 import { SuppliersPage } from "@/features/suppliers/pages/SuppliersPage";
 import { CreateUserPage } from "@/features/users/pages/CreateUserPage";
@@ -62,6 +63,10 @@ export function AppRouter() {
             <Route path="/suppliers" element={<SuppliersPage />} />
             <Route path="/suppliers/new" element={<CreateSupplierPage />} />
             <Route path="/suppliers/:id" element={<SupplierDetailsPage />} />
+            <Route
+              path="/suppliers/:id/edit"
+              element={<EditSupplierPage />}
+            />
 
             <Route
               path="/passengers/:id/edit"

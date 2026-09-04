@@ -7,6 +7,7 @@ import {
   FindByCnpj,
   FindById,
   PaginatedSuppliers,
+  Update,
   SupplierRepository,
   Suppliers,
 } from 'src/domain/SupplierRepository';
@@ -19,6 +20,13 @@ export class PrismaSupplierRepository implements SupplierRepository {
   create({ organizationId, name, cnpj, address, phone }: Create): Promise<Supplier> {
     return this.repository.supplier.create({
       data: { organizationId, name, cnpj, address, phone },
+    });
+  }
+
+  update({ id, name, cnpj, address, phone }: Update): Promise<Supplier> {
+    return this.repository.supplier.update({
+      where: { id },
+      data: { name, cnpj, address, phone },
     });
   }
 

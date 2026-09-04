@@ -8,6 +8,14 @@ export interface Create {
   phone: string;
 }
 
+export interface Update {
+  id: string;
+  name?: string;
+  cnpj?: string;
+  address?: string | null;
+  phone?: string;
+}
+
 export interface FindByCnpj {
   organizationId: string;
   cnpj: string;
@@ -45,6 +53,14 @@ export abstract class SupplierRepository {
     address,
     phone,
   }: Create): Promise<Supplier>;
+
+  abstract update({
+    id,
+    name,
+    cnpj,
+    address,
+    phone,
+  }: Update): Promise<Supplier>;
 
   abstract findByCnpj({
     organizationId,
