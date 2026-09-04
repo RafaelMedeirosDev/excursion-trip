@@ -1,4 +1,4 @@
-import { CalendarDays, Plus } from "lucide-react";
+import { CalendarDays, Pencil, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -113,6 +113,7 @@ export function EventsPage() {
                   <TableHead>UF</TableHead>
                   <TableHead>Início</TableHead>
                   <TableHead>Fim</TableHead>
+                  <TableHead className="w-0 text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -130,6 +131,24 @@ export function EventsPage() {
                     <TableCell>{event.state}</TableCell>
                     <TableCell>{formatDate(event.startDate)}</TableCell>
                     <TableCell>{formatDate(event.endDate)}</TableCell>
+                    <TableCell>
+                      <div className="flex justify-end">
+                        <Button
+                          asChild
+                          variant="outline"
+                          size="icon"
+                          className="size-9"
+                        >
+                          <Link
+                            to={`/events/${event.id}/edit`}
+                            aria-label="Editar evento"
+                            title="Editar evento"
+                          >
+                            <Pencil className="size-4" />
+                          </Link>
+                        </Button>
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -138,26 +157,42 @@ export function EventsPage() {
 
           <div className="grid gap-3 md:hidden">
             {filteredEvents.map((event) => (
-              <Link key={event.id} to={`/events/${event.id}`}>
-                <Card className="transition-colors hover:bg-muted/50">
-                  <CardContent className="space-y-3 pt-6">
-                    <span className="font-medium">{event.name}</span>
+              <Card key={event.id}>
+                <CardContent className="space-y-3 pt-6">
+                  <div className="flex items-start justify-between gap-3">
+                    <Link
+                      to={`/events/${event.id}`}
+                      className="font-medium hover:underline"
+                    >
+                      {event.name}
+                    </Link>
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="icon"
+                      className="size-9 shrink-0"
+                    >
+                      <Link
+                        to={`/events/${event.id}/edit`}
+                        aria-label="Editar evento"
+                        title="Editar evento"
+                      >
+                        <Pencil className="size-4" />
+                      </Link>
+                    </Button>
+                  </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <CardField label="Cidade" value={event.city} />
-                      <CardField label="UF" value={event.state} />
-                      <CardField
-                        label="Início"
-                        value={formatDate(event.startDate)}
-                      />
-                      <CardField
-                        label="Fim"
-                        value={formatDate(event.endDate)}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
+                  <div className="grid grid-cols-2 gap-3">
+                    <CardField label="Cidade" value={event.city} />
+                    <CardField label="UF" value={event.state} />
+                    <CardField
+                      label="Início"
+                      value={formatDate(event.startDate)}
+                    />
+                    <CardField label="Fim" value={formatDate(event.endDate)} />
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
 

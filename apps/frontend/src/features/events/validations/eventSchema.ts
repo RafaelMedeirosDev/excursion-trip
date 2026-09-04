@@ -24,3 +24,9 @@ export const createEventSchema = z
   });
 
 export type CreateEventInput = z.infer<typeof createEventSchema>;
+
+// o formulário de edição envia o objeto inteiro, então reaproveita o schema de
+// criação — inclusive o .refine() que compara término contra início
+export const updateEventSchema = createEventSchema;
+
+export type UpdateEventInput = z.infer<typeof updateEventSchema>;
