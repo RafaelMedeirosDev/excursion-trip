@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -21,8 +22,10 @@ import { CreateBoardingPointService } from 'src/service/boarding-point/CreateBoa
 import { GetBoardingPointService } from 'src/service/boarding-point/GetBoardingPointService';
 import { ListBoardingPointService } from 'src/service/boarding-point/ListBoardingPointService';
 import { ListPaginatedBoardingPointService } from 'src/service/boarding-point/ListPaginatedBoardingPointService';
+import { UpdateBoardingPointService } from 'src/service/boarding-point/UpdateBoardingPointService';
 import { CreateBoardingPointDTO } from 'src/shared/dtos/CreateBoardingPointDTO';
 import { ListPaginatedBoardingPointDTO } from 'src/shared/dtos/ListPaginatedBoardingPointDTO';
+import { UpdateBoardingPointDTO } from 'src/shared/dtos/UpdateBoardingPointDTO';
 import { JwtPayload } from 'src/strategies/JwtStrategy';
 
 @Controller('/boarding-points')
@@ -33,6 +36,7 @@ export class BoardingPointController {
     private readonly listBoardingPointService: ListBoardingPointService,
     private readonly listPaginatedBoardingPointService: ListPaginatedBoardingPointService,
     private readonly getBoardingPointService: GetBoardingPointService,
+    private readonly updateBoardingPointService: UpdateBoardingPointService,
   ) {}
 
   @Post()
@@ -77,6 +81,21 @@ export class BoardingPointController {
     return this.getBoardingPointService.execute({
       organizationId: currentUser.organizationId,
       id,
+    });
+  }
+
+  @Patch(':id')
+  @Roles(Role.ADM)
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() { address, time }: UpdateBoardingPointDTO,
+    @CurrentUser() currentUser: JwtPayload,
+  ): Promise<BoardingPoint> {
+    return this.updateBoardingPointService.execute({
+      organizationId: currentUser.organizationId,
+      id,
+      address,
+      time,
     });
   }
 }

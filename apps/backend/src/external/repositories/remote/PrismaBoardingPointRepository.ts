@@ -8,6 +8,7 @@ import {
   FindAllPaginated,
   FindById,
   PaginatedBoardingPoints,
+  Update,
 } from 'src/domain/BoardingPointRepository';
 import { PrismaRemoteRepository } from './PrismaRemoteRepository';
 
@@ -23,6 +24,13 @@ export class PrismaBoardingPointRepository implements BoardingPointRepository {
   }: Create): Promise<BoardingPoint> {
     return this.repository.boardingPoint.create({
       data: { organizationId, vehicleBookingId, address, time },
+    });
+  }
+
+  update({ id, address, time }: Update): Promise<BoardingPoint> {
+    return this.repository.boardingPoint.update({
+      where: { id },
+      data: { address, time },
     });
   }
 

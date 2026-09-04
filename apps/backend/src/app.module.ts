@@ -68,6 +68,7 @@ import { GetUserService } from 'src/service/user/GetUserService';
 import { GetVehicleBookingService } from 'src/service/vehicle-booking/GetVehicleBookingService';
 import { ListBoardingPointService } from 'src/service/boarding-point/ListBoardingPointService';
 import { ListPaginatedBoardingPointService } from 'src/service/boarding-point/ListPaginatedBoardingPointService';
+import { UpdateBoardingPointService } from 'src/service/boarding-point/UpdateBoardingPointService';
 import { ListCustomerService } from 'src/service/customer/ListCustomerService';
 import { ListPaginatedCustomerService } from 'src/service/customer/ListPaginatedCustomerService';
 import { DeleteCustomerService } from 'src/service/customer/DeleteCustomerService';
@@ -169,6 +170,7 @@ import { AppService } from './app.service';
     ListBoardingPointService,
     ListPaginatedBoardingPointService,
     GetBoardingPointService,
+    UpdateBoardingPointService,
     CreateReservationService,
     ListReservationService,
     ListPaginatedReservationService,

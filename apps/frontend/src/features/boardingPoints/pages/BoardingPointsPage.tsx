@@ -1,4 +1,4 @@
-import { MapPin, Plus } from "lucide-react";
+import { MapPin, Pencil, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -52,7 +52,8 @@ export function BoardingPointsPage() {
   });
   const { data: vehicleBookings } = useVehicleBookings();
   const { hasRole } = useAuth();
-  const canCreate = hasRole("ADM");
+  // cobre criar e editar: as duas ações são ADM-only
+  const canManage = hasRole("ADM");
 
   const vehicleLabelById = new Map(
     vehicleBookings?.map((vehicleBooking) => [
@@ -71,7 +72,7 @@ export function BoardingPointsPage() {
         title="Pontos de Embarque"
         description="Pontos de embarque cadastrados para os veículos."
         action={
-          canCreate ? (
+          canManage ? (
             <Button asChild>
               <Link to="/boarding-points/new">
                 <Plus className="mr-2 size-4" />
@@ -108,7 +109,7 @@ export function BoardingPointsPage() {
               : "Crie o primeiro ponto de embarque pra um veículo."
           }
           action={
-            canCreate && !hasActiveFilter ? (
+            canManage && !hasActiveFilter ? (
               <Button asChild>
                 <Link to="/boarding-points/new">
                   <Plus className="mr-2 size-4" />
@@ -129,6 +130,9 @@ export function BoardingPointsPage() {
                   <TableHead>Endereço</TableHead>
                   <TableHead>Horário</TableHead>
                   <TableHead>Veículo</TableHead>
+                  {canManage && (
+                    <TableHead className="w-0 text-right">Ações</TableHead>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -150,6 +154,26 @@ export function BoardingPointsPage() {
                           boardingPoint.vehicleBooking.plate,
                         )}
                     </TableCell>
+                    {canManage && (
+                      <TableCell>
+                        <div className="flex justify-end">
+                          <Button
+                            asChild
+                            variant="outline"
+                            size="icon"
+                            className="size-9"
+                          >
+                            <Link
+                              to={`/boarding-points/${boardingPoint.id}/edit`}
+                              aria-label="Editar ponto de embarque"
+                              title="Editar ponto de embarque"
+                            >
+                              <Pencil className="size-4" />
+                            </Link>
+                          </Button>
+                        </div>
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))}
               </TableBody>
@@ -158,15 +182,32 @@ export function BoardingPointsPage() {
 
           <div className="grid gap-3 md:hidden">
             {boardingPoints.map((boardingPoint) => (
-              <Link
-                key={boardingPoint.id}
-                to={`/boarding-points/${boardingPoint.id}`}
-              >
-                <Card className="transition-colors hover:bg-muted/50">
-                  <CardContent className="space-y-3 pt-6">
-                    <span className="font-medium">
-                      {boardingPoint.address}
-                    </span>
+              <Card key={boardingPoint.id}>
+                <CardContent className="space-y-3 pt-6">
+                  <div className="flex items-start justify-between gap-3">
+                      <Link
+                        to={`/boarding-points/${boardingPoint.id}`}
+                        className="font-medium hover:underline"
+                      >
+                        {boardingPoint.address}
+                      </Link>
+                      {canManage && (
+                        <Button
+                          asChild
+                          variant="outline"
+                          size="icon"
+                          className="size-9 shrink-0"
+                        >
+                          <Link
+                            to={`/boarding-points/${boardingPoint.id}/edit`}
+                            aria-label="Editar ponto de embarque"
+                            title="Editar ponto de embarque"
+                          >
+                            <Pencil className="size-4" />
+                          </Link>
+                        </Button>
+                      )}
+                    </div>
 
                     <div className="grid grid-cols-2 gap-3">
                       <CardField
@@ -185,10 +226,9 @@ export function BoardingPointsPage() {
                           )
                         }
                       />
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
 
