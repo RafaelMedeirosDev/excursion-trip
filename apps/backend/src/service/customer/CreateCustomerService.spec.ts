@@ -18,6 +18,8 @@ describe('CreateCustomerService', () => {
     customerRepository = {
       create: jest.fn(),
       update: jest.fn(),
+      softDelete: jest.fn(),
+      restore: jest.fn(),
       findByCpf: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
@@ -40,6 +42,27 @@ describe('CreateCustomerService', () => {
     });
     expect(customerRepository.create).toHaveBeenCalledWith(request);
     expect(result).toEqual({ id: 'customer-1' });
+  });
+
+  it('restaura o passageiro quando o cpf pertence a um cadastro excluído', async () => {
+    customerRepository.findByCpf.mockResolvedValue({
+      id: 'customer-antigo',
+      deletedAt: new Date(),
+    } as Customer);
+    customerRepository.restore.mockResolvedValue({
+      id: 'customer-antigo',
+    } as Customer);
+
+    const result = await service.execute(request);
+
+    expect(customerRepository.restore).toHaveBeenCalledWith({
+      id: 'customer-antigo',
+      name: request.name,
+      email: undefined,
+      phone: request.phone,
+    });
+    expect(customerRepository.create).not.toHaveBeenCalled();
+    expect(result).toEqual({ id: 'customer-antigo' });
   });
 
   it('lança CustomerAlreadyExists quando o cpf já existe na organização', async () => {

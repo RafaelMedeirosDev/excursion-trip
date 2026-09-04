@@ -11,6 +11,8 @@ describe('ListCustomerService', () => {
     customerRepository = {
       create: jest.fn(),
       update: jest.fn(),
+      softDelete: jest.fn(),
+      restore: jest.fn(),
       findByCpf: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),

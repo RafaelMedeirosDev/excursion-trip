@@ -22,13 +22,25 @@ export class CreateCustomerService {
     phone,
     cpf,
   }: Request): Promise<Customer> {
-    const alreadyExists = await this.customerRepository.findByCpf({
+    const existing = await this.customerRepository.findByCpf({
       organizationId,
       cpf,
     });
 
-    if (alreadyExists) {
+    if (existing && !existing.deletedAt) {
       throw new CustomerAlreadyExists();
+    }
+
+    // passageiro excluído com o mesmo CPF: é a mesma pessoa voltando, então o
+    // cadastro restaura a linha antiga (mantendo o histórico de reservas) em
+    // vez de barrar com 409 num registro que não aparece em lugar nenhum
+    if (existing) {
+      return await this.customerRepository.restore({
+        id: existing.id,
+        name,
+        email,
+        phone,
+      });
     }
 
     return await this.customerRepository.create({

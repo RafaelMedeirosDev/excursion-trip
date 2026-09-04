@@ -63,6 +63,7 @@ describe('PendingReservationService', () => {
       findActiveByEventAndCustomer: jest.fn(),
       findById: jest.fn(),
       countActiveByVehicleBookingId: jest.fn(),
+      countUpcomingByCustomerId: jest.fn(),
       findAll: jest.fn(),
       findAllPaginated: jest.fn(),
       updateStatus: jest.fn(),

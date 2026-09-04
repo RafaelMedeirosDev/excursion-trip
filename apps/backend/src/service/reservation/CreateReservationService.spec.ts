@@ -43,6 +43,7 @@ describe('CreateReservationService', () => {
       findActiveByEventAndCustomer: jest.fn(),
       findById: jest.fn(),
       countActiveByVehicleBookingId: jest.fn(),
+      countUpcomingByCustomerId: jest.fn(),
       findAll: jest.fn(),
       findAllPaginated: jest.fn(),
       updateStatus: jest.fn(),
@@ -50,6 +51,8 @@ describe('CreateReservationService', () => {
     customerRepository = {
       create: jest.fn(),
       update: jest.fn(),
+      softDelete: jest.fn(),
+      restore: jest.fn(),
       findByCpf: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),

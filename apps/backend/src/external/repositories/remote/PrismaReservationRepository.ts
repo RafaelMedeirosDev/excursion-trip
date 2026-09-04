@@ -1,8 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { Reservation, ReservationStatus } from '@prisma/client';
+import {
+  ExcursionStatus,
+  Reservation,
+  ReservationStatus,
+} from '@prisma/client';
 import {
   Create,
   CountActiveByVehicleBookingId,
+  CountUpcomingByCustomerId,
   FindActiveByEventAndCustomer,
   FindAll,
   FindAllPaginated,
@@ -122,6 +127,27 @@ export class PrismaReservationRepository implements ReservationRepository {
 
   findById({ id }: FindById): Promise<Reservation | null> {
     return this.repository.reservation.findUnique({ where: { id } });
+  }
+
+  // "upcoming" = reserva não cancelada em excursão que ainda não terminou.
+  // Nome diferente de countActiveByVehicleBookingId de propósito: lá "active"
+  // significa ocupar vaga (PENDING/CONFIRMED), critério totalmente outro.
+  countUpcomingByCustomerId({
+    customerId,
+  }: CountUpcomingByCustomerId): Promise<number> {
+    return this.repository.reservation.count({
+      where: {
+        customerId,
+        status: { not: ReservationStatus.CANCELED },
+        vehicleBooking: {
+          excursion: {
+            status: {
+              notIn: [ExcursionStatus.DONE, ExcursionStatus.CANCELED],
+            },
+          },
+        },
+      },
+    });
   }
 
   countActiveByVehicleBookingId({

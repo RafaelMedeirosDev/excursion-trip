@@ -44,4 +44,8 @@ export const customersApi = {
     );
     return data;
   },
+
+  deleteCustomer: async (id: string): Promise<void> => {
+    await httpClient.delete(`/customers/${id}`);
+  },
 };

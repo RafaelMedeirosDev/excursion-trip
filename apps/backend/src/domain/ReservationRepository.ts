@@ -29,6 +29,10 @@ export interface CountActiveByVehicleBookingId {
   vehicleBookingId: string;
 }
 
+export interface CountUpcomingByCustomerId {
+  customerId: string;
+}
+
 export interface FindAll {
   organizationId: string;
   userId?: string;
@@ -86,6 +90,10 @@ export abstract class ReservationRepository {
   abstract countActiveByVehicleBookingId({
     vehicleBookingId,
   }: CountActiveByVehicleBookingId): Promise<number>;
+
+  abstract countUpcomingByCustomerId({
+    customerId,
+  }: CountUpcomingByCustomerId): Promise<number>;
 
   abstract findAll({
     organizationId,
