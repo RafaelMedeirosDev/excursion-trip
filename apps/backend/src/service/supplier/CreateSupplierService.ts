@@ -22,13 +22,25 @@ export class CreateSupplierService {
     address,
     phone,
   }: Request): Promise<Supplier> {
-    const alreadyExists = await this.supplierRepository.findByCnpj({
+    const existing = await this.supplierRepository.findByCnpj({
       organizationId,
       cnpj,
     });
 
-    if (alreadyExists) {
+    if (existing && !existing.deletedAt) {
       throw new SupplierAlreadyExists();
+    }
+
+    // fornecedor excluído com o mesmo CNPJ: é a mesma empresa voltando, então o
+    // cadastro restaura a linha antiga (mantendo o histórico de veículos) em
+    // vez de barrar com 409 num registro que não aparece em lugar nenhum
+    if (existing) {
+      return await this.supplierRepository.restore({
+        id: existing.id,
+        name,
+        address,
+        phone,
+      });
     }
 
     return await this.supplierRepository.create({

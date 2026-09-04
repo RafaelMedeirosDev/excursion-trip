@@ -19,6 +19,10 @@ export interface FindByExcursionAndPlate {
   plate: string;
 }
 
+export interface CountUpcomingBySupplierId {
+  supplierId: string;
+}
+
 export interface FindById {
   id: string;
 }
@@ -68,6 +72,10 @@ export abstract class VehicleBookingRepository {
     excursionId,
     plate,
   }: FindByExcursionAndPlate): Promise<VehicleBooking | null>;
+
+  abstract countUpcomingBySupplierId({
+    supplierId,
+  }: CountUpcomingBySupplierId): Promise<number>;
 
   abstract findById({ id }: FindById): Promise<VehicleBooking | null>;
 

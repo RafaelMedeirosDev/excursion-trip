@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { VehicleBooking } from '@prisma/client';
+import { ExcursionStatus, VehicleBooking } from '@prisma/client';
 import {
+  CountUpcomingBySupplierId,
   Create,
   FindAll,
   FindAllPaginated,
@@ -87,6 +88,24 @@ export class PrismaVehicleBookingRepository
         startTime,
         returnTime,
         price,
+      },
+    });
+  }
+
+  // "upcoming" = veículo ativo em excursão que ainda não terminou. Contar
+  // qualquer veículo tornaria todo fornecedor já usado uma vez não-excluível.
+  countUpcomingBySupplierId({
+    supplierId,
+  }: CountUpcomingBySupplierId): Promise<number> {
+    return this.repository.vehicleBooking.count({
+      where: {
+        supplierId,
+        deletedAt: null,
+        excursion: {
+          status: {
+            notIn: [ExcursionStatus.DONE, ExcursionStatus.CANCELED],
+          },
+        },
       },
     });
   }

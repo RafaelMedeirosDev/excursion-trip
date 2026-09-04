@@ -44,4 +44,8 @@ export const suppliersApi = {
     );
     return data;
   },
+
+  deleteSupplier: async (id: string): Promise<void> => {
+    await httpClient.delete(`/suppliers/${id}`);
+  },
 };

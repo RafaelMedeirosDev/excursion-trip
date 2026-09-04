@@ -49,6 +49,7 @@ describe('CreateVehicleBookingService', () => {
     vehicleBookingRepository = {
       create: jest.fn(),
       findByExcursionAndPlate: jest.fn(),
+      countUpcomingBySupplierId: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
       findAllPaginated: jest.fn(),
@@ -63,6 +64,8 @@ describe('CreateVehicleBookingService', () => {
     supplierRepository = {
       create: jest.fn(),
       update: jest.fn(),
+      softDelete: jest.fn(),
+      restore: jest.fn(),
       findByCnpj: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),

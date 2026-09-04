@@ -18,6 +18,8 @@ describe('CreateSupplierService', () => {
     supplierRepository = {
       create: jest.fn(),
       update: jest.fn(),
+      softDelete: jest.fn(),
+      restore: jest.fn(),
       findByCnpj: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
@@ -40,6 +42,27 @@ describe('CreateSupplierService', () => {
     });
     expect(supplierRepository.create).toHaveBeenCalledWith(request);
     expect(result).toEqual({ id: 'supplier-1' });
+  });
+
+  it('restaura o fornecedor quando o cnpj pertence a um cadastro excluído', async () => {
+    supplierRepository.findByCnpj.mockResolvedValue({
+      id: 'supplier-antigo',
+      deletedAt: new Date(),
+    } as Supplier);
+    supplierRepository.restore.mockResolvedValue({
+      id: 'supplier-antigo',
+    } as Supplier);
+
+    const result = await service.execute(request);
+
+    expect(supplierRepository.restore).toHaveBeenCalledWith({
+      id: 'supplier-antigo',
+      name: request.name,
+      address: undefined,
+      phone: request.phone,
+    });
+    expect(supplierRepository.create).not.toHaveBeenCalled();
+    expect(result).toEqual({ id: 'supplier-antigo' });
   });
 
   it('lança SupplierAlreadyExists quando o cnpj já existe na organização', async () => {

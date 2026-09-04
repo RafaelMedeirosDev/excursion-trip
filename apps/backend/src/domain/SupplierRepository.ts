@@ -16,6 +16,19 @@ export interface Update {
   phone?: string;
 }
 
+export interface SoftDelete {
+  id: string;
+}
+
+// restaura um fornecedor excluído com os dados do novo cadastro; separado do
+// Update de propósito, pra edição normal não conseguir ressuscitar ninguém
+export interface Restore {
+  id: string;
+  name: string;
+  address?: string | null;
+  phone: string;
+}
+
 export interface FindByCnpj {
   organizationId: string;
   cnpj: string;
@@ -61,6 +74,10 @@ export abstract class SupplierRepository {
     address,
     phone,
   }: Update): Promise<Supplier>;
+
+  abstract softDelete({ id }: SoftDelete): Promise<void>;
+
+  abstract restore({ id, name, address, phone }: Restore): Promise<Supplier>;
 
   abstract findByCnpj({
     organizationId,
