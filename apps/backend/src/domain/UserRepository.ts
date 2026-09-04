@@ -20,6 +20,10 @@ export interface Update {
   role?: Role;
 }
 
+export interface SoftDelete {
+  id: string;
+}
+
 export interface FindByEmail {
   email: string;
 }
@@ -73,6 +77,8 @@ export abstract class UserRepository {
     cpf,
     role,
   }: Update): Promise<Users>;
+
+  abstract softDelete({ id }: SoftDelete): Promise<void>;
 
   abstract findByEmail({ email }: FindByEmail): Promise<User | null>;
 

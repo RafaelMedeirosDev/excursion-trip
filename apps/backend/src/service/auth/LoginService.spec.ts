@@ -30,6 +30,7 @@ describe('LoginService', () => {
     userRepository = {
       create: jest.fn(),
       update: jest.fn(),
+      softDelete: jest.fn(),
       findByEmail: jest.fn(),
       findByCpf: jest.fn(),
       findById: jest.fn(),
@@ -90,6 +91,24 @@ describe('LoginService', () => {
     await expect(
       service.execute({ email: 'ana@example.com', password: 'senha123' }),
     ).rejects.toBeInstanceOf(InvalidCredentials);
+    expect(jwtService.sign).not.toHaveBeenCalled();
+    expect(refreshTokenRepository.create).not.toHaveBeenCalled();
+  });
+
+  it('lança InvalidCredentials quando o usuário foi excluído', async () => {
+    userRepository.findByEmail.mockResolvedValue({
+      ...user,
+      deletedAt: new Date(),
+    } as User);
+    (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+    // os mocks acumulam chamadas entre os testes do arquivo (sem clearMocks),
+    // e aqui o ponto é justamente provar que a comparação nem acontece
+    (bcrypt.compare as jest.Mock).mockClear();
+
+    await expect(
+      service.execute({ email: 'ana@example.com', password: 'senha123' }),
+    ).rejects.toBeInstanceOf(InvalidCredentials);
+    expect(bcrypt.compare).not.toHaveBeenCalled();
     expect(jwtService.sign).not.toHaveBeenCalled();
     expect(refreshTokenRepository.create).not.toHaveBeenCalled();
   });

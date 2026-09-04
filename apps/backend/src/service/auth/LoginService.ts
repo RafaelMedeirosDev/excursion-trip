@@ -29,7 +29,11 @@ export class LoginService {
   async execute({ email, password }: Request): Promise<Response> {
     const user = await this.userRepository.findByEmail({ email });
 
-    if (!user || !(await bcrypt.compare(password, user.password))) {
+    if (
+      !user ||
+      user.deletedAt ||
+      !(await bcrypt.compare(password, user.password))
+    ) {
       throw new InvalidCredentials();
     }
 

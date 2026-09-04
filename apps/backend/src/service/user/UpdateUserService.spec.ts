@@ -32,6 +32,7 @@ describe('UpdateUserService', () => {
     userRepository = {
       create: jest.fn(),
       update: jest.fn(),
+      softDelete: jest.fn(),
       findByEmail: jest.fn(),
       findByCpf: jest.fn(),
       findById: jest.fn(),
