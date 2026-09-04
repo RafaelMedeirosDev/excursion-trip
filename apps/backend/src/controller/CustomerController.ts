@@ -4,21 +4,25 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { Customer } from '@prisma/client';
+import { Customer, Role } from '@prisma/client';
 import { Customers, PaginatedCustomers } from 'src/domain/CustomerRepository';
 import { CurrentUser } from 'src/decorators/CurrentUser';
+import { Roles } from 'src/decorators/Roles';
 import { JwtAuthGuard } from 'src/guards/JwtAuthGuard';
 import { RolesGuard } from 'src/guards/RolesGuard';
 import { CreateCustomerService } from 'src/service/customer/CreateCustomerService';
 import { GetCustomerService } from 'src/service/customer/GetCustomerService';
 import { ListCustomerService } from 'src/service/customer/ListCustomerService';
 import { ListPaginatedCustomerService } from 'src/service/customer/ListPaginatedCustomerService';
+import { UpdateCustomerService } from 'src/service/customer/UpdateCustomerService';
 import { CreateCustomerDTO } from 'src/shared/dtos/CreateCustomerDTO';
 import { ListPaginatedCustomerDTO } from 'src/shared/dtos/ListPaginatedCustomerDTO';
+import { UpdateCustomerDTO } from 'src/shared/dtos/UpdateCustomerDTO';
 import { JwtPayload } from 'src/strategies/JwtStrategy';
 
 @Controller('/customers')
@@ -29,6 +33,7 @@ export class CustomerController {
     private readonly listCustomerService: ListCustomerService,
     private readonly listPaginatedCustomerService: ListPaginatedCustomerService,
     private readonly getCustomerService: GetCustomerService,
+    private readonly updateCustomerService: UpdateCustomerService,
   ) {}
 
   @Post()
@@ -73,6 +78,25 @@ export class CustomerController {
     return this.getCustomerService.execute({
       organizationId: currentUser.organizationId,
       id,
+    });
+  }
+
+  // primeira rota com @Roles nesse controller: listagem/criação seguem abertas
+  // a qualquer autenticado, só a edição é restrita
+  @Patch(':id')
+  @Roles(Role.ADM)
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() { name, email, phone, cpf }: UpdateCustomerDTO,
+    @CurrentUser() currentUser: JwtPayload,
+  ): Promise<Customer> {
+    return this.updateCustomerService.execute({
+      organizationId: currentUser.organizationId,
+      id,
+      name,
+      email,
+      phone,
+      cpf,
     });
   }
 }

@@ -70,6 +70,7 @@ import { ListBoardingPointService } from 'src/service/boarding-point/ListBoardin
 import { ListPaginatedBoardingPointService } from 'src/service/boarding-point/ListPaginatedBoardingPointService';
 import { ListCustomerService } from 'src/service/customer/ListCustomerService';
 import { ListPaginatedCustomerService } from 'src/service/customer/ListPaginatedCustomerService';
+import { UpdateCustomerService } from 'src/service/customer/UpdateCustomerService';
 import { ListEventService } from 'src/service/event/ListEventService';
 import { ListPaginatedEventService } from 'src/service/event/ListPaginatedEventService';
 import { ListExcursionService } from 'src/service/excursion/ListExcursionService';
@@ -137,6 +138,7 @@ import { AppService } from './app.service';
     ListCustomerService,
     ListPaginatedCustomerService,
     GetCustomerService,
+    UpdateCustomerService,
     CreateEventService,
     ListEventService,
     ListPaginatedEventService,

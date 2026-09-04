@@ -9,6 +9,7 @@ import {
   FindByCpf,
   FindById,
   PaginatedCustomers,
+  Update,
 } from 'src/domain/CustomerRepository';
 import { PrismaRemoteRepository } from './PrismaRemoteRepository';
 
@@ -19,6 +20,13 @@ export class PrismaCustomerRepository implements CustomerRepository {
   create({ organizationId, name, email, phone, cpf }: Create): Promise<Customer> {
     return this.repository.customer.create({
       data: { organizationId, name, email, phone, cpf },
+    });
+  }
+
+  update({ id, name, email, phone, cpf }: Update): Promise<Customer> {
+    return this.repository.customer.update({
+      where: { id },
+      data: { name, email, phone, cpf },
     });
   }
 

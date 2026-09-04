@@ -3,6 +3,7 @@ import type {
   CreateCustomerPayload,
   Customer,
   PaginatedCustomers,
+  UpdateCustomerPayload,
 } from "@/features/customers/types";
 
 export const customersApi = {
@@ -30,6 +31,17 @@ export const customersApi = {
 
   createCustomer: async (payload: CreateCustomerPayload): Promise<Customer> => {
     const { data } = await httpClient.post<Customer>("/customers", payload);
+    return data;
+  },
+
+  updateCustomer: async (
+    id: string,
+    payload: UpdateCustomerPayload,
+  ): Promise<Customer> => {
+    const { data } = await httpClient.patch<Customer>(
+      `/customers/${id}`,
+      payload,
+    );
     return data;
   },
 };
