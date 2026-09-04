@@ -8,10 +8,23 @@ import {
   FindByEmail,
   FindById,
   PaginatedUsers,
+  Update,
   UserRepository,
   Users,
 } from 'src/domain/UserRepository';
 import { PrismaRemoteRepository } from './PrismaRemoteRepository';
+
+const USER_SELECT = {
+  id: true,
+  organizationId: true,
+  name: true,
+  email: true,
+  phone: true,
+  cpf: true,
+  role: true,
+  createdAt: true,
+  updatedAt: true,
+} as const;
 
 @Injectable()
 export class PrismaUserRepository implements UserRepository {
@@ -28,17 +41,15 @@ export class PrismaUserRepository implements UserRepository {
   }: Create): Promise<Users> {
     return this.repository.user.create({
       data: { organizationId, name, email, password, phone, cpf, role },
-      select: {
-        id: true,
-        organizationId: true,
-        name: true,
-        email: true,
-        phone: true,
-        cpf: true,
-        role: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: USER_SELECT,
+    });
+  }
+
+  update({ id, name, email, password, phone, cpf, role }: Update): Promise<Users> {
+    return this.repository.user.update({
+      where: { id },
+      data: { name, email, password, phone, cpf, role },
+      select: USER_SELECT,
     });
   }
 
@@ -53,34 +64,14 @@ export class PrismaUserRepository implements UserRepository {
   findById({ id }: FindById): Promise<Users | null> {
     return this.repository.user.findFirst({
       where: { id },
-      select: {
-        id: true,
-        organizationId: true,
-        name: true,
-        email: true,
-        phone: true,
-        cpf: true,
-        role: true,
-        createdAt: true,
-        updatedAt: true,
-      },
+      select: USER_SELECT,
     });
   }
 
   findAll({ organizationId }: FindAll): Promise<Users[]> {
     return this.repository.user.findMany({
       where: { organizationId, deletedAt: null },
-      select: {
-        id: true,
-        organizationId: true,
-        name: true,
-        email: true,
-        phone: true,
-        cpf: true,
-        role: true,
-        createdAt: true,
-        updatedAt: true
-      },
+      select: USER_SELECT,
     });
   }
 
@@ -107,17 +98,7 @@ export class PrismaUserRepository implements UserRepository {
     return Promise.all([
       this.repository.user.findMany({
         where,
-        select: {
-          id: true,
-          organizationId: true,
-          name: true,
-          email: true,
-          phone: true,
-          cpf: true,
-          role: true,
-          createdAt: true,
-          updatedAt: true,
-        },
+        select: USER_SELECT,
         skip: (page - 1) * limit,
         take: limit,
       }),

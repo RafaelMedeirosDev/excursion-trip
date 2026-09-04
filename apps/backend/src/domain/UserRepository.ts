@@ -10,6 +10,16 @@ export interface Create {
   role: Role;
 }
 
+export interface Update {
+  id: string;
+  name?: string;
+  email?: string;
+  password?: string;
+  phone?: string;
+  cpf?: string;
+  role?: Role;
+}
+
 export interface FindByEmail {
   email: string;
 }
@@ -53,6 +63,16 @@ export abstract class UserRepository {
     cpf,
     role,
   }: Create): Promise<Users>;
+
+  abstract update({
+    id,
+    name,
+    email,
+    password,
+    phone,
+    cpf,
+    role,
+  }: Update): Promise<Users>;
 
   abstract findByEmail({ email }: FindByEmail): Promise<User | null>;
 

@@ -10,3 +10,12 @@ export const createUserSchema = z.object({
 });
 
 export type CreateUserInput = z.infer<typeof createUserSchema>;
+
+// Na edição a senha é opcional: em branco significa "manter a senha atual".
+export const updateUserSchema = createUserSchema.extend({
+  password: z
+    .union([z.string().min(6, "Mínimo de 6 caracteres"), z.literal("")])
+    .optional(),
+});
+
+export type UpdateUserInput = z.infer<typeof updateUserSchema>;

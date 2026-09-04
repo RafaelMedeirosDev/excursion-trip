@@ -4,6 +4,7 @@ import {
   Get,
   Param,
   ParseUUIDPipe,
+  Patch,
   Post,
   Query,
   UseGuards,
@@ -18,8 +19,10 @@ import { CreateUserService } from 'src/service/user/CreateUserService';
 import { GetUserService } from 'src/service/user/GetUserService';
 import { ListUserService } from 'src/service/user/ListUserService';
 import { ListPaginatedUserService } from 'src/service/user/ListPaginatedUserService';
+import { UpdateUserService } from 'src/service/user/UpdateUserService';
 import { CreateUserDTO } from 'src/shared/dtos/CreateUserDTO';
 import { ListPaginatedUserDTO } from 'src/shared/dtos/ListPaginatedUserDTO';
+import { UpdateUserDTO } from 'src/shared/dtos/UpdateUserDTO';
 import { JwtPayload } from 'src/strategies/JwtStrategy';
 
 @Controller('/users')
@@ -30,6 +33,7 @@ export class UserController {
     private readonly listUserService: ListUserService,
     private readonly listPaginatedUserService: ListPaginatedUserService,
     private readonly getUserService: GetUserService,
+    private readonly updateUserService: UpdateUserService,
   ) {}
 
   @Post()
@@ -79,6 +83,26 @@ export class UserController {
     return this.getUserService.execute({
       organizationId: currentUser.organizationId,
       id,
+    });
+  }
+
+  @Patch(':id')
+  @Roles(Role.ADM)
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() { name, email, password, phone, cpf, role }: UpdateUserDTO,
+    @CurrentUser() currentUser: JwtPayload,
+  ): Promise<Users> {
+    return this.updateUserService.execute({
+      organizationId: currentUser.organizationId,
+      currentUserId: currentUser.sub,
+      id,
+      name,
+      email,
+      password,
+      phone,
+      cpf,
+      role,
     });
   }
 }

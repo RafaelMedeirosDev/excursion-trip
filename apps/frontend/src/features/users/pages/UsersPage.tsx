@@ -1,4 +1,4 @@
-import { Plus, UserCog } from "lucide-react";
+import { Pencil, Plus, UserCog } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -111,6 +111,7 @@ export function UsersPage() {
                   <TableHead>CPF</TableHead>
                   <TableHead>Perfil</TableHead>
                   <TableHead>Telefone</TableHead>
+                  <TableHead className="w-0 text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -128,6 +129,22 @@ export function UsersPage() {
                     <TableCell>{user.cpf}</TableCell>
                     <TableCell>{ROLE_LABELS[user.role]}</TableCell>
                     <TableCell>{user.phone}</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="icon"
+                        className="size-9"
+                      >
+                        <Link
+                          to={`/users/${user.id}/edit`}
+                          aria-label="Editar usuário"
+                          title="Editar usuário"
+                        >
+                          <Pencil className="size-4" />
+                        </Link>
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -136,23 +153,39 @@ export function UsersPage() {
 
           <div className="grid gap-3 md:hidden">
             {users.map((user) => (
-              <Link key={user.id} to={`/users/${user.id}`}>
-                <Card className="transition-colors hover:bg-muted/50">
-                  <CardContent className="space-y-3 pt-6">
-                    <span className="font-medium">{user.name}</span>
+              <Card key={user.id}>
+                <CardContent className="space-y-3 pt-6">
+                  <div className="flex items-start justify-between gap-3">
+                    <Link
+                      to={`/users/${user.id}`}
+                      className="font-medium hover:underline"
+                    >
+                      {user.name}
+                    </Link>
+                    <Button
+                      asChild
+                      variant="outline"
+                      size="icon"
+                      className="size-9 shrink-0"
+                    >
+                      <Link
+                        to={`/users/${user.id}/edit`}
+                        aria-label="Editar usuário"
+                        title="Editar usuário"
+                      >
+                        <Pencil className="size-4" />
+                      </Link>
+                    </Button>
+                  </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <CardField label="E-mail" value={user.email} />
-                      <CardField label="CPF" value={user.cpf} />
-                      <CardField
-                        label="Perfil"
-                        value={ROLE_LABELS[user.role]}
-                      />
-                      <CardField label="Telefone" value={user.phone} />
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
+                  <div className="grid grid-cols-2 gap-3">
+                    <CardField label="E-mail" value={user.email} />
+                    <CardField label="CPF" value={user.cpf} />
+                    <CardField label="Perfil" value={ROLE_LABELS[user.role]} />
+                    <CardField label="Telefone" value={user.phone} />
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
 

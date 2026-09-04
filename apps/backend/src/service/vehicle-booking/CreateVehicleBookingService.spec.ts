@@ -69,6 +69,7 @@ describe('CreateVehicleBookingService', () => {
     };
     userRepository = {
       create: jest.fn(),
+      update: jest.fn(),
       findByEmail: jest.fn(),
       findByCpf: jest.fn(),
       findById: jest.fn(),
