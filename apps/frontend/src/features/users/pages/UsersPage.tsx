@@ -1,8 +1,9 @@
-import { Pencil, Plus, UserCog } from "lucide-react";
+import { Pencil, Plus, Trash2, UserCog } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { ConfirmDialog } from "@/components/feedback/ConfirmDialog";
 import { EmptyState } from "@/components/feedback/EmptyState";
 import { Input } from "@/components/ui/input";
 import { PageTitle } from "@/components/layout/PageTitle";
@@ -16,12 +17,17 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ROLE_LABELS } from "@excursion-trip/shared";
+import { useAuth } from "@/features/auth/hooks/useAuth";
+import { useDeleteUser } from "@/features/users/hooks/useDeleteUser";
 import { usePaginatedUsers } from "@/features/users/hooks/usePaginatedUsers";
+import type { User } from "@/features/users/types";
 
 const PAGE_SIZE = 10;
 const SEARCH_DEBOUNCE_MS = 300;
 
 export function UsersPage() {
+  const { user: currentUser } = useAuth();
+  const deleteUser = useDeleteUser();
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [page, setPage] = useState(1);
@@ -44,6 +50,12 @@ export function UsersPage() {
   });
 
   const users = result?.data;
+
+  // excluir o último item de uma página > 1 deixaria a lista vazia com os
+  // controles de paginação ativos; volta uma página nesse caso
+  if (users && users.length === 0 && page > 1) {
+    setPage((current) => current - 1);
+  }
   const totalPages = result ? Math.max(Math.ceil(result.total / result.limit), 1) : 1;
   const hasActiveFilter = query !== "";
 
@@ -129,21 +141,28 @@ export function UsersPage() {
                     <TableCell>{user.cpf}</TableCell>
                     <TableCell>{ROLE_LABELS[user.role]}</TableCell>
                     <TableCell>{user.phone}</TableCell>
-                    <TableCell className="text-right">
-                      <Button
-                        asChild
-                        variant="outline"
-                        size="icon"
-                        className="size-9"
-                      >
-                        <Link
-                          to={`/users/${user.id}/edit`}
-                          aria-label="Editar usuário"
-                          title="Editar usuário"
+                    <TableCell>
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          asChild
+                          variant="outline"
+                          size="icon"
+                          className="size-9"
                         >
-                          <Pencil className="size-4" />
-                        </Link>
-                      </Button>
+                          <Link
+                            to={`/users/${user.id}/edit`}
+                            aria-label="Editar usuário"
+                            title="Editar usuário"
+                          >
+                            <Pencil className="size-4" />
+                          </Link>
+                        </Button>
+                        <DeleteUserButton
+                          user={user}
+                          isSelf={currentUser?.sub === user.id}
+                          onConfirm={() => deleteUser.mutate(user.id)}
+                        />
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -162,20 +181,27 @@ export function UsersPage() {
                     >
                       {user.name}
                     </Link>
-                    <Button
-                      asChild
-                      variant="outline"
-                      size="icon"
-                      className="size-9 shrink-0"
-                    >
-                      <Link
-                        to={`/users/${user.id}/edit`}
-                        aria-label="Editar usuário"
-                        title="Editar usuário"
+                    <div className="flex shrink-0 gap-2">
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="icon"
+                        className="size-9"
                       >
-                        <Pencil className="size-4" />
-                      </Link>
-                    </Button>
+                        <Link
+                          to={`/users/${user.id}/edit`}
+                          aria-label="Editar usuário"
+                          title="Editar usuário"
+                        >
+                          <Pencil className="size-4" />
+                        </Link>
+                      </Button>
+                      <DeleteUserButton
+                        user={user}
+                        isSelf={currentUser?.sub === user.id}
+                        onConfirm={() => deleteUser.mutate(user.id)}
+                      />
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
@@ -215,6 +241,44 @@ export function UsersPage() {
         </>
       )}
     </div>
+  );
+}
+
+function DeleteUserButton({
+  user,
+  isSelf,
+  onConfirm,
+}: {
+  user: User;
+  isSelf: boolean;
+  onConfirm: () => void;
+}) {
+  // o backend bloqueia a auto-exclusão com 400; aqui só não oferecemos a ação
+  const trigger = (
+    <Button
+      variant="outline"
+      size="icon"
+      className="size-9 text-destructive hover:text-destructive"
+      disabled={isSelf}
+      aria-label="Excluir usuário"
+      title={isSelf ? "Você não pode excluir a si mesmo" : "Excluir usuário"}
+    >
+      <Trash2 className="size-4" />
+    </Button>
+  );
+
+  if (isSelf) {
+    return trigger;
+  }
+
+  return (
+    <ConfirmDialog
+      trigger={trigger}
+      title={`Excluir ${user.name}?`}
+      description="O usuário perde o acesso e sai da listagem. O histórico de reservas, pagamentos e veículos que ele registrou é preservado."
+      confirmLabel="Excluir"
+      onConfirm={onConfirm}
+    />
   );
 }
 

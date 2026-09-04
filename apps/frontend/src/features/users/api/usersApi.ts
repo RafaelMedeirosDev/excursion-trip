@@ -37,4 +37,8 @@ export const usersApi = {
     const { data } = await httpClient.patch<User>(`/users/${id}`, payload);
     return data;
   },
+
+  deleteUser: async (id: string): Promise<void> => {
+    await httpClient.delete(`/users/${id}`);
+  },
 };

@@ -54,6 +54,7 @@ import { CreatePaymentService } from 'src/service/payment/CreatePaymentService';
 import { CreateReservationService } from 'src/service/reservation/CreateReservationService';
 import { CreateSupplierService } from 'src/service/supplier/CreateSupplierService';
 import { CreateUserService } from 'src/service/user/CreateUserService';
+import { DeleteUserService } from 'src/service/user/DeleteUserService';
 import { CreateVehicleBookingService } from 'src/service/vehicle-booking/CreateVehicleBookingService';
 import { GetBoardingPointService } from 'src/service/boarding-point/GetBoardingPointService';
 import { GetCustomerService } from 'src/service/customer/GetCustomerService';
@@ -128,6 +129,7 @@ import { AppService } from './app.service';
     ListPaginatedUserService,
     GetUserService,
     UpdateUserService,
+    DeleteUserService,
     LoginService,
     RefreshTokenService,
     LogoutService,

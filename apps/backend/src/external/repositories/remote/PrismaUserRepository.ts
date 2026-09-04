@@ -8,6 +8,7 @@ import {
   FindByEmail,
   FindById,
   PaginatedUsers,
+  SoftDelete,
   Update,
   UserRepository,
   Users,
@@ -53,6 +54,13 @@ export class PrismaUserRepository implements UserRepository {
     });
   }
 
+  async softDelete({ id }: SoftDelete): Promise<void> {
+    await this.repository.user.update({
+      where: { id },
+      data: { deletedAt: new Date() },
+    });
+  }
+
   findByEmail({ email }: FindByEmail): Promise<User | null> {
     return this.repository.user.findUnique({ where: { email } });
   }
@@ -63,7 +71,7 @@ export class PrismaUserRepository implements UserRepository {
 
   findById({ id }: FindById): Promise<Users | null> {
     return this.repository.user.findFirst({
-      where: { id },
+      where: { id, deletedAt: null },
       select: USER_SELECT,
     });
   }
