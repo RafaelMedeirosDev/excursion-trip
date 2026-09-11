@@ -554,7 +554,7 @@ Ambos os apps trazem um `.env.example` versionado com as chaves e valores de ref
 - **Sem seed de bootstrap**: a primeira organização e o primeiro `ADM` exigem inserção manual no banco.
 - **Cobertura de testes concentrada na camada de service**: não há testes de controller, de repositório, end-to-end, nem testes no frontend.
 - **Módulo de despesas sem interface**: `Expense` existe na API, mas ainda não tem tela no frontend.
-- **Sem containerização e sem deploy**: não há Dockerfile, `docker-compose` nem ambiente publicado — a execução é local.
+- **Deploy sem containerização**: não há Dockerfile nem `docker-compose` — o ambiente publicado roda no Railway, que monta a imagem automaticamente a partir do `pnpm-workspace.yaml` (ver a seção "Deploy" no `CLAUDE.md` da raiz).
 
 ---
 

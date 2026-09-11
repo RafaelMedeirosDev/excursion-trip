@@ -34,6 +34,45 @@ pnpm test     # turbo run test
 
 `.github/workflows/ci.yml` roda `pnpm build && pnpm lint && pnpm test` em todo Pull Request pra `main` (GitHub Actions, Node 20 + pnpm, sem banco — os testes do backend só usam mocks de `Repository`, não tocam Postgres). **`pnpm install` sozinho não gera o Prisma Client nesse monorepo** (postinstall do `@prisma/client` não encontra o `schema.prisma` no layout do pnpm workspace) — o workflow roda `pnpm --filter @excursion-trip/backend exec prisma generate` explicitamente antes do build. Localmente isso nunca foi um problema porque `prisma migrate dev` já gera o client como efeito colateral; um clone novo que só rode `pnpm install` (como o CI) precisa desse passo explícito.
 
+## Deploy (Railway)
+
+Projeto `thriving-connection`, ambiente `production`, 3 serviços: `Postgres` (gerenciado, com volume), `backend` e `frontend` — os dois últimos apontando para **o mesmo repositório**, sem Dockerfile. O builder é o **Railpack** (sucessor do Nixpacks; variáveis são `RAILPACK_*`). `railway.json`/`railway.toml` **não são opção**: config-as-code está deprecado e fechado para serviços novos — a configuração vive no painel.
+
+**Root Directory tem que ficar vazio nos dois serviços.** Este é um "shared monorepo" (pnpm workspace com `workspace:*`): com Root Directory preenchido, o Railway baixa só aquele diretório e `pnpm-workspace.yaml`/`pnpm-lock.yaml`/`packages/shared` ficam de fora, quebrando o build na resolução de módulo. Os serviços se diferenciam pelos **comandos**, não pelo diretório.
+
+| | `backend` | `frontend` |
+|---|---|---|
+| Build | `pnpm --filter @excursion-trip/backend exec prisma generate && pnpm --filter @excursion-trip/backend build` | `pnpm --filter @excursion-trip/frontend build` |
+| Pre-deploy | `pnpm --filter @excursion-trip/backend exec prisma migrate deploy` | — |
+| Start | `pnpm --filter @excursion-trip/backend start` | *(vazio — quem serve é o Caddy)* |
+| Healthcheck | `/health` | `/health` |
+
+- **`prisma generate` precisa estar explícito no build** — não existe `postinstall` em nenhum `package.json` do monorepo (mesmo motivo pelo qual o `ci.yml` já roda esse passo à mão).
+- **A migration roda no pre-deploy**, que executa entre build e deploy, tem acesso à rede privada e **aborta o deploy se falhar** — o tráfego nunca chega numa versão cujo schema não subiu. O CLI `prisma` é `devDependency` mas continua na imagem porque o prune de devDeps é opt-in: **nunca habilitar `RAILPACK_PRUNE_DEPS`**, isso quebraria o pre-deploy.
+- **O frontend é servido como site estático pelo Caddy do Railpack**, cujo Caddyfile padrão já faz `try_files … /index.html` (resolve os deep links do `BrowserRouter`) e responde `/health`. Sem `serve`, sem nginx, sem `vite preview` — nenhuma dependência nova. **Mas a autodetecção de Vite não dispara neste monorepo**: o Railpack inspeciona só o `package.json` da raiz, que não tem Vite. É obrigatório forçar com `RAILPACK_SPA_OUTPUT_DIR=apps/frontend/dist` (caminho relativo à raiz do repo), e deixar o Start Command **vazio** — `apps/frontend` não tem script `start`.
+
+### Variáveis
+
+`backend`: `DATABASE_URL=${{Postgres.DATABASE_URL}}`, `JWT_SECRET` (forte, o boot rejeita `change-me`), `JWT_EXPIRES_IN=15m`, `REFRESH_TOKEN_EXPIRES_IN_HOURS=24`, `CORS_ORIGIN=https://<domínio do frontend>`, `RAILPACK_NODE_VERSION=20`.
+`frontend`: `VITE_API_URL=https://<domínio do backend>`, `RAILPACK_SPA_OUTPUT_DIR=apps/frontend/dist`, `RAILPACK_NODE_VERSION=20`.
+
+- **`PORT` é injetada pelo Railway — nunca setar à mão.** E `main.ts` precisa bindar em `0.0.0.0` explicitamente (`app.listen(port, "0.0.0.0")`), senão o resultado é `502 Application failed to respond`.
+- **`VITE_API_URL` é build-time**: o Vite inlina o valor no bundle, então trocar o domínio da API exige **rebuild** do frontend, não basta reiniciar.
+- **`RAILPACK_NODE_VERSION=20` é proposital**: `engines.node` da raiz é o range `>=20`, que poderia resolver para 22/24 — o Nest 10 e o CI usam 20.
+- **`DATABASE_URL` errada = crash loop**, não degradação silenciosa: `PrismaRemoteRepository.onModuleInit` chama `$connect()`, então o processo morre no boot se o banco estiver inacessível.
+
+### Três armadilhas que já custaram caro
+
+1. **`onlyBuiltDependencies` mora no `pnpm-workspace.yaml`, não no `package.json`.** Desde o pnpm 10.16 o campo `pnpm` do `package.json` é **silenciosamente ignorado** (o pnpm avisa, mas nada quebra). Sem a lista no lugar certo, o pnpm 10 bloqueia os install scripts e o `bcrypt` fica sem binário nativo — e isso **não aparece nem no CI** (todos os `.spec.ts` fazem `jest.mock('bcrypt')`, o binário nunca é carregado em teste). A falha só apareceria no primeiro `POST /auth/login` em produção.
+2. **As guardas de boot de `main.ts` não dão para testar localmente do jeito óbvio.** `ConfigModule.forRoot()` é avaliado no `require` de `app.module.ts`, ou seja **antes** do `bootstrap()`, e carrega `apps/backend/.env` independentemente do `cwd` — então `env -u CORS_ORIGIN node dist/main.js` sobe normalmente na sua máquina. Para testar de verdade é preciso esconder o `.env` temporariamente. Em produção o arquivo não existe (é gitignored), então as guardas valem.
+3. **Nome de serviço vira namespace de variável de referência** (`${{backend.RAILWAY_PUBLIC_DOMAIN}}`). O import automático de monorepo nomeia os serviços como os pacotes (`@excursion-trip/backend`), e `@`/`/` não são válidos nessa sintaxe — por isso os serviços foram renomeados para `backend`/`frontend`. `RAILWAY_PUBLIC_DOMAIN` **não** inclui o `https://`.
+
+### Bootstrap e operação
+
+Não existe signup público, então a primeira organização e o primeiro `ADM` são inseridos à mão (`railway connect Postgres`, hash bcrypt com `SALT_ROUNDS = 10`). **Não rodar `pnpm db:seed` em produção** — o `prisma/seed.ts` cria a base de demonstração inteira com a senha fixa `senha123`.
+
+Watch paths separam os deploys: `backend` observa `/apps/backend/**` + `/packages/**` + lockfile/manifests da raiz; `frontend` troca o primeiro por `/apps/frontend/**`. Um commit que toque só um app redeploya só aquele serviço.
+
 ## Estado atual
 
 - Scaffold do monorepo pronto (workspaces, tsconfig/eslint compartilhados, NestJS rodando).

@@ -11,9 +11,21 @@ async function bootstrap() {
     );
   }
 
+  if (!process.env.CORS_ORIGIN) {
+    throw new Error(
+      "CORS_ORIGIN is not set. Without it Nest falls back to allowing every origin.",
+    );
+  }
+
+  if (!Number(process.env.REFRESH_TOKEN_EXPIRES_IN_HOURS)) {
+    throw new Error(
+      "REFRESH_TOKEN_EXPIRES_IN_HOURS is not set or is not a positive number.",
+    );
+  }
+
   const app = await NestFactory.create(AppModule);
   app.enableCors({
-    origin: process.env.CORS_ORIGIN?.split(",").map((origin) => origin.trim()),
+    origin: process.env.CORS_ORIGIN.split(",").map((origin) => origin.trim()),
   });
   app.useGlobalPipes(
     new ValidationPipe({
@@ -22,6 +34,6 @@ async function bootstrap() {
       forbidNonWhitelisted: true,
     }),
   );
-  await app.listen(process.env.PORT ?? 3000);
+  await app.listen(process.env.PORT ?? 3000, "0.0.0.0");
 }
 bootstrap();

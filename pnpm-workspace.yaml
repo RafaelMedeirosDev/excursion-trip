@@ -1,3 +1,13 @@
 packages:
   - "apps/*"
   - "packages/*"
+
+# Pacotes autorizados a rodar install scripts (o pnpm 10 bloqueia por padrao).
+# Moradia correta desta lista desde o pnpm 10.16 — no package.json da raiz ela
+# e silenciosamente ignorada, e sem ela o bcrypt fica sem binario nativo.
+onlyBuiltDependencies:
+  - "@nestjs/core"
+  - "@prisma/client"
+  - "@prisma/engines"
+  - bcrypt
+  - prisma
