@@ -69,7 +69,17 @@ Projeto `thriving-connection`, ambiente `production`, 3 serviços: `Postgres` (g
 
 ### Bootstrap e operação
 
-Não existe signup público, então a primeira organização e o primeiro `ADM` são inseridos à mão (`railway connect Postgres`, hash bcrypt com `SALT_ROUNDS = 10`). **Não rodar `pnpm db:seed` em produção** — o `prisma/seed.ts` cria a base de demonstração inteira com a senha fixa `senha123`.
+Não existe signup público, então a primeira organização e o primeiro `ADM` de um cliente real são inseridos à mão (`railway connect Postgres`, hash bcrypt com `SALT_ROUNDS = 10`).
+
+**`prisma/seed.ts` é o seed da organização de demonstração, e pode rodar em produção.** Ele cria/atualiza uma organização de id fixo (`0a000000-…-000000000001`, "Excursões Panorama — Demo") com ~85 registros realistas, para alguém de fora conhecer o sistema. Três coisas que o tornam seguro e que não podem se perder numa edição futura:
+
+- **A identidade da organização é um literal do código, nunca uma query.** A versão original fazia `findFirst({ orderBy: { createdAt: 'asc' } })` e "reaproveitava a organização existente" — o que em produção significa despejar 85 registros fictícios e 3 usuários (um deles `ADM` com senha pública) dentro do tenant de um cliente real.
+- **`cnpj` da organização de demo é `null` de propósito.** O campo é `@unique` global; no Postgres vários `NULL` convivem numa constraint `UNIQUE`, então não há como colidir com a organização real nem com bancos de dev já semeados.
+- **Datas são todas relativas a "hoje 00:00 UTC"** (`monthsFromNow`/`addDays`), nunca literais. Com datas fixas a demo envelhece: o card de Eventos do Dashboard separa "Próximos" de "Realizados" comparando com `now`, e a partir de certa data o grupo "Próximos" zera para sempre. Mesma razão pela qual os nomes dos eventos não têm ano nem sazonalidade ("Festival Rio Live", não "Rock in Rio 2026" ou "Réveillon"). `canceledAt` sempre ancora em `daysFromNow(negativo)` — derivá-lo da data de embarque produziria cancelamento no futuro.
+
+`SEED_RESET=1 pnpm --filter @excursion-trip/backend db:seed` apaga tudo da demo antes de semear, restaurando o estado inicial mesmo depois de um visitante criar ou excluir registros. É o **único** caminho destrutivo do arquivo: escopado pelo id literal da demo, em `$transaction`, com a ordem topológica das FKs. Duas armadilhas documentadas no código: `RefreshToken` não tem `organizationId` nem cascade (precisa ser escopado pela relação com `User`, senão o delete falha para qualquer usuário que já tenha logado), e as relações **opcionais** (`Reservation.boardingPointId`, `Expense.vehicleBookingId`) têm default `SetNull` — apagar fora de ordem não daria erro, só zeraria campos em silêncio. **Nunca colocar `SEED_RESET` no `.env`**: o CLI do Prisma carrega o `.env` antes do seed, e um valor esquecido lá tornaria toda execução destrutiva.
+
+`User`/`Supplier`/`Customer` usam **id fixo** no `upsert`, não a chave natural (`email`/`cnpj`/`cpf`) — desde que `PATCH /users/:id`, `/customers/:id` e `/suppliers/:id` existem, o visitante (que é `ADM`) pode editar esses campos, e casar por chave natural faria o seed criar duplicata em vez de corrigir a linha.
 
 Watch paths separam os deploys: `backend` observa `/apps/backend/**` + `/packages/**` + lockfile/manifests da raiz; `frontend` troca o primeiro por `/apps/frontend/**`. Um commit que toque só um app redeploya só aquele serviço.
 

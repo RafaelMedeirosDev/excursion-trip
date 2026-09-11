@@ -11,6 +11,23 @@
 
 Sistema multi-tenant de gestão de excursões para eventos — do cadastro do evento à conciliação dos pagamentos das reservas.
 
+## Demonstração
+
+**https://excursion-tripfrontend-production.up.railway.app**
+
+Ambiente publicado, com uma organização de demonstração povoada. Os dois acessos existem de propósito: o controle de permissão por papel é parte do que há para ver.
+
+| Perfil | E-mail | Senha |
+|---|---|---|
+| Administrador | `admin@demo.com` | `demo1234` |
+| Funcionário | `funcionario@demo.com` | `demo1234` |
+
+Entrando como **Funcionário**, Eventos, Fornecedores e Usuários somem do menu, e as listagens de veículos, reservas e pagamentos passam a mostrar apenas o que é dele — o escopo é aplicado no backend, não só escondido na interface.
+
+Vale olhar: o Dashboard com os indicadores e o recorte por evento; as Excursões, que percorrem os cinco estados do ciclo de vida; e o registro de um pagamento numa reserva em lista de espera — ao atingir 50% do valor combinado a reserva vira pendente, e aos 100%, confirmada, sem nenhuma ação manual.
+
+Os dados são fictícios e ficam isolados numa organização própria; sinta-se à vontade para criar e alterar registros.
+
 ---
 
 ## Sobre o projeto
@@ -450,7 +467,10 @@ pnpm --filter @excursion-trip/frontend dev
 
 ### 7. Primeiro acesso
 
-> **Atenção:** o projeto **não possui seed** e `POST /organizations` e `POST /users` exigem um `ADM` já autenticado — não existe cadastro público, por decisão de segurança. Portanto, a **primeira organização e o primeiro usuário `ADM` precisam ser inseridos manualmente no banco** (a senha deve ser gravada já como hash bcrypt). A partir daí, todo o restante é criado pela aplicação.
+`POST /organizations` e `POST /users` exigem um `ADM` já autenticado — não existe cadastro público, por decisão de segurança. Há dois caminhos para o primeiro acesso:
+
+- **Dados de demonstração:** `pnpm --filter @excursion-trip/backend db:seed` cria uma organização isolada com ~85 registros e imprime as credenciais no final. É o caminho recomendado para conhecer o sistema. Rodar de novo restaura o estado dos dados semeados; `SEED_RESET=1` antes do comando apaga também o que tiver sido criado por cima.
+- **Organização real:** a primeira organização e o primeiro `ADM` precisam ser inseridos manualmente no banco, com a senha já gravada como hash bcrypt. A partir daí, todo o restante é criado pela aplicação.
 
 ### 8. Testes
 
@@ -551,7 +571,7 @@ Ambos os apps trazem um `.env.example` versionado com as chaves e valores de ref
 - **Soft delete preparado, não ativo**: a coluna `deletedAt` existe e é filtrada nas listagens, mas nenhuma rota a preenche.
 - **Listagens sem paginação e sem ordenação**: todos os endpoints de lista retornam o conjunto completo. Buscas e filtros textuais do frontend são resolvidos no cliente — adequado ao volume atual, mas não à escala.
 - **Documentação OpenAPI não exposta**: `@nestjs/swagger` está presente, mas sem `SwaggerModule.setup`.
-- **Sem seed de bootstrap**: a primeira organização e o primeiro `ADM` exigem inserção manual no banco.
+- **Sem bootstrap de organização real**: o seed cria a organização de demonstração; a primeira organização de um cliente real e seu `ADM` ainda exigem inserção manual no banco.
 - **Cobertura de testes concentrada na camada de service**: não há testes de controller, de repositório, end-to-end, nem testes no frontend.
 - **Módulo de despesas sem interface**: `Expense` existe na API, mas ainda não tem tela no frontend.
 - **Deploy sem containerização**: não há Dockerfile nem `docker-compose` — o ambiente publicado roda no Railway, que monta a imagem automaticamente a partir do `pnpm-workspace.yaml` (ver a seção "Deploy" no `CLAUDE.md` da raiz).
@@ -579,7 +599,6 @@ Ambos os apps trazem um `.env.example` versionado com as chaves e valores de ref
 - Expor a documentação da API em OpenAPI/Swagger, aproveitando os decorators já presentes.
 - Implementar atualização e exclusão das entidades, ativando o soft delete já modelado.
 - Adicionar paginação, ordenação e filtros server-side nas listagens.
-- Criar um seed de bootstrap para a primeira organização e o primeiro usuário `ADM`.
 - Envolver escritas correlatas em transações do Prisma (por exemplo, criar o pagamento e atualizar o status da reserva).
 - Adicionar um filtro global de exceções para traduzir erros do Prisma em respostas HTTP consistentes.
 - Ampliar a cobertura de testes para controllers, repositórios e cenários end-to-end, e introduzir testes no frontend.
