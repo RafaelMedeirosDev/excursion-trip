@@ -1,3 +1,20 @@
+/**
+ * Seed da organização de DEMONSTRAÇÃO.
+ *
+ * Cria uma organização própria, com id fixo, povoada com dados realistas para
+ * alguém de fora conhecer o sistema. É seguro rodar em produção: tudo é
+ * escopado pelo id da demo e nenhuma outra organização é lida ou alterada.
+ *
+ *   pnpm --filter @excursion-trip/backend db:seed
+ *   SEED_RESET=1 pnpm --filter @excursion-trip/backend db:seed   # restaura do zero
+ *
+ * Em desenvolvimento, os dados ficam na organização da demo — entre com as
+ * credenciais impressas no fim da execução. Para ver os mesmos dados com uma
+ * conta sua já existente, mova-a para a demo:
+ *
+ *   UPDATE "User" SET "organizationId" = '0a000000-0000-4000-8000-000000000001'
+ *   WHERE email = '<o seu e-mail>';
+ */
 import {
   ExcursionStatus,
   ExpensesCategory,
@@ -13,13 +30,26 @@ import * as bcrypt from 'bcrypt';
 const prisma = new PrismaClient();
 
 const SALT_ROUNDS = 10;
-const SEED_PASSWORD = 'senha123';
+const DEMO_PASSWORD = 'demo1234';
 
-// Ids fixos (UUID v4 válido) pros models sem chave natural única — é o que torna
-// o seed idempotente: rodar de novo faz update das mesmas linhas, não duplica.
+// Identidade da organização de demonstração. É um literal de propósito: é ele
+// que delimita o escopo do modo de reset, e derivar identidade de uma query foi
+// justamente o que fazia este seed adotar a organização real em produção.
+const DEMO_ORGANIZATION_ID = '0a000000-0000-4000-8000-000000000001';
+const DEMO_ORGANIZATION_NAME = 'Excursões Panorama — Demo';
+
+// Ids fixos (UUID v4 válido) — é o que torna o seed idempotente: rodar de novo
+// faz update das mesmas linhas, não duplica.
 const uid = (prefix: string, n: number) =>
   `${prefix}-0000-4000-8000-${String(n).padStart(12, '0')}`;
 
+// User/Supplier/Customer também usam id fixo, e não a chave natural (email,
+// cnpj, cpf): PATCH /users/:id, /customers/:id e /suppliers/:id existem e quem
+// visita a demo é ADM. Se ele editar um desses campos, casar por chave natural
+// faria o próximo seed criar uma duplicata em vez de corrigir a linha.
+const userId = (n: number) => uid('c0000000', n);
+const supplierId = (n: number) => uid('5f000000', n);
+const customerId = (n: number) => uid('0c000000', n);
 const eventId = (n: number) => uid('ee000000', n);
 const excursionId = (n: number) => uid('ec000000', n);
 const vehicleId = (n: number) => uid('bc000000', n);
@@ -28,44 +58,169 @@ const reservationId = (n: number) => uid('a5000000', n);
 const paymentId = (n: number) => uid('fa000000', n);
 const expenseId = (n: number) => uid('de000000', n);
 
+// ---------- Datas relativas ----------
+// Tudo deriva de "hoje 00:00 UTC" pra demo nunca envelhecer: com datas fixas, o
+// Dashboard (que separa eventos em Próximos/Realizados comparando com `now`)
+// acabaria sem nenhum evento futuro. UTC explícito em todos os helpers porque
+// `setHours(0,0,0,0)` daria um dia diferente numa máquina em UTC-3 e no
+// container do Railway em UTC.
+const startOfTodayUTC = () => {
+  const now = new Date();
+  return new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()),
+  );
+};
+
+const TODAY = startOfTodayUTC();
+
+const addDays = (date: Date, days: number) => {
+  const result = new Date(date);
+  result.setUTCDate(result.getUTCDate() + days);
+  return result;
+};
+
+const daysFromNow = (days: number) => addDays(TODAY, days);
+
+// Clampa o dia no último dia do mês alvo: sem isso, 31/01 + 1 mês transbordaria
+// silenciosamente para 03/03.
+const monthsFromNow = (months: number) => {
+  const target = new Date(
+    Date.UTC(TODAY.getUTCFullYear(), TODAY.getUTCMonth() + months, 1),
+  );
+  const lastDayOfTargetMonth = new Date(
+    Date.UTC(target.getUTCFullYear(), target.getUTCMonth() + 1, 0),
+  ).getUTCDate();
+  target.setUTCDate(Math.min(TODAY.getUTCDate(), lastDayOfTargetMonth));
+  return target;
+};
+
+// O domínio exige startDate <= endDate (Event) e departureDate <= returnDate
+// (Excursion), mas o seed escreve direto no Prisma, sem passar pelos Services —
+// nada valida isso sozinho.
+const assertRange = (label: string, start: Date, end: Date) => {
+  if (start.getTime() > end.getTime()) {
+    throw new Error(
+      `[seed] intervalo inválido em "${label}": ${start.toISOString()} > ${end.toISOString()}`,
+    );
+  }
+};
+
+// Âncoras dos 3 eventos. Todas as outras datas são addDays() a partir daqui, o
+// que mantém as invariantes de intervalo por construção.
+const PAST_EVENT_START = monthsFromNow(-3);
+const NEAR_EVENT_START = monthsFromNow(1);
+const FAR_EVENT_START = monthsFromNow(4);
+
+// ---------- Reset (opt-in) ----------
+// Único caminho destrutivo do arquivo. Apaga tudo da organização de demo antes
+// de semear de novo, pra restaurar o estado inicial mesmo depois de alguém ter
+// criado/excluído registros pela interface.
+// Nunca colocar SEED_RESET no .env: o CLI do Prisma carrega o .env antes do
+// seed, e um valor esquecido lá tornaria toda execução destrutiva.
+async function resetDemoOrganization(organizationId: string) {
+  if (organizationId !== DEMO_ORGANIZATION_ID) {
+    throw new Error(
+      `[seed] Reset abortado: ${organizationId} não é a organização de demonstração.`,
+    );
+  }
+
+  const where = { organizationId };
+
+  // Ordem topológica das FKs, folhas primeiro. A ordem importa por um motivo
+  // silencioso: nas relações opcionais (Reservation.boardingPointId,
+  // Expense.vehicleBookingId) o default do Prisma é SetNull, então apagar fora
+  // de ordem não daria erro — apenas zeraria campos sem avisar.
+  const [
+    payments,
+    reservations,
+    expenses,
+    boardingPoints,
+    vehicleBookings,
+    excursions,
+    events,
+    customers,
+    suppliers,
+    refreshTokens,
+    users,
+  ] = await prisma.$transaction([
+    prisma.payment.deleteMany({ where }),
+    prisma.reservation.deleteMany({ where }),
+    prisma.expense.deleteMany({ where }),
+    prisma.boardingPoint.deleteMany({ where }),
+    prisma.vehicleBooking.deleteMany({ where }),
+    prisma.excursion.deleteMany({ where }),
+    prisma.event.deleteMany({ where }),
+    prisma.customer.deleteMany({ where }),
+    prisma.supplier.deleteMany({ where }),
+    // RefreshToken não tem organizationId nem onDelete: Cascade — sem escopar
+    // pela relação, o delete dos usuários que já logaram falha por FK.
+    prisma.refreshToken.deleteMany({ where: { user: { organizationId } } }),
+    prisma.user.deleteMany({ where }),
+  ]);
+
+  // A própria Organization não é apagada: ela é o contêiner e preserva o id fixo.
+  console.log('Reset da organização de demonstração:');
+  console.log(`  ${users.count} usuários, ${refreshTokens.count} sessões`);
+  console.log(`  ${suppliers.count} fornecedores, ${customers.count} clientes`);
+  console.log(`  ${events.count} eventos, ${excursions.count} excursões`);
+  console.log(
+    `  ${vehicleBookings.count} veículos, ${boardingPoints.count} pontos de embarque`,
+  );
+  console.log(
+    `  ${reservations.count} reservas, ${payments.count} pagamentos, ${expenses.count} despesas`,
+  );
+}
+
 async function main() {
   // ---------- Organization ----------
-  // Reaproveita a organização existente (se houver) pra que os usuários já
-  // cadastrados manualmente enxerguem os dados semeados.
-  const existing = await prisma.organization.findFirst({
-    orderBy: { createdAt: 'asc' },
+  // Organização própria da demonstração, com id fixo. Nunca adota uma
+  // organização existente: em produção isso injetaria os dados fictícios dentro
+  // do tenant real.
+  // `cnpj` fica null de propósito — o campo é @unique GLOBAL e no Postgres
+  // vários NULL convivem numa constraint UNIQUE, então não há como colidir com
+  // a organização real nem com bancos de dev já semeados. Nenhuma tela exibe o
+  // CNPJ da organização (não existe GET /organizations).
+  const organization = await prisma.organization.upsert({
+    where: { id: DEMO_ORGANIZATION_ID },
+    update: { name: DEMO_ORGANIZATION_NAME, deletedAt: null },
+    create: {
+      id: DEMO_ORGANIZATION_ID,
+      name: DEMO_ORGANIZATION_NAME,
+      cnpj: null,
+    },
   });
 
-  const organization =
-    existing ??
-    (await prisma.organization.create({
-      data: { name: 'Excursões Fritanic', cnpj: '12345678000199' },
-    }));
-
   const organizationId = organization.id;
-  console.log(`Organização: ${organization.name} (${organizationId})`);
+  console.log(`Organização de demonstração: ${organization.name} (${organizationId})`);
+
+  if (process.env.SEED_RESET === '1') {
+    await resetDemoOrganization(organizationId);
+  }
 
   // ---------- Users ----------
-  const password = await bcrypt.hash(SEED_PASSWORD, SALT_ROUNDS);
+  const password = await bcrypt.hash(DEMO_PASSWORD, SALT_ROUNDS);
 
   const userSeeds = [
     {
+      id: userId(1),
       name: 'Roberto Menezes',
-      email: 'adm.seed@excursion.com',
+      email: 'admin@demo.com',
       phone: '11987000001',
       cpf: '80000000101',
       role: Role.ADM,
     },
     {
+      id: userId(2),
       name: 'Carlos Antunes',
-      email: 'carlos.seed@excursion.com',
+      email: 'funcionario@demo.com',
       phone: '11987000002',
       cpf: '80000000202',
       role: Role.EMPLOYEE,
     },
     {
+      id: userId(3),
       name: 'Juliana Prado',
-      email: 'juliana.seed@excursion.com',
+      email: 'funcionario2@demo.com',
       phone: '11987000003',
       cpf: '80000000303',
       role: Role.EMPLOYEE,
@@ -76,7 +231,7 @@ async function main() {
   for (const user of userSeeds) {
     users.push(
       await prisma.user.upsert({
-        where: { email: user.email },
+        where: { id: user.id },
         update: { ...user, organizationId, password, deletedAt: null },
         create: { ...user, organizationId, password },
       }),
@@ -87,18 +242,21 @@ async function main() {
   // ---------- Suppliers ----------
   const supplierSeeds = [
     {
+      id: supplierId(1),
       name: 'Viação Serra Azul',
       cnpj: '11222333000144',
       address: 'Av. das Palmeiras, 1200 - São Paulo/SP',
       phone: '1133220001',
     },
     {
+      id: supplierId(2),
       name: 'Turismo Vale Verde',
       cnpj: '22333444000155',
       address: 'Rua do Comércio, 45 - Campinas/SP',
       phone: '1933220002',
     },
     {
+      id: supplierId(3),
       name: 'Fretamento Litoral Sul',
       cnpj: '33444555000166',
       address: 'Rod. dos Imigrantes, km 32 - Santos/SP',
@@ -110,9 +268,7 @@ async function main() {
   for (const supplier of supplierSeeds) {
     suppliers.push(
       await prisma.supplier.upsert({
-        where: {
-          organizationId_cnpj: { organizationId, cnpj: supplier.cnpj },
-        },
+        where: { id: supplier.id },
         update: { ...supplier, organizationId, deletedAt: null },
         create: { ...supplier, organizationId },
       }),
@@ -140,12 +296,13 @@ async function main() {
   for (const [index, customer] of customerSeeds.entries()) {
     const data = {
       ...customer,
+      id: customerId(index + 1),
       organizationId,
       phone: `1198765${String(index + 1).padStart(4, '0')}`,
     };
     customers.push(
       await prisma.customer.upsert({
-        where: { organizationId_cpf: { organizationId, cpf: customer.cpf } },
+        where: { id: data.id },
         update: { ...data, deletedAt: null },
         create: data,
       }),
@@ -157,40 +314,43 @@ async function main() {
   const eventSeeds = [
     {
       id: eventId(1),
-      name: 'Rock in Rio 2026',
+      name: 'Festival Rio Live',
       address: 'Parque Olímpico - Av. Embaixador Abelardo Bueno, 3401',
       city: 'Rio de Janeiro',
       state: UF.RJ,
-      startDate: new Date('2026-09-18T00:00:00.000Z'),
-      endDate: new Date('2026-09-27T00:00:00.000Z'),
+      startDate: NEAR_EVENT_START,
+      endDate: addDays(NEAR_EVENT_START, 9),
       startTime: '14:00',
       endTime: '04:00',
     },
     {
       id: eventId(2),
-      name: 'São João de Caruaru 2026',
+      name: 'Festival Sertão Vivo',
       address: 'Pátio de Eventos Luiz Gonzaga',
       city: 'Caruaru',
       state: UF.PE,
-      startDate: new Date('2026-06-20T00:00:00.000Z'),
-      endDate: new Date('2026-06-24T00:00:00.000Z'),
+      startDate: PAST_EVENT_START,
+      endDate: addDays(PAST_EVENT_START, 4),
       startTime: '18:00',
       endTime: '05:00',
     },
     {
       id: eventId(3),
-      name: 'Réveillon Copacabana 2027',
+      name: 'Festival Praia de Copacabana',
       address: 'Praia de Copacabana - Posto 4',
       city: 'Rio de Janeiro',
       state: UF.RJ,
-      startDate: new Date('2026-12-31T00:00:00.000Z'),
-      endDate: new Date('2027-01-01T00:00:00.000Z'),
+      startDate: FAR_EVENT_START,
+      endDate: addDays(FAR_EVENT_START, 1),
       startTime: '20:00',
       endTime: '03:00',
     },
   ];
 
+  // Um evento no passado e dois no futuro, sempre — é o que mantém o card de
+  // Eventos do Dashboard com os dois grupos preenchidos.
   for (const event of eventSeeds) {
+    assertRange(event.name, event.startDate, event.endDate);
     await prisma.event.upsert({
       where: { id: event.id },
       update: { ...event, organizationId, deletedAt: null },
@@ -204,10 +364,12 @@ async function main() {
       id: excursionId(1),
       eventId: eventId(1),
       userId: adm.id,
-      name: 'Excursão Rock in Rio — Fim de Semana 1',
-      departureDate: new Date('2026-09-18T00:00:00.000Z'),
-      returnDate: new Date('2026-09-19T00:00:00.000Z'),
-      status: ExcursionStatus.OPEN,
+      name: 'Excursão Rio Live — Fim de Semana 1',
+      departureDate: NEAR_EVENT_START,
+      returnDate: addDays(NEAR_EVENT_START, 1),
+      // Vendas encerradas: é a excursão mais próxima do embarque. Cobre o
+      // status CLOSED, que antes não aparecia em nenhuma das 5.
+      status: ExcursionStatus.CLOSED,
       canceledAt: null,
       cancelReason: null,
     },
@@ -215,9 +377,9 @@ async function main() {
       id: excursionId(2),
       eventId: eventId(1),
       userId: adm.id,
-      name: 'Excursão Rock in Rio — Fim de Semana 2',
-      departureDate: new Date('2026-09-25T00:00:00.000Z'),
-      returnDate: new Date('2026-09-26T00:00:00.000Z'),
+      name: 'Excursão Rio Live — Fim de Semana 2',
+      departureDate: addDays(NEAR_EVENT_START, 7),
+      returnDate: addDays(NEAR_EVENT_START, 8),
       status: ExcursionStatus.PLANNING,
       canceledAt: null,
       cancelReason: null,
@@ -226,9 +388,9 @@ async function main() {
       id: excursionId(3),
       eventId: eventId(2),
       userId: adm.id,
-      name: 'Excursão São João de Caruaru',
-      departureDate: new Date('2026-06-20T00:00:00.000Z'),
-      returnDate: new Date('2026-06-24T00:00:00.000Z'),
+      name: 'Excursão Sertão Vivo',
+      departureDate: PAST_EVENT_START,
+      returnDate: addDays(PAST_EVENT_START, 4),
       status: ExcursionStatus.DONE,
       canceledAt: null,
       cancelReason: null,
@@ -237,9 +399,9 @@ async function main() {
       id: excursionId(4),
       eventId: eventId(3),
       userId: adm.id,
-      name: 'Excursão Réveillon Copacabana',
-      departureDate: new Date('2026-12-30T00:00:00.000Z'),
-      returnDate: new Date('2027-01-01T00:00:00.000Z'),
+      name: 'Excursão Praia de Copacabana',
+      departureDate: addDays(FAR_EVENT_START, -1),
+      returnDate: addDays(FAR_EVENT_START, 1),
       status: ExcursionStatus.OPEN,
       canceledAt: null,
       cancelReason: null,
@@ -248,16 +410,20 @@ async function main() {
       id: excursionId(5),
       eventId: eventId(1),
       userId: adm.id,
-      name: 'Excursão Rock in Rio — Camarote',
-      departureDate: new Date('2026-09-18T00:00:00.000Z'),
-      returnDate: new Date('2026-09-19T00:00:00.000Z'),
+      name: 'Excursão Rio Live — Camarote',
+      departureDate: NEAR_EVENT_START,
+      returnDate: addDays(NEAR_EVENT_START, 1),
       status: ExcursionStatus.CANCELED,
-      canceledAt: new Date('2026-08-10T00:00:00.000Z'),
+      // Cancelamento é fato consumado: ancora em `daysFromNow` negativo, nunca
+      // na data de embarque (que agora é futura e produziria um cancelamento
+      // com data no futuro).
+      canceledAt: daysFromNow(-7),
       cancelReason: 'Fornecedor cancelou o veículo e não houve substituto.',
     },
   ];
 
   for (const excursion of excursionSeeds) {
+    assertRange(excursion.name, excursion.departureDate, excursion.returnDate);
     await prisma.excursion.upsert({
       where: { id: excursion.id },
       update: { ...excursion, organizationId },
@@ -368,6 +534,7 @@ async function main() {
     { id: boardingId(8), vehicleBookingId: vehicleId(4), address: 'Posto Graal — Rod. Anhanguera, km 92', time: '20:00' },
     { id: boardingId(9), vehicleBookingId: vehicleId(5), address: 'Terminal Rodoviário do Tietê — Portão 2, São Paulo/SP', time: '07:00' },
     { id: boardingId(10), vehicleBookingId: vehicleId(6), address: 'Aeroporto de Congonhas — Desembarque, São Paulo/SP', time: '07:30' },
+    { id: boardingId(11), vehicleBookingId: vehicleId(5), address: 'Metrô Santana — Saída Norte, São Paulo/SP', time: '06:40' },
   ];
 
   for (const boardingPoint of boardingSeeds) {
@@ -408,7 +575,7 @@ async function main() {
     { n: 2, vehicleBookingId: vehicleId(1), boardingPointId: boardingId(1), customerId: c(2).id, userId: carlos.id, status: ReservationStatus.CONFIRMED, agreedValue: 32000, payments: [card(32000)] },
     { n: 3, vehicleBookingId: vehicleId(1), boardingPointId: boardingId(2), customerId: c(3).id, userId: adm.id, status: ReservationStatus.PENDING, agreedValue: 32000, payments: [pix(16000)] },
     { n: 4, vehicleBookingId: vehicleId(1), boardingPointId: null, customerId: c(4).id, userId: juliana.id, status: ReservationStatus.WAITLIST, agreedValue: 32000, payments: [] },
-    { n: 5, vehicleBookingId: vehicleId(1), boardingPointId: boardingId(2), customerId: c(5).id, userId: carlos.id, status: ReservationStatus.CANCELED, agreedValue: 32000, canceledAt: new Date('2026-08-20T00:00:00.000Z'), cancelReason: 'Cliente desistiu da viagem.', payments: [pix(16000), reversal(16000)] },
+    { n: 5, vehicleBookingId: vehicleId(1), boardingPointId: boardingId(2), customerId: c(5).id, userId: carlos.id, status: ReservationStatus.CANCELED, agreedValue: 32000, canceledAt: daysFromNow(-12), cancelReason: 'Cliente desistiu da viagem.', payments: [pix(16000), reversal(16000)] },
 
     // Veículo 2 — Rock in Rio FDS 1 (capacidade 26)
     { n: 6, vehicleBookingId: vehicleId(2), boardingPointId: boardingId(3), customerId: c(6).id, userId: juliana.id, status: ReservationStatus.CONFIRMED, agreedValue: 35000, payments: [cash(35000)] },
@@ -439,6 +606,33 @@ async function main() {
     { n: 22, vehicleBookingId: vehicleId(6), boardingPointId: null, customerId: c(9).id, userId: juliana.id, status: ReservationStatus.WAITLIST, agreedValue: 52000, payments: [] },
   ];
 
+  // `Payment.createdAt` é exibido na listagem e no detalhe. Sem gravá-lo, todos
+  // os pagamentos ficariam com a data de hoje — inclusive os da excursão que
+  // aconteceu há meses. Deriva-se do embarque do veículo da reserva.
+  const departureByExcursionId = new Map(
+    excursionSeeds.map((excursion) => [excursion.id, excursion.departureDate]),
+  );
+  const departureByVehicleId = new Map(
+    vehicleSeeds.map((vehicle) => [
+      vehicle.id,
+      departureByExcursionId.get(vehicle.excursionId) as Date,
+    ]),
+  );
+
+  const PAYMENT_DAYS_BEFORE_DEPARTURE = [-60, -30, -15];
+
+  // O clamp em `latest` garante que nenhuma parcela caia no futuro (as
+  // excursões futuras embarcam daqui a 1 e 4 meses) preservando a ordem entre
+  // elas: `total - index` é sempre >= 1.
+  const paymentCreatedAt = (departure: Date, index: number, total: number) => {
+    const wanted = addDays(
+      departure,
+      PAYMENT_DAYS_BEFORE_DEPARTURE[index] ?? -7,
+    );
+    const latest = daysFromNow(-(total - index));
+    return wanted < latest ? wanted : latest;
+  };
+
   let paymentCounter = 0;
   for (const { n, payments, canceledAt, cancelReason, ...reservation } of reservationSeeds) {
     const data = {
@@ -455,7 +649,9 @@ async function main() {
       create: data,
     });
 
-    for (const payment of payments) {
+    const departure = departureByVehicleId.get(data.vehicleBookingId) as Date;
+
+    for (const [index, payment] of payments.entries()) {
       paymentCounter += 1;
       const paymentData = {
         ...payment,
@@ -463,6 +659,7 @@ async function main() {
         organizationId,
         reservationId: data.id,
         userId: data.userId,
+        createdAt: paymentCreatedAt(departure, index, payments.length),
       };
 
       await prisma.payment.upsert({
@@ -495,7 +692,7 @@ async function main() {
   }
 
   console.log('Seed concluído:');
-  console.log(`  ${userSeeds.length} usuários (senha: ${SEED_PASSWORD})`);
+  console.log(`  ${userSeeds.length} usuários`);
   console.log(`  ${supplierSeeds.length} fornecedores`);
   console.log(`  ${customerSeeds.length} clientes`);
   console.log(`  ${eventSeeds.length} eventos`);
@@ -505,6 +702,10 @@ async function main() {
   console.log(`  ${reservationSeeds.length} reservas`);
   console.log(`  ${paymentCounter} pagamentos`);
   console.log(`  ${expenseSeeds.length} despesas`);
+  console.log('');
+  console.log('Credenciais de demonstração:');
+  console.log(`  ADM       ${userSeeds[0].email} / ${DEMO_PASSWORD}`);
+  console.log(`  EMPLOYEE  ${userSeeds[1].email} / ${DEMO_PASSWORD}`);
 }
 
 main()
