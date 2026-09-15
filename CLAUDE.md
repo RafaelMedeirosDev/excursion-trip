@@ -81,6 +81,20 @@ Não existe signup público, então a primeira organização e o primeiro `ADM` 
 
 `User`/`Supplier`/`Customer` usam **id fixo** no `upsert`, não a chave natural (`email`/`cnpj`/`cpf`) — desde que `PATCH /users/:id`, `/customers/:id` e `/suppliers/:id` existem, o visitante (que é `ADM`) pode editar esses campos, e casar por chave natural faria o seed criar duplicata em vez de corrigir a linha.
 
+### Cron de restauração da demo
+
+Serviço `demo-reset` (mesmo repositório, sem domínio nem healthcheck) roda `SEED_RESET=1 … db:seed` **todo dia às 06:00 UTC** (03:00 em Brasília) — o schedule do Railway é sempre UTC. Build só faz `prisma generate` (o seed roda por `ts-node`, não precisa do `nest build`), e o `DATABASE_URL` vem da **rede privada** (`Postgres.env.DATABASE_URL`), não do proxy público: cron roda dentro do Railway, mesmo caminho que o `preDeployCommand` das migrations já usa.
+
+Três exigências da plataforma que não podem ser perdidas numa edição futura:
+
+- **O processo precisa terminar.** A doc é explícita: se uma execução ainda estiver rodando quando a próxima vencer, o Railway **pula** a nova. Um cron que fica `Active` nunca mais dispara. O `seed.ts` já fecha com `prisma.$disconnect()` no `finally` — medido: encerra com exit 0 em ~3s, sem processo órfão. Depois de rodar, o serviço aparece como `Completed` com `replicas: 0/1`.
+- **`restartPolicyType: "NEVER"`.** Com qualquer outra política o Railway reiniciaria o container ao vê-lo sair, e recairia no problema acima.
+- **Intervalo mínimo de 5 minutos**, e o horário varia alguns minutos (verificado: agendado 20:10 UTC, executou 20:13).
+
+**`SEED_RESET=1` é variável desse serviço, e só dele** — nunca do backend, e nunca do `.env`. É o que torna seguro: o `demo-reset` não faz mais nada além de restaurar a demo.
+
+Testado de ponta a ponta em produção: excursão renomeada, passageiro criado e passageiro excluído de propósito; o cron rodou e devolveu os 10 contadores ao estado original, com a organização real intacta.
+
 Watch paths separam os deploys: `backend` observa `/apps/backend/**` + `/packages/**` + lockfile/manifests da raiz; `frontend` troca o primeiro por `/apps/frontend/**`. Um commit que toque só um app redeploya só aquele serviço.
 
 ## Estado atual
