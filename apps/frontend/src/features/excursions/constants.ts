@@ -24,3 +24,7 @@ export const STATUS_BADGE_CLASSES: Record<ExcursionStatus, string> = {
   DONE: "bg-slate-200 text-slate-700 hover:bg-slate-200",
   CANCELED: "bg-red-100 text-red-800 hover:bg-red-100",
 };
+
+// espelha BLOCKED_STATUSES do UpdateExcursionService: estados terminais não são
+// editáveis. O backend é quem valida — aqui é só pra não oferecer a ação.
+export const NON_EDITABLE_STATUSES: ExcursionStatus[] = ["DONE", "CANCELED"];

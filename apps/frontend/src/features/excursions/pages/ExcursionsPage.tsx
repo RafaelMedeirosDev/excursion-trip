@@ -1,4 +1,4 @@
-import { Plus, Route as RouteIcon } from "lucide-react";
+import { Pencil, Plus, Route as RouteIcon } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,7 +22,10 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ExcursionStatusBadge } from "@/features/excursions/components/ExcursionStatusBadge";
-import { STATUS_LABELS } from "@/features/excursions/constants";
+import {
+  NON_EDITABLE_STATUSES,
+  STATUS_LABELS,
+} from "@/features/excursions/constants";
 import { usePaginatedExcursions } from "@/features/excursions/hooks/usePaginatedExcursions";
 import type { ExcursionStatus } from "@/features/excursions/types";
 import { useEffect, useState } from "react";
@@ -162,6 +165,7 @@ export function ExcursionsPage() {
                   <TableHead>Saída</TableHead>
                   <TableHead>Volta</TableHead>
                   <TableHead>Status</TableHead>
+                  <TableHead className="w-0 text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -181,6 +185,26 @@ export function ExcursionsPage() {
                     <TableCell>
                       <ExcursionStatusBadge status={excursion.status} />
                     </TableCell>
+                    <TableCell>
+                      <div className="flex justify-end">
+                        {!NON_EDITABLE_STATUSES.includes(excursion.status) && (
+                          <Button
+                            asChild
+                            variant="outline"
+                            size="icon"
+                            className="size-9"
+                          >
+                            <Link
+                              to={`/excursions/${excursion.id}/edit`}
+                              aria-label="Editar excursão"
+                              title="Editar excursão"
+                            >
+                              <Pencil className="size-4" />
+                            </Link>
+                          </Button>
+                        )}
+                      </div>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -189,28 +213,49 @@ export function ExcursionsPage() {
 
           <div className="grid gap-3 md:hidden">
             {excursions.map((excursion) => (
-              <Link key={excursion.id} to={`/excursions/${excursion.id}`}>
-                <Card className="transition-colors hover:bg-muted/50">
-                  <CardContent className="space-y-3 pt-6">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-medium">{excursion.name}</span>
+              <Card key={excursion.id}>
+                <CardContent className="space-y-3 pt-6">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Link
+                        to={`/excursions/${excursion.id}`}
+                        className="font-medium hover:underline"
+                      >
+                        {excursion.name}
+                      </Link>
                       <ExcursionStatusBadge status={excursion.status} />
                     </div>
+                    {!NON_EDITABLE_STATUSES.includes(excursion.status) && (
+                      <Button
+                        asChild
+                        variant="outline"
+                        size="icon"
+                        className="size-9 shrink-0"
+                      >
+                        <Link
+                          to={`/excursions/${excursion.id}/edit`}
+                          aria-label="Editar excursão"
+                          title="Editar excursão"
+                        >
+                          <Pencil className="size-4" />
+                        </Link>
+                      </Button>
+                    )}
+                  </div>
 
-                    <div className="grid grid-cols-2 gap-3">
-                      <CardField label="Evento" value={excursion.event.name} />
-                      <CardField
-                        label="Saída"
-                        value={formatDate(excursion.departureDate)}
-                      />
-                      <CardField
-                        label="Volta"
-                        value={formatDate(excursion.returnDate)}
-                      />
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
+                  <div className="grid grid-cols-2 gap-3">
+                    <CardField label="Evento" value={excursion.event.name} />
+                    <CardField
+                      label="Saída"
+                      value={formatDate(excursion.departureDate)}
+                    />
+                    <CardField
+                      label="Volta"
+                      value={formatDate(excursion.returnDate)}
+                    />
+                  </div>
+                </CardContent>
+              </Card>
             ))}
           </div>
 

@@ -8,6 +8,7 @@ import { EditEventPage } from "@/features/events/pages/EditEventPage";
 import { EventDetailsPage } from "@/features/events/pages/EventDetailsPage";
 import { EventsPage } from "@/features/events/pages/EventsPage";
 import { CreateExcursionPage } from "@/features/excursions/pages/CreateExcursionPage";
+import { EditExcursionPage } from "@/features/excursions/pages/EditExcursionPage";
 import { ExcursionDetailsPage } from "@/features/excursions/pages/ExcursionDetailsPage";
 import { ExcursionsPage } from "@/features/excursions/pages/ExcursionsPage";
 import { CreateCustomerPage } from "@/features/customers/pages/CreateCustomerPage";
@@ -62,6 +63,10 @@ export function AppRouter() {
             <Route path="/excursions" element={<ExcursionsPage />} />
             <Route path="/excursions/new" element={<CreateExcursionPage />} />
             <Route path="/excursions/:id" element={<ExcursionDetailsPage />} />
+            <Route
+              path="/excursions/:id/edit"
+              element={<EditExcursionPage />}
+            />
 
             <Route path="/suppliers" element={<SuppliersPage />} />
             <Route path="/suppliers/new" element={<CreateSupplierPage />} />

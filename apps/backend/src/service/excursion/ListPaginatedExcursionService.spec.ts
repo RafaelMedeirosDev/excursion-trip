@@ -14,6 +14,7 @@ describe('ListPaginatedExcursionService', () => {
   beforeEach(() => {
     excursionRepository = {
       create: jest.fn(),
+      update: jest.fn(),
       findById: jest.fn(),
       findAll: jest.fn(),
       findAllPaginated: jest.fn(),

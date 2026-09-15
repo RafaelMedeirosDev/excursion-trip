@@ -5,6 +5,7 @@ import type {
   ExcursionStatus,
   ExcursionWithEvent,
   PaginatedExcursions,
+  UpdateExcursionPayload,
   UpdateExcursionStatusPayload,
 } from "@/features/excursions/types";
 
@@ -44,6 +45,17 @@ export const excursionsApi = {
   ): Promise<Excursion> => {
     const { data } = await httpClient.post<Excursion>(
       "/excursions",
+      payload,
+    );
+    return data;
+  },
+
+  updateExcursion: async (
+    id: string,
+    payload: UpdateExcursionPayload,
+  ): Promise<Excursion> => {
+    const { data } = await httpClient.patch<Excursion>(
+      `/excursions/${id}`,
       payload,
     );
     return data;

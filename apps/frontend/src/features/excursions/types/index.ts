@@ -40,6 +40,14 @@ export interface CreateExcursionPayload {
   returnDate: string;
 }
 
+// eventId de fora: o evento da excursão não é editável — trocá-lo criaria
+// reservas duplicadas do mesmo passageiro no mesmo evento
+export interface UpdateExcursionPayload {
+  name: string;
+  departureDate: string;
+  returnDate: string;
+}
+
 export interface UpdateExcursionStatusPayload {
   status: ExcursionStatus;
   cancelReason?: string;
