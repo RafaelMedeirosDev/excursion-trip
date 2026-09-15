@@ -8,6 +8,7 @@ import {
   FindAllPaginated,
   FindById,
   PaginatedExcursions,
+  Update,
   UpdateStatus,
 } from 'src/domain/ExcursionRepository';
 import { PrismaRemoteRepository } from './PrismaRemoteRepository';
@@ -26,6 +27,13 @@ export class PrismaExcursionRepository implements ExcursionRepository {
   }: Create): Promise<Excursion> {
     return this.repository.excursion.create({
       data: { organizationId, eventId, userId, name, departureDate, returnDate },
+    });
+  }
+
+  update({ id, name, departureDate, returnDate }: Update): Promise<Excursion> {
+    return this.repository.excursion.update({
+      where: { id },
+      data: { name, departureDate, returnDate },
     });
   }
 

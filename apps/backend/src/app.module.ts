@@ -96,6 +96,7 @@ import { LoginService } from 'src/service/auth/LoginService';
 import { LogoutService } from 'src/service/auth/LogoutService';
 import { PendingReservationService } from 'src/service/reservation/PendingReservationService';
 import { RefreshTokenService } from 'src/service/auth/RefreshTokenService';
+import { UpdateExcursionService } from 'src/service/excursion/UpdateExcursionService';
 import { UpdateExcursionStatusService } from 'src/service/excursion/UpdateExcursionStatusService';
 import { JwtStrategy } from 'src/strategies/JwtStrategy';
 import { AppController } from './app.controller';
@@ -154,6 +155,7 @@ import { AppService } from './app.service';
     ListExcursionService,
     ListPaginatedExcursionService,
     GetExcursionService,
+    UpdateExcursionService,
     UpdateExcursionStatusService,
     CreateSupplierService,
     ListSupplierService,

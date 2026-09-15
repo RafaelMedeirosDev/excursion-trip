@@ -9,6 +9,19 @@ export interface Create {
   returnDate: Date;
 }
 
+// eventId de fora de propósito: a regra "um passageiro não pode ter duas
+// reservas ativas no mesmo evento" é resolvida navegando reservation →
+// vehicleBooking → excursion.eventId, então mover a excursão para outro evento
+// criaria duplicatas retroativas sem erro nenhum.
+// status/canceledAt/cancelReason também ficam de fora: são de UpdateStatus,
+// que valida a máquina de estados.
+export interface Update {
+  id: string;
+  name?: string;
+  departureDate?: Date;
+  returnDate?: Date;
+}
+
 export interface FindById {
   id: string;
 }
@@ -51,6 +64,13 @@ export abstract class ExcursionRepository {
     departureDate,
     returnDate,
   }: Create): Promise<Excursion>;
+
+  abstract update({
+    id,
+    name,
+    departureDate,
+    returnDate,
+  }: Update): Promise<Excursion>;
 
   abstract findById({ id }: FindById): Promise<Excursion | null>;
 

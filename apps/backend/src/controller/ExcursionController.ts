@@ -19,10 +19,12 @@ import { CreateExcursionService } from 'src/service/excursion/CreateExcursionSer
 import { GetExcursionService } from 'src/service/excursion/GetExcursionService';
 import { ListExcursionService } from 'src/service/excursion/ListExcursionService';
 import { ListPaginatedExcursionService } from 'src/service/excursion/ListPaginatedExcursionService';
+import { UpdateExcursionService } from 'src/service/excursion/UpdateExcursionService';
 import { UpdateExcursionStatusService } from 'src/service/excursion/UpdateExcursionStatusService';
 import { CreateExcursionDTO } from 'src/shared/dtos/CreateExcursionDTO';
 import { ListExcursionDTO } from 'src/shared/dtos/ListExcursionDTO';
 import { ListPaginatedExcursionDTO } from 'src/shared/dtos/ListPaginatedExcursionDTO';
+import { UpdateExcursionDTO } from 'src/shared/dtos/UpdateExcursionDTO';
 import { UpdateExcursionStatusDTO } from 'src/shared/dtos/UpdateExcursionStatusDTO';
 import { JwtPayload } from 'src/strategies/JwtStrategy';
 
@@ -35,6 +37,7 @@ export class ExcursionController {
     private readonly listPaginatedExcursionService: ListPaginatedExcursionService,
     private readonly updateExcursionStatusService: UpdateExcursionStatusService,
     private readonly getExcursionService: GetExcursionService,
+    private readonly updateExcursionService: UpdateExcursionService,
   ) {}
 
   @Post()
@@ -103,6 +106,22 @@ export class ExcursionController {
       id,
       status,
       cancelReason,
+    });
+  }
+
+  @Patch(':id')
+  @Roles(Role.ADM)
+  update(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() { name, departureDate, returnDate }: UpdateExcursionDTO,
+    @CurrentUser() currentUser: JwtPayload,
+  ): Promise<Excursion> {
+    return this.updateExcursionService.execute({
+      organizationId: currentUser.organizationId,
+      id,
+      name,
+      departureDate,
+      returnDate,
     });
   }
 }

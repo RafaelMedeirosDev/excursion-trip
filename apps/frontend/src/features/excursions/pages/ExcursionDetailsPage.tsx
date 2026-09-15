@@ -10,6 +10,7 @@ import { useEvent } from "@/features/events/hooks/useEvent";
 import { ExcursionStatusActions } from "@/features/excursions/components/ExcursionStatusActions";
 import { ExcursionStatusBadge } from "@/features/excursions/components/ExcursionStatusBadge";
 import { useExcursion } from "@/features/excursions/hooks/useExcursion";
+import { NON_EDITABLE_STATUSES } from "@/features/excursions/constants";
 
 function formatDate(value: string) {
   return new Date(value).toLocaleDateString("pt-BR");
@@ -48,11 +49,20 @@ export function ExcursionDetailsPage() {
     return null;
   }
 
+  const canEdit = !NON_EDITABLE_STATUSES.includes(excursion.status);
+
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
         <PageTitle title={excursion.name} />
         <ExcursionStatusBadge status={excursion.status} />
+        {/* estados terminais não são editáveis no backend: não oferecer a ação
+            que sempre falharia */}
+        {canEdit && (
+          <Button asChild className="ml-auto shrink-0">
+            <Link to={`/excursions/${excursion.id}/edit`}>Editar</Link>
+          </Button>
+        )}
       </div>
 
       <Card>
