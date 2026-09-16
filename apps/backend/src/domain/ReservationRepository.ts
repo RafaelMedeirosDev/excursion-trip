@@ -63,6 +63,25 @@ export interface PaginatedReservations {
   limit: number;
 }
 
+// Troca de status serializada por veiculo, usada por toda transicao que pode
+// FAZER a reserva ocupar vaga. `fromStatuses` fecha a janela de last-write-wins
+// (uma reserva cancelada em paralelo nunca e ressuscitada) e `occupyingStatuses`
+// diz quais status contam como ocupacao — a semantica vem de quem chama, nao do
+// repositorio.
+export interface UpdateStatusWithinCapacity {
+  id: string;
+  fromStatuses: ReservationStatus[];
+  toStatus: ReservationStatus;
+  occupyingStatuses: ReservationStatus[];
+}
+
+// Resultado discriminado em vez de excecao: a politica de erro difere entre os
+// chamadores (as rotas de status lancam 400, a sincronizacao do pagamento
+// ignora em silencio), entao quem decide e o Service.
+export type UpdateStatusWithinCapacityResult =
+  | { ok: true; reservation: Reservation }
+  | { ok: false; reason: 'NOT_FOUND' | 'STATUS_CHANGED' | 'CAPACITY_EXCEEDED' };
+
 export interface UpdateStatus {
   id: string;
   status: ReservationStatus;
@@ -110,6 +129,13 @@ export abstract class ReservationRepository {
     page,
     limit,
   }: FindAllPaginated): Promise<PaginatedReservations>;
+
+  abstract updateStatusWithinCapacity({
+    id,
+    fromStatuses,
+    toStatus,
+    occupyingStatuses,
+  }: UpdateStatusWithinCapacity): Promise<UpdateStatusWithinCapacityResult>;
 
   abstract updateStatus({
     id,

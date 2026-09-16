@@ -28,6 +28,12 @@ const ALLOWED_SOURCE_STATUSES: ReservationStatus[] = [
   ReservationStatus.PENDING,
 ];
 
+// Quais status consomem vaga do veiculo. WAITLIST nao ocupa.
+const OCCUPYING_STATUSES: ReservationStatus[] = [
+  ReservationStatus.PENDING,
+  ReservationStatus.CONFIRMED,
+];
+
 const BLOCKED_EXCURSION_STATUSES: ExcursionStatus[] = [
   ExcursionStatus.DONE,
   ExcursionStatus.CANCELED,
@@ -94,19 +100,29 @@ export class ConfirmReservationService {
       throw new ReservationInsufficientPaymentForConfirm();
     }
 
-    if (reservation.status === ReservationStatus.WAITLIST) {
-      const occupied = await this.reservationRepository.countActiveByVehicleBookingId({
-        vehicleBookingId: reservation.vehicleBookingId,
-      });
+    // O `if (status === WAITLIST)` que existia aqui sumiu: a contagem de
+    // ocupacao agora exclui a propria reserva, entao vindo de PENDING (que ja
+    // ocupa) a checagem passa sozinha. Mesma regra, sem o ramo.
+    const result = await this.reservationRepository.updateStatusWithinCapacity({
+      id,
+      fromStatuses: ALLOWED_SOURCE_STATUSES,
+      toStatus: ReservationStatus.CONFIRMED,
+      occupyingStatuses: OCCUPYING_STATUSES,
+    });
 
-      if (occupied >= (vehicleBooking?.capacity ?? 0)) {
+    if (!result.ok) {
+      if (result.reason === 'CAPACITY_EXCEEDED') {
         throw new VehicleBookingCapacityExceeded();
       }
+
+      if (result.reason === 'NOT_FOUND') {
+        throw new ReservationNotFound();
+      }
+
+      // STATUS_CHANGED: alguem mexeu na reserva enquanto esperavamos o lock.
+      throw new InvalidReservationStatusTransition();
     }
 
-    return await this.reservationRepository.updateStatus({
-      id,
-      status: ReservationStatus.CONFIRMED,
-    });
+    return result.reservation;
   }
 }

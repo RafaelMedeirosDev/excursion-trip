@@ -47,6 +47,7 @@ describe('CreateReservationService', () => {
       findAll: jest.fn(),
       findAllPaginated: jest.fn(),
       updateStatus: jest.fn(),
+      updateStatusWithinCapacity: jest.fn(),
     };
     customerRepository = {
       create: jest.fn(),

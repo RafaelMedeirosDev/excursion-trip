@@ -39,6 +39,7 @@ describe('DeleteCustomerService', () => {
       findAll: jest.fn(),
       findAllPaginated: jest.fn(),
       updateStatus: jest.fn(),
+      updateStatusWithinCapacity: jest.fn(),
     };
     service = new DeleteCustomerService(
       customerRepository,
