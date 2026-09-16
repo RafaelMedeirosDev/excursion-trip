@@ -25,7 +25,7 @@ export const reservationsApi = {
 
   getReservationsPaginated: async (params: {
     status?: ReservationStatus;
-    eventName?: string;
+    query?: string;
     page: number;
     limit: number;
   }): Promise<PaginatedReservations> => {

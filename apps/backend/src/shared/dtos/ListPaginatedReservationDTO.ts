@@ -7,9 +7,10 @@ export class ListPaginatedReservationDTO {
   @IsEnum(ReservationStatus)
   status?: ReservationStatus;
 
+  // busca combinada: nome do evento, nome do cliente ou CPF
   @IsOptional()
   @IsString()
-  eventName?: string;
+  query?: string;
 
   @IsOptional()
   @Type(() => Number)

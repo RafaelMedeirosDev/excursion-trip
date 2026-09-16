@@ -4,19 +4,19 @@ import { reservationsApi } from "@/features/reservations/api/reservationsApi";
 
 export function usePaginatedReservations({
   status,
-  eventName,
+  query,
   page,
   limit = 10,
 }: {
   status?: ReservationStatus;
-  eventName?: string;
+  query?: string;
   page: number;
   limit?: number;
 }) {
   return useQuery({
-    queryKey: ["reservations", "paginated", { status, eventName, page, limit }],
+    queryKey: ["reservations", "paginated", { status, query, page, limit }],
     queryFn: () =>
-      reservationsApi.getReservationsPaginated({ status, eventName, page, limit }),
+      reservationsApi.getReservationsPaginated({ status, query, page, limit }),
     placeholderData: keepPreviousData,
   });
 }

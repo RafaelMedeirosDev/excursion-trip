@@ -74,7 +74,7 @@ export class ReservationController {
 
   @Get('paginated')
   listPaginated(
-    @Query() { status, eventName, page, limit }: ListPaginatedReservationDTO,
+    @Query() { status, query, page, limit }: ListPaginatedReservationDTO,
     @CurrentUser() currentUser: JwtPayload,
   ): Promise<PaginatedReservations> {
     return this.listPaginatedReservationService.execute({
@@ -82,7 +82,7 @@ export class ReservationController {
       userId: currentUser.sub,
       role: currentUser.role,
       status,
-      eventName,
+      query,
       page,
       limit,
     });

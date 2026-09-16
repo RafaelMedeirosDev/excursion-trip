@@ -10,7 +10,7 @@ interface Request {
   userId: string;
   role: Role;
   status?: ReservationStatus;
-  eventName?: string;
+  query?: string;
   page?: number;
   limit?: number;
 }
@@ -27,7 +27,7 @@ export class ListPaginatedReservationService {
     userId,
     role,
     status,
-    eventName,
+    query,
     page,
     limit,
   }: Request): Promise<PaginatedReservations> {
@@ -35,7 +35,7 @@ export class ListPaginatedReservationService {
       organizationId,
       userId: role === Role.ADM ? undefined : userId,
       status,
-      eventName,
+      query,
       page: page ?? DEFAULT_PAGE,
       limit: limit ?? DEFAULT_LIMIT,
     });

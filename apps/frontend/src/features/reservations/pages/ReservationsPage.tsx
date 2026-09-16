@@ -70,7 +70,7 @@ export function ReservationsPage() {
 
   const { data: result, isLoading } = usePaginatedReservations({
     status: statusFilter === "ALL" ? undefined : statusFilter,
-    eventName: debouncedQuery || undefined,
+    query: debouncedQuery || undefined,
     page,
     limit: PAGE_SIZE,
   });
@@ -130,7 +130,7 @@ export function ReservationsPage() {
           <Input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Buscar por evento"
+            placeholder="Buscar por cliente, CPF ou evento"
           />
         </div>
       </div>

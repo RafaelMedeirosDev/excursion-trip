@@ -182,3 +182,150 @@ export function countOccupying(
     },
   });
 }
+
+export interface SearchScenarioReservation {
+  reservationId: string;
+  /** Funcionario dono da reserva (quem registrou). */
+  userId: string;
+  customerName: string;
+  customerCpf: string;
+  eventName: string;
+}
+
+export interface SearchScenario {
+  organizationId: string;
+  admId: string;
+  reservations: SearchScenarioReservation[];
+}
+
+interface SearchScenarioInput {
+  /** Uma reserva por entrada, cada uma com seu proprio funcionario e evento. */
+  reservations: Array<{
+    customerName: string;
+    customerCpf: string;
+    eventName: string;
+    status?: ReservationStatus;
+  }>;
+}
+
+/**
+ * Cenario para exercitar a BUSCA da listagem paginada, que e outro problema do
+ * coberto por `createCapacityScenario`: aqui cada reserva pertence a um
+ * funcionario diferente e a um evento diferente, pra dar pra provar que a busca
+ * nao fura o escopo por linha.
+ */
+export async function createSearchScenario(
+  prisma: PrismaClient,
+  { reservations }: SearchScenarioInput,
+): Promise<SearchScenario> {
+  const organization = await prisma.organization.create({
+    data: { name: 'Org de busca' },
+  });
+
+  const makeUser = async (role: Role): Promise<string> => {
+    const user = await prisma.user.create({
+      data: {
+        organizationId: organization.id,
+        name: `Usuario ${randomUUID().slice(0, 8)}`,
+        email: `u-${randomUUID()}@test.local`,
+        password: 'nao-e-um-hash-real',
+        phone: '11999999999',
+        cpf: randomUUID().slice(0, 11),
+        role,
+      },
+    });
+
+    return user.id;
+  };
+
+  const admId = await makeUser(Role.ADM);
+
+  const supplier = await prisma.supplier.create({
+    data: {
+      organizationId: organization.id,
+      name: 'Fornecedor',
+      cnpj: randomUUID().slice(0, 14),
+      phone: '1133333333',
+    },
+  });
+
+  const created: SearchScenarioReservation[] = [];
+
+  for (const input of reservations) {
+    // Um funcionario proprio por reserva: e o que permite provar que a busca
+    // feita por um nao alcanca a reserva do outro.
+    const userId = await makeUser(Role.EMPLOYEE);
+
+    const event = await prisma.event.create({
+      data: {
+        organizationId: organization.id,
+        name: input.eventName,
+        address: 'Rua 1',
+        city: 'Sao Paulo',
+        state: UF.SP,
+        startDate: new Date('2030-01-10'),
+        endDate: new Date('2030-01-11'),
+        startTime: '08:00',
+        endTime: '18:00',
+      },
+    });
+
+    const excursion = await prisma.excursion.create({
+      data: {
+        organizationId: organization.id,
+        eventId: event.id,
+        userId: admId,
+        name: `Excursao ${input.eventName}`,
+        departureDate: new Date('2030-01-09'),
+        returnDate: new Date('2030-01-12'),
+        status: ExcursionStatus.OPEN,
+      },
+    });
+
+    const vehicleBooking = await prisma.vehicleBooking.create({
+      data: {
+        organizationId: organization.id,
+        supplierId: supplier.id,
+        excursionId: excursion.id,
+        // responsavel pelo veiculo = o mesmo funcionario, pros dois lados do
+        // OR de escopo apontarem pra ele
+        userId,
+        vehicleType: 'ONIBUS',
+        plate: null,
+        capacity: 10,
+        value: 100_000,
+        price: 20_000,
+      },
+    });
+
+    const customer = await prisma.customer.create({
+      data: {
+        organizationId: organization.id,
+        name: input.customerName,
+        phone: '11988888888',
+        cpf: input.customerCpf,
+      },
+    });
+
+    const reservation = await prisma.reservation.create({
+      data: {
+        organizationId: organization.id,
+        userId,
+        customerId: customer.id,
+        vehicleBookingId: vehicleBooking.id,
+        status: input.status ?? ReservationStatus.WAITLIST,
+        agreedValue: 20_000,
+      },
+    });
+
+    created.push({
+      reservationId: reservation.id,
+      userId,
+      customerName: input.customerName,
+      customerCpf: input.customerCpf,
+      eventName: input.eventName,
+    });
+  }
+
+  return { organizationId: organization.id, admId, reservations: created };
+}

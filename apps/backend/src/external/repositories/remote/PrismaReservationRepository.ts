@@ -189,24 +189,50 @@ export class PrismaReservationRepository implements ReservationRepository {
     organizationId,
     userId,
     status,
-    eventName,
+    query,
     page,
     limit,
   }: FindAllPaginated): Promise<PaginatedReservations> {
+    // Dois OR independentes que precisam conviver: o escopo por linha (o que o
+    // funcionario pode ver) e a busca textual. Eles vao em ramos separados de um
+    // AND, e nao espalhados no mesmo literal — spread repetiria a chave `OR` e a
+    // ultima venceria em silencio. Se a perdida fosse a do escopo, o funcionario
+    // passaria a ver a organizacao inteira ao digitar qualquer coisa na busca:
+    // sem erro de tipo, sem erro do Prisma, sem teste vermelho.
+    const filters = [];
+
+    if (userId) {
+      filters.push({ OR: [{ userId }, { vehicleBooking: { userId } }] });
+    }
+
+    if (query) {
+      filters.push({
+        OR: [
+          {
+            vehicleBooking: {
+              excursion: {
+                event: {
+                  name: { contains: query, mode: 'insensitive' as const },
+                },
+              },
+            },
+          },
+          {
+            customer: {
+              name: { contains: query, mode: 'insensitive' as const },
+            },
+          },
+          // CPF sem `mode`: e numerico, mesmo criterio de Customer/User/Supplier
+          { customer: { cpf: { contains: query } } },
+        ],
+      });
+    }
+
     const where = {
       organizationId,
       deletedAt: null,
       ...(status ? { status } : {}),
-      ...(eventName
-        ? {
-            vehicleBooking: {
-              excursion: {
-                event: { name: { contains: eventName, mode: 'insensitive' as const } },
-              },
-            },
-          }
-        : {}),
-      ...(userId ? { OR: [{ userId }, { vehicleBooking: { userId } }] } : {}),
+      ...(filters.length ? { AND: filters } : {}),
     };
 
     return Promise.all([

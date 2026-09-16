@@ -44,7 +44,7 @@ export interface FindAllPaginated {
   organizationId: string;
   userId?: string;
   status?: ReservationStatus;
-  eventName?: string;
+  query?: string;
   page: number;
   limit: number;
 }
@@ -125,7 +125,7 @@ export abstract class ReservationRepository {
     organizationId,
     userId,
     status,
-    eventName,
+    query,
     page,
     limit,
   }: FindAllPaginated): Promise<PaginatedReservations>;
