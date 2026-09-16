@@ -28,6 +28,7 @@ describe('GetReservationService', () => {
       findAll: jest.fn(),
       findAllPaginated: jest.fn(),
       updateStatus: jest.fn(),
+      updateStatusWithinCapacity: jest.fn(),
     };
     vehicleBookingRepository = {
       create: jest.fn(),

@@ -30,6 +30,12 @@ const BLOCKED_EXCURSION_STATUSES: ExcursionStatus[] = [
 
 const MINIMUM_PAYMENT_PERCENTAGE = 0.5;
 
+// Quais status consomem vaga do veiculo. WAITLIST nao ocupa.
+const OCCUPYING_STATUSES: ReservationStatus[] = [
+  ReservationStatus.PENDING,
+  ReservationStatus.CONFIRMED,
+];
+
 @Injectable()
 export class PendingReservationService {
   constructor(
@@ -91,17 +97,30 @@ export class PendingReservationService {
       throw new ReservationInsufficientPaymentForPending();
     }
 
-    const occupied = await this.reservationRepository.countActiveByVehicleBookingId({
-      vehicleBookingId: reservation.vehicleBookingId,
+    // Contar a ocupacao aqui e atualizar depois seria um check-then-act: duas
+    // promocoes simultaneas leriam "falta 1 vaga" e as duas passariam. A
+    // checagem e a escrita acontecem juntas, numa transacao serializada pela
+    // linha do veiculo.
+    const result = await this.reservationRepository.updateStatusWithinCapacity({
+      id,
+      fromStatuses: [ReservationStatus.WAITLIST],
+      toStatus: ReservationStatus.PENDING,
+      occupyingStatuses: OCCUPYING_STATUSES,
     });
 
-    if (occupied >= (vehicleBooking?.capacity ?? 0)) {
-      throw new VehicleBookingCapacityExceeded();
+    if (!result.ok) {
+      if (result.reason === 'CAPACITY_EXCEEDED') {
+        throw new VehicleBookingCapacityExceeded();
+      }
+
+      if (result.reason === 'NOT_FOUND') {
+        throw new ReservationNotFound();
+      }
+
+      // STATUS_CHANGED: alguem mexeu na reserva enquanto esperavamos o lock.
+      throw new InvalidReservationStatusTransition();
     }
 
-    return await this.reservationRepository.updateStatus({
-      id,
-      status: ReservationStatus.PENDING,
-    });
+    return result.reservation;
   }
 }

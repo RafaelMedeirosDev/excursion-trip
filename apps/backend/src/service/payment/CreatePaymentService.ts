@@ -34,6 +34,14 @@ const OCCUPYING_STATUSES: ReservationStatus[] = [
   ReservationStatus.CONFIRMED,
 ];
 
+// Status dos quais a sincronizacao automatica pode partir. CANCELED e terminal
+// e fica de fora de proposito.
+const SYNCABLE_STATUSES: ReservationStatus[] = [
+  ReservationStatus.WAITLIST,
+  ReservationStatus.PENDING,
+  ReservationStatus.CONFIRMED,
+];
+
 @Injectable()
 export class CreatePaymentService {
   constructor(
@@ -113,23 +121,19 @@ export class CreatePaymentService {
       return;
     }
 
-    const startsOccupying =
-      !OCCUPYING_STATUSES.includes(reservation.status) &&
-      OCCUPYING_STATUSES.includes(targetStatus);
-
-    if (startsOccupying) {
-      const occupied = await this.reservationRepository.countActiveByVehicleBookingId({
-        vehicleBookingId: reservation.vehicleBookingId,
-      });
-
-      if (occupied >= vehicleBooking!.capacity) {
-        return;
-      }
-    }
-
-    await this.reservationRepository.updateStatus({
+    // Efeito colateral silencioso: nunca lanca. Sem vaga (ou se outra transacao
+    // ja mexeu no status), a reserva fica onde esta e o proximo pagamento ou
+    // estorno sincroniza de novo — o Payment ja foi salvo de qualquer forma.
+    //
+    // CANCELED fora de fromStatuses preserva "reserva cancelada nunca e
+    // reaberta por um pagamento", e agora de forma atomica: ate aqui isso
+    // dependia do `reservation` lido ANTES do payment.create, que podia estar
+    // desatualizado.
+    await this.reservationRepository.updateStatusWithinCapacity({
       id: reservation.id,
-      status: targetStatus,
+      fromStatuses: SYNCABLE_STATUSES.filter((status) => status !== targetStatus),
+      toStatus: targetStatus,
+      occupyingStatuses: OCCUPYING_STATUSES,
     });
   }
 }

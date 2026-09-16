@@ -32,7 +32,7 @@ pnpm test     # turbo run test
 
 ## CI
 
-`.github/workflows/ci.yml` roda `pnpm build && pnpm lint && pnpm test` em todo Pull Request pra `main` (GitHub Actions, Node 20 + pnpm, sem banco — os testes do backend só usam mocks de `Repository`, não tocam Postgres). **`pnpm install` sozinho não gera o Prisma Client nesse monorepo** (postinstall do `@prisma/client` não encontra o `schema.prisma` no layout do pnpm workspace) — o workflow roda `pnpm --filter @excursion-trip/backend exec prisma generate` explicitamente antes do build. Localmente isso nunca foi um problema porque `prisma migrate dev` já gera o client como efeito colateral; um clone novo que só rode `pnpm install` (como o CI) precisa desse passo explícito.
+`.github/workflows/ci.yml` roda `pnpm build && pnpm lint && pnpm test` em todo Pull Request pra `main` (GitHub Actions, Node 20 + pnpm). O job `ci` continua **sem banco** — os testes unitários do backend só usam mocks de `Repository`. Em paralelo roda o job `integration`, com um serviço Postgres 15 e `pnpm --filter @excursion-trip/backend test:int`: são os testes que precisam de banco de verdade (hoje, a corrida de capacidade do veículo). Rodam em paralelo de propósito, então o tempo total do PR não muda. **`pnpm install` sozinho não gera o Prisma Client nesse monorepo** (postinstall do `@prisma/client` não encontra o `schema.prisma` no layout do pnpm workspace) — o workflow roda `pnpm --filter @excursion-trip/backend exec prisma generate` explicitamente antes do build. Localmente isso nunca foi um problema porque `prisma migrate dev` já gera o client como efeito colateral; um clone novo que só rode `pnpm install` (como o CI) precisa desse passo explícito.
 
 ## Deploy (Railway)
 

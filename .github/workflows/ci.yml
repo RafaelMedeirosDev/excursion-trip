@@ -23,4 +23,38 @@ jobs:
 
       - run: pnpm build
       - run: pnpm lint
-      - run: pnpm test
+      - run: pnpm test # unitarios, sem banco
+
+  # Job separado e em paralelo ao `ci`: o wall-clock do PR nao muda.
+  integration:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15 # paridade com o container de desenvolvimento
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: excursion_trip_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d excursion_trip_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      # O nome do banco precisa conter "test": o globalSetup recusa rodar
+      # TRUNCATE em qualquer coisa que nao pareca banco descartavel.
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/excursion_trip_test?schema=public&connection_limit=10&pool_timeout=20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @excursion-trip/backend exec prisma generate
+      # `migrate deploy` nao aparece aqui de proposito: quem aplica o schema e o
+      # globalSetup do jest, pra que `test:int` se comporte igual aqui e local.
+      - run: pnpm --filter @excursion-trip/backend test:int

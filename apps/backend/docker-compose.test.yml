@@ -1,0 +1,27 @@
+# Postgres exclusivo dos testes de integracao.
+#
+# Porta 5433 e nome terminando em "test" sao propositais: os testes rodam
+# TRUNCATE ... CASCADE entre casos, e um DATABASE_URL errado apagaria o banco de
+# desenvolvimento (que mora na 5432). O globalSetup do jest ainda recusa rodar
+# se o nome do banco nao contiver "test" — tres barreiras independentes.
+#
+#   pnpm --filter @excursion-trip/backend db:test:up
+#   pnpm --filter @excursion-trip/backend db:test:down
+services:
+  postgres-test:
+    image: postgres:15.19
+    container_name: excursion-trip-postgres-test
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: excursion_trip_test
+    ports:
+      - '5433:5432'
+    # banco em RAM: descartavel e mais rapido, ninguem quer persistir isso
+    tmpfs:
+      - /var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U postgres -d excursion_trip_test']
+      interval: 2s
+      timeout: 3s
+      retries: 15

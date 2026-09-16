@@ -22,6 +22,7 @@ describe('ListPaginatedReservationService', () => {
       findAll: jest.fn(),
       findAllPaginated: jest.fn(),
       updateStatus: jest.fn(),
+      updateStatusWithinCapacity: jest.fn(),
     };
     service = new ListPaginatedReservationService(reservationRepository);
   });

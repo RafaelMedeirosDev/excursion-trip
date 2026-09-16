@@ -16,6 +16,8 @@ import {
   ReservationRepository,
   Reservations,
   UpdateStatus,
+  UpdateStatusWithinCapacity,
+  UpdateStatusWithinCapacityResult,
 } from 'src/domain/ReservationRepository';
 import { PrismaRemoteRepository } from './PrismaRemoteRepository';
 
@@ -216,6 +218,76 @@ export class PrismaReservationRepository implements ReservationRepository {
       }),
       this.repository.reservation.count({ where }),
     ]).then(([data, total]) => ({ data, total, page, limit }));
+  }
+
+  async updateStatusWithinCapacity({
+    id,
+    fromStatuses,
+    toStatus,
+    occupyingStatuses,
+  }: UpdateStatusWithinCapacity): Promise<UpdateStatusWithinCapacityResult> {
+    return this.repository.$transaction(async (tx) => {
+      // Trava a linha do VehicleBooking: ela e o mutex da concessao de vaga
+      // desse veiculo. Lock de linha vale mesmo numa linha so lida, e dura ate
+      // o commit.
+      //
+      // FOR NO KEY UPDATE e nao FOR UPDATE: todo INSERT de Reservation tira
+      // FOR KEY SHARE nessa mesma linha por causa da FK, e FOR UPDATE
+      // conflitaria com ele — uma promocao em curso bloquearia toda criacao de
+      // reserva no veiculo. FOR NO KEY UPDATE conflita so consigo mesmo, que e
+      // exatamente a exclusao mutua que precisamos.
+      //
+      // O JOIN resolve o vehicleBookingId sem um SELECT extra; essa coluna
+      // nunca e atualizada, entao le-la junto do lock e seguro.
+      const locked = await tx.$queryRaw<{ id: string; capacity: number }[]>`
+        SELECT vb."id", vb."capacity"
+        FROM "VehicleBooking" vb
+        INNER JOIN "Reservation" r ON r."vehicleBookingId" = vb."id"
+        WHERE r."id" = ${id}
+        FOR NO KEY UPDATE OF vb
+      `;
+
+      if (locked.length === 0) {
+        return { ok: false, reason: 'NOT_FOUND' };
+      }
+
+      const { id: vehicleBookingId, capacity } = locked[0];
+
+      if (occupyingStatuses.includes(toStatus)) {
+        // Exclui a propria reserva: se ela JA ocupa (PENDING -> CONFIRMED), a
+        // transicao nao consome vaga nova e a checagem passa sozinha. Mesmo
+        // criterio de countActiveByVehicleBookingId.
+        const occupied = await tx.reservation.count({
+          where: {
+            vehicleBookingId,
+            id: { not: id },
+            status: { in: occupyingStatuses },
+          },
+        });
+
+        if (occupied >= capacity) {
+          return { ok: false, reason: 'CAPACITY_EXCEEDED' };
+        }
+      }
+
+      // O status entra no where: se outra transacao mexeu na reserva enquanto
+      // esperavamos o lock (um cancelamento, por exemplo), count = 0 e a
+      // promocao nao acontece. E o que fecha o last-write-wins do updateStatus.
+      const { count } = await tx.reservation.updateMany({
+        where: { id, status: { in: fromStatuses } },
+        data: { status: toStatus },
+      });
+
+      if (count === 0) {
+        return { ok: false, reason: 'STATUS_CHANGED' };
+      }
+
+      const reservation = await tx.reservation.findUniqueOrThrow({
+        where: { id },
+      });
+
+      return { ok: true, reservation };
+    });
   }
 
   updateStatus({

@@ -67,6 +67,7 @@ describe('ConfirmReservationService', () => {
       findAll: jest.fn(),
       findAllPaginated: jest.fn(),
       updateStatus: jest.fn(),
+      updateStatusWithinCapacity: jest.fn(),
     };
     vehicleBookingRepository = {
       create: jest.fn(),
@@ -104,7 +105,14 @@ describe('ConfirmReservationService', () => {
     paymentRepository.findByReservationId.mockResolvedValue([
       { type: PaymentType.PAYMENT, value: 10000 } as Payment,
     ]);
-    reservationRepository.countActiveByVehicleBookingId.mockResolvedValue(0);
+    // a capacidade agora e checada dentro da transacao do repositorio
+    reservationRepository.updateStatusWithinCapacity.mockResolvedValue({
+      ok: true,
+      reservation: {
+        id: 'reservation-1',
+        status: ReservationStatus.CONFIRMED,
+      } as Reservation,
+    });
   });
 
   it('move a reservation pra CONFIRMED a partir de PENDING quando pago 100%', async () => {
@@ -115,9 +123,14 @@ describe('ConfirmReservationService', () => {
 
     const result = await service.execute(request);
 
-    expect(reservationRepository.updateStatus).toHaveBeenCalledWith({
+    expect(reservationRepository.updateStatusWithinCapacity).toHaveBeenCalledWith({
       id: 'reservation-1',
-      status: ReservationStatus.CONFIRMED,
+      fromStatuses: [ReservationStatus.WAITLIST, ReservationStatus.PENDING],
+      toStatus: ReservationStatus.CONFIRMED,
+      occupyingStatuses: [
+        ReservationStatus.PENDING,
+        ReservationStatus.CONFIRMED,
+      ],
     });
     expect(result.status).toBe(ReservationStatus.CONFIRMED);
   });
@@ -134,9 +147,14 @@ describe('ConfirmReservationService', () => {
 
     await service.execute(request);
 
-    expect(reservationRepository.updateStatus).toHaveBeenCalledWith({
+    expect(reservationRepository.updateStatusWithinCapacity).toHaveBeenCalledWith({
       id: 'reservation-1',
-      status: ReservationStatus.CONFIRMED,
+      fromStatuses: [ReservationStatus.WAITLIST, ReservationStatus.PENDING],
+      toStatus: ReservationStatus.CONFIRMED,
+      occupyingStatuses: [
+        ReservationStatus.PENDING,
+        ReservationStatus.CONFIRMED,
+      ],
     });
   });
 
@@ -149,14 +167,14 @@ describe('ConfirmReservationService', () => {
     await expect(service.execute(request)).rejects.toBeInstanceOf(
       ReservationNotFound,
     );
-    expect(reservationRepository.updateStatus).not.toHaveBeenCalled();
+    expect(reservationRepository.updateStatusWithinCapacity).not.toHaveBeenCalled();
   });
 
   it('lança ReservationNotFound quando EMPLOYEE tenta mudar reservation de outro usuário', async () => {
     await expect(
       service.execute({ ...request, role: Role.EMPLOYEE, userId: 'user-2' }),
     ).rejects.toBeInstanceOf(ReservationNotFound);
-    expect(reservationRepository.updateStatus).not.toHaveBeenCalled();
+    expect(reservationRepository.updateStatusWithinCapacity).not.toHaveBeenCalled();
   });
 
   it('EMPLOYEE responsável pelo vehicleBooking consegue confirmar mesmo sem ter registrado', async () => {
@@ -171,7 +189,7 @@ describe('ConfirmReservationService', () => {
 
     await service.execute({ ...request, role: Role.EMPLOYEE, userId: 'user-2' });
 
-    expect(reservationRepository.updateStatus).toHaveBeenCalled();
+    expect(reservationRepository.updateStatusWithinCapacity).toHaveBeenCalled();
   });
 
   it('lança InvalidReservationStatusTransition quando a reservation já está CANCELED', async () => {
@@ -183,7 +201,7 @@ describe('ConfirmReservationService', () => {
     await expect(service.execute(request)).rejects.toBeInstanceOf(
       InvalidReservationStatusTransition,
     );
-    expect(reservationRepository.updateStatus).not.toHaveBeenCalled();
+    expect(reservationRepository.updateStatusWithinCapacity).not.toHaveBeenCalled();
   });
 
   it('lança ReservationExcursionNotAvailableForStatusChange quando a excursion está CANCELED', async () => {
@@ -195,7 +213,7 @@ describe('ConfirmReservationService', () => {
     await expect(service.execute(request)).rejects.toBeInstanceOf(
       ReservationExcursionNotAvailableForStatusChange,
     );
-    expect(reservationRepository.updateStatus).not.toHaveBeenCalled();
+    expect(reservationRepository.updateStatusWithinCapacity).not.toHaveBeenCalled();
   });
 
   it('lança ReservationInsufficientPaymentForConfirm quando pago < 100% do agreedValue', async () => {
@@ -206,7 +224,7 @@ describe('ConfirmReservationService', () => {
     await expect(service.execute(request)).rejects.toBeInstanceOf(
       ReservationInsufficientPaymentForConfirm,
     );
-    expect(reservationRepository.updateStatus).not.toHaveBeenCalled();
+    expect(reservationRepository.updateStatusWithinCapacity).not.toHaveBeenCalled();
   });
 
   it('lança VehicleBookingCapacityExceeded ao confirmar direto de WAITLIST num veículo lotado', async () => {
@@ -214,29 +232,33 @@ describe('ConfirmReservationService', () => {
       ...reservation,
       status: ReservationStatus.WAITLIST,
     });
-    reservationRepository.countActiveByVehicleBookingId.mockResolvedValue(10);
+    reservationRepository.updateStatusWithinCapacity.mockResolvedValue({
+      ok: false,
+      reason: 'CAPACITY_EXCEEDED',
+    });
 
     await expect(service.execute(request)).rejects.toBeInstanceOf(
       VehicleBookingCapacityExceeded,
     );
-    expect(reservationRepository.updateStatus).not.toHaveBeenCalled();
   });
 
-  it('confirma normalmente a partir de PENDING mesmo com o veículo "lotado" (já ocupava vaga)', async () => {
-    reservationRepository.countActiveByVehicleBookingId.mockResolvedValue(10);
-    reservationRepository.updateStatus.mockResolvedValue({
-      ...reservation,
-      status: ReservationStatus.CONFIRMED,
-    });
-
+  it('aceita PENDING como origem, entao confirmar de PENDING nao consome vaga nova', async () => {
+    // A regra "vindo de PENDING nao checa capacidade" migrou pro SQL: a
+    // contagem dentro da transacao exclui a propria reserva. O que cabe ao
+    // Service e declarar PENDING como origem valida.
     await service.execute(request);
 
     expect(
       reservationRepository.countActiveByVehicleBookingId,
     ).not.toHaveBeenCalled();
-    expect(reservationRepository.updateStatus).toHaveBeenCalledWith({
+    expect(reservationRepository.updateStatusWithinCapacity).toHaveBeenCalledWith({
       id: 'reservation-1',
-      status: ReservationStatus.CONFIRMED,
+      fromStatuses: [ReservationStatus.WAITLIST, ReservationStatus.PENDING],
+      toStatus: ReservationStatus.CONFIRMED,
+      occupyingStatuses: [
+        ReservationStatus.PENDING,
+        ReservationStatus.CONFIRMED,
+      ],
     });
   });
 });
