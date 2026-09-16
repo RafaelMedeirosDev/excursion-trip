@@ -48,7 +48,7 @@ describe('ListPaginatedReservationService', () => {
       organizationId,
       userId: undefined,
       status: undefined,
-      eventName: undefined,
+      query: undefined,
       page: 1,
       limit: 10,
     });
@@ -75,13 +75,13 @@ describe('ListPaginatedReservationService', () => {
       organizationId,
       userId,
       status: undefined,
-      eventName: undefined,
+      query: undefined,
       page: 1,
       limit: 10,
     });
   });
 
-  it('repassa status, eventName, page e limit quando informados', async () => {
+  it('repassa status, query, page e limit quando informados', async () => {
     reservationRepository.findAllPaginated.mockResolvedValue({
       data: [],
       total: 0,
@@ -94,7 +94,7 @@ describe('ListPaginatedReservationService', () => {
       userId,
       role: Role.ADM,
       status: ReservationStatus.CONFIRMED,
-      eventName: 'Reveillon',
+      query: 'Reveillon',
       page: 2,
       limit: 5,
     });
@@ -103,7 +103,7 @@ describe('ListPaginatedReservationService', () => {
       organizationId,
       userId: undefined,
       status: ReservationStatus.CONFIRMED,
-      eventName: 'Reveillon',
+      query: 'Reveillon',
       page: 2,
       limit: 5,
     });
@@ -123,7 +123,7 @@ describe('ListPaginatedReservationService', () => {
       organizationId,
       userId: undefined,
       status: undefined,
-      eventName: undefined,
+      query: undefined,
       page: 1,
       limit: 10,
     });
