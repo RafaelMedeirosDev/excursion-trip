@@ -80,3 +80,13 @@ export const UF_LABELS: Record<UF, string> = {
   SE: "Sergipe",
   TO: "Tocantins",
 };
+
+export type ExpensesCategory = "FUEL" | "TOLL" | "FOOD" | "SUPPLIES" | "OTHER";
+
+export const EXPENSE_CATEGORY_LABELS: Record<ExpensesCategory, string> = {
+  FUEL: "Combustível",
+  TOLL: "Pedágio",
+  FOOD: "Alimentação",
+  SUPPLIES: "Suprimentos",
+  OTHER: "Outros",
+};
