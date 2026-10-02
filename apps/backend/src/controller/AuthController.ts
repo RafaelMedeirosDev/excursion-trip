@@ -32,10 +32,14 @@ export class AuthController {
     return this.loginService.execute({ email, password });
   }
 
+  // limite bem mais folgado que o do login de propósito: aqui não há o que
+  // adivinhar por força bruta (o token tem 256 bits e é de uso único), e cada
+  // carregamento de página consome uma renovação — com 5/min, recarregar a tela
+  // algumas vezes no mesmo minuto derrubava a sessão do usuário legítimo
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   @UseGuards(ThrottlerGuard)
-  @Throttle({ default: { ttl: 60000, limit: 5 } })
+  @Throttle({ default: { ttl: 60000, limit: 30 } })
   refresh(
     @Body() { refreshToken }: RefreshTokenDTO,
   ): Promise<{ accessToken: string; refreshToken: string }> {

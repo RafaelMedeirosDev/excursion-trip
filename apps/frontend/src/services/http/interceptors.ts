@@ -1,33 +1,12 @@
-import axios, {
+import {
   type AxiosError,
   type AxiosInstance,
   type InternalAxiosRequestConfig,
 } from "axios";
+import { refreshSession } from "@/services/http/refreshSession";
 import { useAuthStore } from "@/store/authStore";
 
 const AUTH_ENDPOINTS = ["/auth/login", "/auth/refresh", "/auth/logout"];
-
-let refreshPromise: Promise<string> | null = null;
-
-async function refreshAccessToken(baseURL?: string): Promise<string> {
-  const { refreshToken, setTokens, clear } = useAuthStore.getState();
-
-  if (!refreshToken) {
-    clear();
-    throw new Error("No refresh token available");
-  }
-
-  try {
-    const { data } = await axios.post(`${baseURL}/auth/refresh`, {
-      refreshToken,
-    });
-    setTokens(data.accessToken, data.refreshToken);
-    return data.accessToken;
-  } catch (error) {
-    clear();
-    throw error;
-  }
-}
 
 export function setupInterceptors(client: AxiosInstance) {
   client.interceptors.request.use((config) => {
@@ -58,12 +37,7 @@ export function setupInterceptors(client: AxiosInstance) {
         originalRequest._retry = true;
 
         try {
-          refreshPromise ??= refreshAccessToken(client.defaults.baseURL).finally(
-            () => {
-              refreshPromise = null;
-            },
-          );
-          const newAccessToken = await refreshPromise;
+          const newAccessToken = await refreshSession(client.defaults.baseURL);
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           return client(originalRequest);
         } catch (refreshError) {

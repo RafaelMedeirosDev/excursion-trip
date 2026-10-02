@@ -1,20 +1,24 @@
 import { useEffect } from "react";
-import { authApi } from "@/features/auth/api/authApi";
+import { env } from "@/config/env";
+import { refreshSession } from "@/services/http/refreshSession";
 import { useAuthStore } from "@/store/authStore";
 
 /**
  * Ao carregar a aplicação, se existir um refreshToken salvo (sobrevive a um F5),
  * tenta trocar por um accessToken novo antes de renderizar as rotas privadas.
+ *
+ * Usa o `refreshSession` compartilhado, e não uma chamada própria: o
+ * <StrictMode> monta esse efeito duas vezes em desenvolvimento, e como o
+ * backend rotaciona o refresh token (revoga o antigo), a segunda execução
+ * mandaria um token já revogado, tomaria 401 e derrubaria a sessão a cada F5.
+ * A promessa compartilhada faz a segunda execução aguardar a primeira.
  */
 export function useInitAuth() {
   const isInitializing = useAuthStore((state) => state.isInitializing);
 
   useEffect(() => {
-    let active = true;
-
     async function bootstrap() {
-      const { refreshToken, setTokens, clear, finishInitializing } =
-        useAuthStore.getState();
+      const { refreshToken, finishInitializing } = useAuthStore.getState();
 
       if (!refreshToken) {
         finishInitializing();
@@ -22,19 +26,16 @@ export function useInitAuth() {
       }
 
       try {
-        const tokens = await authApi.refresh(refreshToken);
-        if (active) setTokens(tokens.accessToken, tokens.refreshToken);
+        await refreshSession(env.apiUrl);
       } catch {
-        if (active) clear();
+        // quem decide deslogar é o refreshSession, e só no 401 — aqui basta
+        // sair do estado de carregamento pra aplicação renderizar
       } finally {
-        if (active) finishInitializing();
+        finishInitializing();
       }
     }
 
     bootstrap();
-    return () => {
-      active = false;
-    };
   }, []);
 
   return { isInitializing };
